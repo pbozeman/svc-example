@@ -1,0 +1,3 @@
+[submodule "svc"]
+	path = svc
+	url = git@github.com:pbozeman/svc.git
