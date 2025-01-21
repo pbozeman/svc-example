@@ -1,0 +1,1 @@
+../svc/scripts/find_seed.py
