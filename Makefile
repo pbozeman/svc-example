@@ -4,7 +4,7 @@ PRJ_DIR = .
 .PHONY: default
 default: quick
 
-TOP_MODULES := rtl/blinky/blinky_top.sv
+TOP_MODULES := rtl/blinky/blinky_top.sv rtl/mem_test/mem_test_top.sv
 
 CONSTRAINTS_DIR := constraints
 ICE40_DEV_BOARD := vanilla-ice40
