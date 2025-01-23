@@ -46,8 +46,8 @@ module mem_test_top #(
   mem_test #(
       .SRAM_ADDR_WIDTH(SRAM_ADDR_WIDTH),
       .SRAM_DATA_WIDTH(SRAM_DATA_WIDTH),
-      .NUM_BURSTS     (128),
-      .NUM_BEATS      (128)
+      .NUM_BURSTS     (NUM_BURSTS),
+      .NUM_BEATS      (NUM_BEATS)
   ) mem_test_new_i (
       .clk  (CLK),
       .rst_n(rst_n),
