@@ -2,9 +2,9 @@
 `include "svc_model_sram.sv"
 `include "svc_unit.sv"
 
-`include "mem_test.sv"
+`include "mem_test_ice40_sram.sv"
 
-module mem_test_tb;
+module mem_test_ice40_sram_tb;
   localparam AW = 8;
   localparam DW = 16;
 
@@ -22,7 +22,7 @@ module mem_test_tb;
   `TEST_CLK_NS(clk, 20);
   `TEST_RST_N(clk, rst_n);
 
-  mem_test #(
+  mem_test_ice40_sram #(
       .SRAM_ADDR_WIDTH(AW),
       .SRAM_DATA_WIDTH(DW)
   ) uut (
@@ -73,7 +73,7 @@ module mem_test_tb;
     `CHECK_EQ(done_cnt, 3);
   endtask
 
-  `TEST_SUITE_BEGIN(mem_test_tb);
+  `TEST_SUITE_BEGIN(mem_test_ice40_sram_tb);
   `TEST_CASE(test_pass);
   `TEST_SUITE_END();
 endmodule

@@ -1,13 +1,13 @@
 `include "svc.sv"
 `include "svc_init.sv"
 
-`include "mem_test.sv"
+`include "mem_test_ice40_sram.sv"
 
 // This is currently more of a quick test of the axi stack rather than a full
 // sram tester. Fully testing and stressing the actual chip as part of hw
 // acceptance testing is TBD.
 
-module mem_test_top #(
+module mem_test_ice40_sram_top #(
     parameter integer SRAM_ADDR_WIDTH = 20,
     parameter integer SRAM_DATA_WIDTH = 16
 ) (
@@ -43,7 +43,7 @@ module mem_test_top #(
       .rst_n(rst_n)
   );
 
-  mem_test #(
+  mem_test_ice40_sram #(
       .SRAM_ADDR_WIDTH(SRAM_ADDR_WIDTH),
       .SRAM_DATA_WIDTH(SRAM_DATA_WIDTH),
       .NUM_BURSTS     (NUM_BURSTS),

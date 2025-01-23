@@ -1,11 +1,11 @@
-`ifndef MEM_TEST_SV
-`define MEM_TEST_SV
+`ifndef MEM_TEST_ICE40_SRAM_SV
+`define MEM_TEST_ICE40_SRAM_SV
 
 `include "svc_ice40_axi_sram.sv"
 
 `include "mem_test_axi.sv"
 
-module mem_test #(
+module mem_test_ice40_sram #(
     parameter SRAM_ADDR_WIDTH = 20,
     parameter SRAM_DATA_WIDTH = 16,
     parameter NUM_BURSTS      = 8,
