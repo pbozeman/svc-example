@@ -6,7 +6,8 @@ default: quick
 
 TOP_MODULES := \
 	rtl/blinky/blinky_top.sv \
-	rtl/mem_test_ice40_sram/mem_test_ice40_sram_top.sv
+	rtl/mem_test_ice40_sram/mem_test_ice40_sram_top.sv \
+	rtl/mem_test_arbiter_ice40_sram/mem_test_arbiter_ice40_sram_top.sv
 
 CONSTRAINTS_DIR := constraints
 ICE40_DEV_BOARD := vanilla-ice40
