@@ -38,7 +38,9 @@ module mem_test_ice40_sram_top #(
 
   logic [7:0] done_cnt;
 
-  svc_init svc_init_i (
+  svc_init #(
+      .RST_CYCLES(255)
+  ) svc_init_i (
       .clk  (CLK),
       .rst_n(rst_n)
   );
