@@ -55,7 +55,7 @@ module mem_test_axi #(
     input  logic                      m_axi_rlast,
     output logic                      m_axi_rready
 );
-  localparam BURST_ADDR_BASE = AXI_ADDR_WIDTH'(8'h0A);
+  localparam BURST_ADDR_BASE = AXI_ADDR_WIDTH'(8'h00);
   localparam BEAT_DATA_BASE = AXI_DATA_WIDTH'(8'hD0);
 
   localparam BYTES_PER_BEAT = AXI_DATA_WIDTH / 8;
