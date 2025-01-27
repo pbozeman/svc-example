@@ -5,7 +5,7 @@
 `include "mem_test_striped_ice40_sram.sv"
 
 module mem_test_striped_ice40_sram_tb;
-  localparam NUM_S = 2;
+  localparam NUM_S = 4;
   localparam AW = 8;
   localparam DW = 16;
 
@@ -24,6 +24,7 @@ module mem_test_striped_ice40_sram_tb;
   `TEST_RST_N(clk, rst_n);
 
   mem_test_striped_ice40_sram #(
+      .NUM_S          (NUM_S),
       .SRAM_ADDR_WIDTH(AW),
       .SRAM_DATA_WIDTH(DW)
   ) uut (
