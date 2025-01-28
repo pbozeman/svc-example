@@ -216,7 +216,7 @@ module mem_test_axi #(
 
       STATE_DONE: begin
         r_enable_next = 1'b1;
-        // w_state_next  = STATE_IDLE;
+        w_state_next  = STATE_IDLE;
       end
 
       STATE_FAIL: begin
