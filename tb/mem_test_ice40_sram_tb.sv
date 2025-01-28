@@ -5,26 +5,26 @@
 `include "mem_test_ice40_sram.sv"
 
 module mem_test_ice40_sram_tb;
-  localparam AW = 8;
-  localparam DW = 16;
+  localparam SRAM_ADDR_WIDTH = 8;
+  localparam SRAM_DATA_WIDTH = 16;
 
-  logic [AW-1:0] sram_io_addr;
-  wire  [DW-1:0] sram_io_data;
-  logic          sram_io_we_n;
-  logic          sram_io_oe_n;
-  logic          sram_io_ce_n;
+  logic [SRAM_ADDR_WIDTH-1:0] sram_io_addr;
+  wire  [SRAM_DATA_WIDTH-1:0] sram_io_data;
+  logic                       sram_io_we_n;
+  logic                       sram_io_oe_n;
+  logic                       sram_io_ce_n;
 
-  logic          done;
-  logic          pass;
+  logic                       done;
+  logic                       pass;
 
-  logic [   7:0] done_cnt;
+  logic [                7:0] done_cnt;
 
   `TEST_CLK_NS(clk, 20);
   `TEST_RST_N(clk, rst_n);
 
   mem_test_ice40_sram #(
-      .SRAM_ADDR_WIDTH(AW),
-      .SRAM_DATA_WIDTH(DW)
+      .SRAM_ADDR_WIDTH(SRAM_ADDR_WIDTH),
+      .SRAM_DATA_WIDTH(SRAM_DATA_WIDTH)
   ) uut (
       .clk  (clk),
       .rst_n(rst_n),
@@ -43,8 +43,8 @@ module mem_test_ice40_sram_tb;
   );
 
   svc_model_sram #(
-      .ADDR_WIDTH(AW),
-      .DATA_WIDTH(DW)
+      .ADDR_WIDTH(SRAM_ADDR_WIDTH),
+      .DATA_WIDTH(SRAM_DATA_WIDTH)
   ) svc_model_sram_i (
       .rst_n  (rst_n),
       .we_n   (sram_io_we_n),

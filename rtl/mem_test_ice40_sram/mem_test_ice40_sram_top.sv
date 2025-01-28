@@ -8,8 +8,10 @@
 // acceptance testing is TBD.
 
 module mem_test_ice40_sram_top #(
-    parameter integer SRAM_ADDR_WIDTH = 18,
-    parameter integer SRAM_DATA_WIDTH = 8
+    parameter SRAM_ADDR_WIDTH = 18,
+    parameter SRAM_DATA_WIDTH = 8,
+    parameter NUM_BURSTS      = 255,
+    parameter NUM_BEATS       = 128
 ) (
     // board signals
     input  logic CLK,
@@ -28,8 +30,6 @@ module mem_test_ice40_sram_top #(
     output logic [7:0] R_F,
     output logic [7:0] R_I
 );
-  localparam NUM_BURSTS = 8;
-  localparam NUM_BEATS = 127;
 
   logic       rst_n;
   logic       test_done;
