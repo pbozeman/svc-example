@@ -7,11 +7,12 @@
 `include "mem_test_axi.sv"
 
 module mem_test_striped_ice40_sram #(
-    parameter NUM_S           = 2,
-    parameter SRAM_ADDR_WIDTH = 20,
-    parameter SRAM_DATA_WIDTH = 16,
-    parameter NUM_BURSTS      = 8,
-    parameter NUM_BEATS       = 8
+    parameter NUM_S            = 2,
+    parameter SRAM_ADDR_WIDTH  = 20,
+    parameter SRAM_DATA_WIDTH  = 16,
+    parameter SRAM_RDATA_WIDTH = SRAM_DATA_WIDTH,
+    parameter NUM_BURSTS       = 8,
+    parameter NUM_BEATS        = 8
 ) (
     // tester signals
     input logic clk,
@@ -26,11 +27,11 @@ module mem_test_striped_ice40_sram #(
     output logic [7:0] debug2,
 
     // sram controller to io pins
-    output logic [NUM_S-1:0][SRAM_ADDR_WIDTH-1:0] sram_io_addr,
-    inout  wire  [NUM_S-1:0][SRAM_DATA_WIDTH-1:0] sram_io_data,
-    output logic [NUM_S-1:0]                      sram_io_we_n,
-    output logic [NUM_S-1:0]                      sram_io_oe_n,
-    output logic [NUM_S-1:0]                      sram_io_ce_n
+    output logic [NUM_S-1:0][ SRAM_ADDR_WIDTH-1:0] sram_io_addr,
+    inout  wire  [NUM_S-1:0][SRAM_RDATA_WIDTH-1:0] sram_io_data,
+    output logic [NUM_S-1:0]                       sram_io_we_n,
+    output logic [NUM_S-1:0]                       sram_io_oe_n,
+    output logic [NUM_S-1:0]                       sram_io_ce_n
 );
   localparam AXI_ADDR_WIDTH = SRAM_ADDR_WIDTH + $clog2(SRAM_DATA_WIDTH / 8);
   localparam AXI_DATA_WIDTH = SRAM_DATA_WIDTH;
@@ -105,9 +106,10 @@ module mem_test_striped_ice40_sram #(
 
   for (genvar i = 0; i < NUM_S; i++) begin : gen_sram
     svc_ice40_axi_sram #(
-        .AXI_ADDR_WIDTH(AXI_ADDR_WIDTH),
-        .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
-        .AXI_ID_WIDTH  (AXI_ID_WIDTH)
+        .AXI_ADDR_WIDTH  (AXI_ADDR_WIDTH),
+        .AXI_DATA_WIDTH  (AXI_DATA_WIDTH),
+        .AXI_ID_WIDTH    (AXI_ID_WIDTH),
+        .SRAM_RDATA_WIDTH(SRAM_RDATA_WIDTH)
     ) svc_ice40_axi_sram_i (
         .clk          (clk),
         .rst_n        (rst_n),
@@ -225,7 +227,8 @@ module mem_test_striped_ice40_sram #(
       .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
       .AXI_ID_WIDTH  (AXI_ID_WIDTH),
       .NUM_BURSTS    (NUM_BURSTS),
-      .NUM_BEATS     (NUM_BEATS)
+      .NUM_BEATS     (NUM_BEATS),
+      .RDATA_WIDTH   (SRAM_RDATA_WIDTH)
   ) mem_test_axi_i (
       .clk  (clk),
       .rst_n(rst_n),

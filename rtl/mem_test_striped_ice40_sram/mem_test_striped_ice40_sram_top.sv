@@ -8,9 +8,12 @@
 // acceptance testing is TBD.
 
 module mem_test_striped_ice40_sram_top #(
-    parameter         NUM_S           = 4,
-    parameter integer SRAM_ADDR_WIDTH = 18,
-    parameter integer SRAM_DATA_WIDTH = 8
+    parameter NUM_S            = 4,
+    parameter SRAM_ADDR_WIDTH  = 18,
+    parameter SRAM_DATA_WIDTH  = 16,
+    parameter SRAM_RDATA_WIDTH = 12,
+    parameter NUM_BURSTS       = 255,
+    parameter NUM_BEATS        = 128
 ) (
     // board signals
     input  logic CLK,
@@ -18,36 +21,34 @@ module mem_test_striped_ice40_sram_top #(
     output logic LED2,
 
     // SRAM A
-    output logic                       L_SRAM_256_A_OE_N,
-    output logic                       L_SRAM_256_A_WE_N,
-    output logic [SRAM_ADDR_WIDTH-1:0] L_SRAM_256_A_ADDR_BUS,
-    inout  wire  [SRAM_DATA_WIDTH-1:0] L_SRAM_256_A_DATA_BUS,
+    output logic                        L_SRAM_256_A_OE_N,
+    output logic                        L_SRAM_256_A_WE_N,
+    output logic [ SRAM_ADDR_WIDTH-1:0] L_SRAM_256_A_ADDR_BUS,
+    inout  wire  [SRAM_RDATA_WIDTH-1:0] L_SRAM_256_A_DATA_BUS,
 
     // SRAM B
-    output logic                       L_SRAM_256_B_OE_N,
-    output logic                       L_SRAM_256_B_WE_N,
-    output logic [SRAM_ADDR_WIDTH-1:0] L_SRAM_256_B_ADDR_BUS,
-    inout  wire  [SRAM_DATA_WIDTH-1:0] L_SRAM_256_B_DATA_BUS,
+    output logic                        L_SRAM_256_B_OE_N,
+    output logic                        L_SRAM_256_B_WE_N,
+    output logic [ SRAM_ADDR_WIDTH-1:0] L_SRAM_256_B_ADDR_BUS,
+    inout  wire  [SRAM_RDATA_WIDTH-1:0] L_SRAM_256_B_DATA_BUS,
 
     // SRAM C
-    output logic                       R_SRAM_256_A_OE_N,
-    output logic                       R_SRAM_256_A_WE_N,
-    output logic [SRAM_ADDR_WIDTH-1:0] R_SRAM_256_A_ADDR_BUS,
-    inout  wire  [SRAM_DATA_WIDTH-1:0] R_SRAM_256_A_DATA_BUS,
+    output logic                        R_SRAM_256_A_OE_N,
+    output logic                        R_SRAM_256_A_WE_N,
+    output logic [ SRAM_ADDR_WIDTH-1:0] R_SRAM_256_A_ADDR_BUS,
+    inout  wire  [SRAM_RDATA_WIDTH-1:0] R_SRAM_256_A_DATA_BUS,
 
     // SRAM D
-    output logic                       R_SRAM_256_B_OE_N,
-    output logic                       R_SRAM_256_B_WE_N,
-    output logic [SRAM_ADDR_WIDTH-1:0] R_SRAM_256_B_ADDR_BUS,
-    inout  wire  [SRAM_DATA_WIDTH-1:0] R_SRAM_256_B_DATA_BUS,
+    output logic                        R_SRAM_256_B_OE_N,
+    output logic                        R_SRAM_256_B_WE_N,
+    output logic [ SRAM_ADDR_WIDTH-1:0] R_SRAM_256_B_ADDR_BUS,
+    inout  wire  [SRAM_RDATA_WIDTH-1:0] R_SRAM_256_B_DATA_BUS,
 
     // debug signals
     output logic [7:0] R_E,
     output logic [7:0] R_F,
     output logic [7:0] R_I
 );
-  localparam NUM_BURSTS = 255;
-  localparam NUM_BEATS = 128;
 
   logic       rst_n;
   logic       test_done;
@@ -63,11 +64,12 @@ module mem_test_striped_ice40_sram_top #(
   );
 
   mem_test_striped_ice40_sram #(
-      .NUM_S          (NUM_S),
-      .SRAM_ADDR_WIDTH(SRAM_ADDR_WIDTH),
-      .SRAM_DATA_WIDTH(SRAM_DATA_WIDTH),
-      .NUM_BURSTS     (NUM_BURSTS),
-      .NUM_BEATS      (NUM_BEATS)
+      .NUM_S           (NUM_S),
+      .SRAM_ADDR_WIDTH (SRAM_ADDR_WIDTH),
+      .SRAM_DATA_WIDTH (SRAM_DATA_WIDTH),
+      .SRAM_RDATA_WIDTH(SRAM_RDATA_WIDTH),
+      .NUM_BURSTS      (NUM_BURSTS),
+      .NUM_BEATS       (NUM_BEATS),
   ) mem_test_new_i (
       .clk  (CLK),
       .rst_n(rst_n),
