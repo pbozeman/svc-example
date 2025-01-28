@@ -6,27 +6,33 @@
 
 module mem_test_striped_ice40_sram_tb;
   localparam NUM_S = 4;
-  localparam AW = 8;
-  localparam DW = 16;
+  localparam SRAM_ADDR_WIDTH = 18;
+  localparam SRAM_DATA_WIDTH = 16;
+  localparam SRAM_RDATA_WIDTH = 8;
+  localparam NUM_BURSTS = 16;
+  localparam NUM_BEATS = 8;
 
-  logic [NUM_S-1:0][AW-1:0] sram_io_addr;
-  wire  [NUM_S-1:0][DW-1:0] sram_io_data;
-  logic [NUM_S-1:0]         sram_io_we_n;
-  logic [NUM_S-1:0]         sram_io_oe_n;
-  logic [NUM_S-1:0]         sram_io_ce_n;
+  logic [NUM_S-1:0][ SRAM_ADDR_WIDTH-1:0] sram_io_addr;
+  wire  [NUM_S-1:0][SRAM_RDATA_WIDTH-1:0] sram_io_data;
+  logic [NUM_S-1:0]                       sram_io_we_n;
+  logic [NUM_S-1:0]                       sram_io_oe_n;
+  logic [NUM_S-1:0]                       sram_io_ce_n;
 
-  logic                     done;
-  logic                     pass;
+  logic                                   done;
+  logic                                   pass;
 
-  logic [      7:0]         done_cnt;
+  logic [      7:0]                       done_cnt;
 
   `TEST_CLK_NS(clk, 20);
   `TEST_RST_N(clk, rst_n);
 
   mem_test_striped_ice40_sram #(
-      .NUM_S          (NUM_S),
-      .SRAM_ADDR_WIDTH(AW),
-      .SRAM_DATA_WIDTH(DW)
+      .NUM_S           (NUM_S),
+      .SRAM_ADDR_WIDTH (SRAM_ADDR_WIDTH),
+      .SRAM_DATA_WIDTH (SRAM_DATA_WIDTH),
+      .SRAM_RDATA_WIDTH(SRAM_RDATA_WIDTH),
+      .NUM_BURSTS      (NUM_BURSTS),
+      .NUM_BEATS       (NUM_BEATS)
   ) uut (
       .clk  (clk),
       .rst_n(rst_n),
@@ -46,8 +52,8 @@ module mem_test_striped_ice40_sram_tb;
 
   for (genvar i = 0; i < NUM_S; i++) begin : gen_sram
     svc_model_sram #(
-        .ADDR_WIDTH(AW),
-        .DATA_WIDTH(DW)
+        .ADDR_WIDTH(SRAM_ADDR_WIDTH),
+        .DATA_WIDTH(SRAM_RDATA_WIDTH)
     ) svc_model_sram_i (
         .rst_n  (rst_n),
         .we_n   (sram_io_we_n[i]),
