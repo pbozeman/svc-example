@@ -92,7 +92,7 @@ module mem_test_axi #(
   logic   [               7:0] m_axi_awlen_next;
 
   logic                        m_axi_wvalid_next;
-  logic   [   RDATA_WIDTH-1:0] m_axi_wdata_next;
+  logic   [AXI_DATA_WIDTH-1:0] m_axi_wdata_next;
   logic                        m_axi_wlast_next;
 
   logic                        r_enable;
@@ -187,7 +187,7 @@ module mem_test_axi #(
           w_data_cnt_next    = w_data_cnt + 1;
 
           m_axi_wvalid_next  = 1'b1;
-          m_axi_wdata_next   = w_data_calc;
+          m_axi_wdata_next   = AXI_DATA_WIDTH'(w_data_calc);
           m_axi_wlast_next   = w_beat_cnt_next == NUM_BEATS;
         end
       end
@@ -198,7 +198,7 @@ module mem_test_axi #(
             w_beat_cnt_next   = w_beat_cnt + 1;
             m_axi_wvalid_next = 1'b1;
             w_data_cnt_next   = w_data_cnt + 1;
-            m_axi_wdata_next  = w_data_calc;
+            m_axi_wdata_next  = AXI_DATA_WIDTH'(w_data_calc);
             m_axi_wlast_next  = w_beat_cnt_next == NUM_BEATS;
           end
         end
@@ -304,9 +304,9 @@ module mem_test_axi #(
       STATE_BURST: begin
         if (m_axi_rvalid && m_axi_rready) begin
           r_data_cnt_next           = r_data_cnt + 1;
-          r_data_actual_next        = m_axi_rdata;
+          r_data_actual_next        = RDATA_WIDTH'(m_axi_rdata);
           r_data_expected_save_next = r_data_calc;
-          if (m_axi_rdata != r_data_calc) begin
+          if (RDATA_WIDTH'(m_axi_rdata) != r_data_calc) begin
             r_state_next = STATE_FAIL;
           end else begin
             if (m_axi_rlast) begin
@@ -369,7 +369,7 @@ module mem_test_axi #(
   assign debug1 = 8'(r_data_expected_save);
   assign debug2 = 8'(done_cnt);
 
-  `SVC_UNUSED({m_axi_bid, m_axi_bresp, m_axi_rid, m_axi_rresp});
+  `SVC_UNUSED({m_axi_bid, m_axi_bresp, m_axi_rid, m_axi_rresp, m_axi_rdata});
 
 endmodule
 
