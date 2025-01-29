@@ -8,9 +8,9 @@ module mem_test_striped_ice40_sram_tb;
   localparam NUM_S = 4;
   localparam SRAM_ADDR_WIDTH = 18;
   localparam SRAM_DATA_WIDTH = 16;
-  localparam SRAM_RDATA_WIDTH = 8;
+  localparam SRAM_RDATA_WIDTH = 12;
   localparam NUM_BURSTS = 16;
-  localparam NUM_BEATS = 8;
+  localparam NUM_BEATS = 128;
 
   logic [NUM_S-1:0][ SRAM_ADDR_WIDTH-1:0] sram_io_addr;
   wire  [NUM_S-1:0][SRAM_RDATA_WIDTH-1:0] sram_io_data;
