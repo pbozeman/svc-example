@@ -69,7 +69,7 @@ module mem_test_striped_ice40_sram_top #(
       .SRAM_DATA_WIDTH (SRAM_DATA_WIDTH),
       .SRAM_RDATA_WIDTH(SRAM_RDATA_WIDTH),
       .NUM_BURSTS      (NUM_BURSTS),
-      .NUM_BEATS       (NUM_BEATS),
+      .NUM_BEATS       (NUM_BEATS)
   ) mem_test_new_i (
       .clk  (CLK),
       .rst_n(rst_n),
