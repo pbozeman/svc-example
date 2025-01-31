@@ -7,9 +7,11 @@
 // sram tester. Fully testing and stressing the actual chip as part of hw
 // acceptance testing is TBD.
 
+// FIXME: for now only use 12 bits, because bit 12 on R_SRAM_B_ADDR_BUS
+// doesn't work on the my main dev board. Fix this once repaired.
 module mem_test_striped_ice40_sram_top #(
     parameter NUM_S            = 4,
-    parameter SRAM_ADDR_WIDTH  = 18,
+    parameter SRAM_ADDR_WIDTH  = 11,
     parameter SRAM_DATA_WIDTH  = 16,
     parameter SRAM_RDATA_WIDTH = 12,
     parameter NUM_BURSTS       = 255,
