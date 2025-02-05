@@ -9,7 +9,8 @@ TOP_MODULES := \
 	rtl/mem_test_arbiter_ice40_sram/mem_test_arbiter_ice40_sram_top.sv \
 	rtl/mem_test_ice40_sram/mem_test_ice40_sram_top.sv \
 	rtl/mem_test_striped_ice40_sram/mem_test_striped_ice40_sram_top.sv \
-	rtl/mem_test_striped_arbiter_ice40_sram/mem_test_striped_arbiter_ice40_sram_top.sv
+	rtl/mem_test_striped_arbiter_ice40_sram/mem_test_striped_arbiter_ice40_sram_top.sv \
+	rtl/vga_pattern/vga_pattern_top.sv
 
 CONSTRAINTS_DIR := constraints
 ICE40_DEV_BOARD := vanilla-ice40
