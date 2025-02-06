@@ -1,5 +1,5 @@
 // TODO: move the mode config into the makefile
-`define VGA_MODE_1024_768_60
+`define VGA_MODE_640_480_60
 
 `include "svc.sv"
 `include "svc_init.sv"
@@ -34,15 +34,18 @@ module vga_pattern_top #(
   );
 
   svc_init svc_init_i (
-      .clk  (pixel_clk),
+      .clk  (CLK),
       .rst_n(rst_n)
   );
 
   vga_pattern #(
       .COLOR_WIDTH(COLOR_WIDTH)
   ) vga_pattern_i (
-      .clk  (pixel_clk),
+      .clk  (CLK),
       .rst_n(rst_n),
+
+      .pixel_clk  (pixel_clk),
+      .pixel_rst_n(rst_n),
 
       .vga_red  (vga_red),
       .vga_grn  (vga_grn),

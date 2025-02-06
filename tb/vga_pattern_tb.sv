@@ -9,7 +9,9 @@
 module vga_pattern_tb;
   localparam COLOR_WIDTH = 4;
 
-  `TEST_CLK_NS(clk, `VGA_MODE_TB_PIXEL_CLK);
+  `TEST_CLK_NS(clk, 10);
+  `TEST_CLK_NS(pixel_clk, `VGA_MODE_TB_PIXEL_CLK);
+
   `TEST_RST_N(clk, rst_n);
 
   logic [COLOR_WIDTH-1:0] vga_red;
@@ -23,6 +25,9 @@ module vga_pattern_tb;
   ) uut (
       .clk  (clk),
       .rst_n(rst_n),
+
+      .pixel_clk  (pixel_clk),
+      .pixel_rst_n(rst_n),
 
       .vga_red  (vga_red),
       .vga_grn  (vga_grn),
