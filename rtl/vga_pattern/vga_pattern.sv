@@ -2,7 +2,7 @@
 `define VGA_PATTERN_SV
 
 `include "svc_rgb.sv"
-`include "svc_vga.sv"
+`include "svc_pix_vga.sv"
 `include "svc_vga_mode.sv"
 
 //
@@ -55,13 +55,13 @@ module vga_pattern #(
   logic [HW-1:0]         v_sync_end;
   logic [HW-1:0]         v_frame_end;
 
-  logic                  m_valid;
-  logic                  m_valid_next;
+  logic                  m_pix_valid;
+  logic                  m_pix_valid_next;
 
-  logic [CW-1:0]         m_red;
-  logic [CW-1:0]         m_grn;
-  logic [CW-1:0]         m_blu;
-  logic                  m_ready;
+  logic [CW-1:0]         m_pix_red;
+  logic [CW-1:0]         m_pix_grn;
+  logic [CW-1:0]         m_pix_blu;
+  logic                  m_pix_ready;
 
   logic                  en;
 
@@ -96,7 +96,7 @@ module vga_pattern #(
 
   assign col_colors   = {BLACK, BLUE, RED, MAGENTA, GREEN, CYAN, YELLOW, WHITE};
 
-  svc_vga #(
+  svc_pix_vga #(
       .H_WIDTH    (HW),
       .V_WIDTH    (VW),
       .COLOR_WIDTH(CW)
@@ -105,11 +105,11 @@ module vga_pattern #(
       .rst_n(rst_n),
       .en   (en),
 
-      .s_valid(m_valid),
-      .s_red  (m_red),
-      .s_grn  (m_grn),
-      .s_blu  (m_blu),
-      .s_ready(m_ready),
+      .s_pix_valid(m_pix_valid),
+      .s_pix_red  (m_pix_red),
+      .s_pix_grn  (m_pix_grn),
+      .s_pix_blu  (m_pix_blu),
+      .s_pix_ready(m_pix_ready),
 
       .h_visible   (h_visible),
       .h_sync_start(h_sync_start),
@@ -133,10 +133,10 @@ module vga_pattern #(
   assign col_width = h_visible >> 3;
 
   always_comb begin
-    m_valid_next = m_valid && !m_ready;
+    m_pix_valid_next = m_pix_valid && !m_pix_ready;
 
-    if (!m_valid || m_ready) begin
-      m_valid_next = 1'b1;
+    if (!m_pix_valid || m_pix_ready) begin
+      m_pix_valid_next = 1'b1;
     end
   end
 
@@ -145,7 +145,7 @@ module vga_pattern #(
     col_next      = col;
     col_edge_next = col_edge;
 
-    if (m_valid && m_ready) begin
+    if (m_pix_valid && m_pix_ready) begin
       if (x < h_visible - 1) begin
         x_next = x + 1;
 
@@ -163,15 +163,15 @@ module vga_pattern #(
 
   always_ff @(posedge clk) begin
     if (!rst_n) begin
-      m_valid  <= 1'b0;
-      x        <= 0;
-      col      <= 0;
-      col_edge <= col_width;
+      m_pix_valid <= 1'b0;
+      x           <= 0;
+      col         <= 0;
+      col_edge    <= col_width;
     end else begin
-      m_valid  <= m_valid_next;
-      x        <= x_next;
-      col      <= col_next;
-      col_edge <= col_edge_next;
+      m_pix_valid <= m_pix_valid_next;
+      x           <= x_next;
+      col         <= col_next;
+      col_edge    <= col_edge_next;
     end
   end
 
@@ -180,14 +180,14 @@ module vga_pattern #(
     if (!rst_n) begin
       en <= 1'b0;
     end else begin
-      if (m_valid_next) begin
+      if (m_pix_valid_next) begin
         en <= 1'b1;
       end
     end
   end
 
-  assign pixel                 = col_colors[col];
-  assign {m_red, m_grn, m_blu} = pixel;
+  assign pixel                             = col_colors[col];
+  assign {m_pix_red, m_pix_grn, m_pix_blu} = pixel;
 
 endmodule
 `endif
