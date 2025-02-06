@@ -1,8 +1,9 @@
 `ifndef VGA_PATTERN_SV
 `define VGA_PATTERN_SV
 
-`include "svc_rgb.sv"
+`include "svc_pix_cdc.sv"
 `include "svc_pix_vga.sv"
+`include "svc_rgb.sv"
 `include "svc_vga_mode.sv"
 
 //
@@ -21,6 +22,9 @@ module vga_pattern #(
 ) (
     input logic clk,
     input logic rst_n,
+
+    input logic pixel_clk,
+    input logic pixel_rst_n,
 
     output logic [COLOR_WIDTH-1:0] vga_red,
     output logic [COLOR_WIDTH-1:0] vga_grn,
@@ -63,8 +67,6 @@ module vga_pattern #(
   logic [CW-1:0]         m_pix_blu;
   logic                  m_pix_ready;
 
-  logic                  en;
-
   // horizontal position
   logic [HW-1:0]         x;
   logic [HW-1:0]         x_next;
@@ -82,7 +84,13 @@ module vga_pattern #(
 
   logic [   7:0][PW-1:0] col_colors;
 
-  logic [PW-1:0]         pixel;
+  // these signals are in the pixel clock domain
+  logic                  vga_pix_valid;
+  logic [CW-1:0]         vga_pix_red;
+  logic [CW-1:0]         vga_pix_grn;
+  logic [CW-1:0]         vga_pix_blu;
+  logic                  vga_pix_ready;
+  logic                  vga_error;
 
   assign h_visible    = `VGA_MODE_H_VISIBLE;
   assign h_sync_start = `VGA_MODE_H_SYNC_START;
@@ -96,41 +104,8 @@ module vga_pattern #(
 
   assign col_colors   = {BLACK, BLUE, RED, MAGENTA, GREEN, CYAN, YELLOW, WHITE};
 
-  svc_pix_vga #(
-      .H_WIDTH    (HW),
-      .V_WIDTH    (VW),
-      .COLOR_WIDTH(CW)
-  ) svc_vga_i (
-      .clk  (clk),
-      .rst_n(rst_n),
-      .en   (en),
-
-      .s_pix_valid(m_pix_valid),
-      .s_pix_red  (m_pix_red),
-      .s_pix_grn  (m_pix_grn),
-      .s_pix_blu  (m_pix_blu),
-      .s_pix_ready(m_pix_ready),
-
-      .h_visible   (h_visible),
-      .h_sync_start(h_sync_start),
-      .h_sync_end  (h_sync_end),
-      .h_line_end  (h_line_end),
-
-      .v_visible   (v_visible),
-      .v_sync_start(v_sync_start),
-      .v_sync_end  (v_sync_end),
-      .v_frame_end (v_frame_end),
-
-      .vga_hsync(vga_hsync),
-      .vga_vsync(vga_vsync),
-      .vga_red  (vga_red),
-      .vga_grn  (vga_grn),
-      .vga_blu  (vga_blu),
-      .vga_error()
-  );
-
   // we have 8 columns, so divide by 8 for width
-  assign col_width = h_visible >> 3;
+  assign col_width    = h_visible >> 3;
 
   always_comb begin
     m_pix_valid_next = m_pix_valid && !m_pix_ready;
@@ -175,19 +150,60 @@ module vga_pattern #(
     end
   end
 
-  // en on the first valid
-  always_ff @(posedge clk) begin
-    if (!rst_n) begin
-      en <= 1'b0;
-    end else begin
-      if (m_pix_valid_next) begin
-        en <= 1'b1;
-      end
-    end
-  end
+  assign {m_pix_red, m_pix_grn, m_pix_blu} = col_colors[col];
 
-  assign pixel                             = col_colors[col];
-  assign {m_pix_red, m_pix_grn, m_pix_blu} = pixel;
+  svc_pix_cdc #(
+      .COLOR_WIDTH(COLOR_WIDTH)
+  ) svc_pix_cdc_i (
+      .s_clk  (clk),
+      .s_rst_n(rst_n),
+
+      .s_pix_valid(m_pix_valid),
+      .s_pix_red  (m_pix_red),
+      .s_pix_grn  (m_pix_grn),
+      .s_pix_blu  (m_pix_blu),
+      .s_pix_ready(m_pix_ready),
+
+      .m_clk      (pixel_clk),
+      .m_rst_n    (pixel_rst_n),
+      .m_pix_valid(vga_pix_valid),
+      .m_pix_red  (vga_pix_red),
+      .m_pix_grn  (vga_pix_grn),
+      .m_pix_blu  (vga_pix_blu),
+      .m_pix_ready(vga_pix_ready)
+  );
+
+  svc_pix_vga #(
+      .H_WIDTH    (HW),
+      .V_WIDTH    (VW),
+      .COLOR_WIDTH(COLOR_WIDTH)
+  ) svc_pix_vga_i (
+      .clk  (pixel_clk),
+      .rst_n(pixel_rst_n),
+
+      .s_pix_valid(vga_pix_valid),
+      .s_pix_red  (vga_pix_red),
+      .s_pix_grn  (vga_pix_grn),
+      .s_pix_blu  (vga_pix_blu),
+      .s_pix_ready(vga_pix_ready),
+
+      .h_visible   (h_visible),
+      .h_sync_start(h_sync_start),
+      .h_sync_end  (h_sync_end),
+      .h_line_end  (h_line_end),
+
+      .v_visible   (v_visible),
+      .v_sync_start(v_sync_start),
+      .v_sync_end  (v_sync_end),
+      .v_frame_end (v_frame_end),
+
+      .vga_hsync(vga_hsync),
+      .vga_vsync(vga_vsync),
+      .vga_red  (vga_red),
+      .vga_grn  (vga_grn),
+      .vga_blu  (vga_blu),
+      .vga_error(vga_error)
+  );
 
 endmodule
 `endif
