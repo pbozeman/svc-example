@@ -1,4 +1,4 @@
-`define VGA_MODE_800_600_60
+`define VGA_MODE_640_480_60
 
 `include "svc_unit.sv"
 `include "svc_ice40_vga_mode.sv"
@@ -39,11 +39,11 @@ module vga_pattern_tb;
   task automatic test_basic();
     // 2 frames
     repeat (2 * (`VGA_MODE_H_WHOLE_LINE * `VGA_MODE_V_WHOLE_FRAME)) begin
-      `TICK(clk);
+      `TICK(pixel_clk);
     end
   endtask
 
-  `TEST_SUITE_BEGIN(vga_pattern_tb, 2000000);
+  `TEST_SUITE_BEGIN(vga_pattern_tb, 20000000);
   `TEST_CASE(test_basic);
   `TEST_SUITE_END();
 endmodule
