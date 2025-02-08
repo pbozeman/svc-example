@@ -428,7 +428,7 @@ module gfx_pattern_demo_striped #(
     if (!rst_n) begin
       pat_gfx_start <= 1'b1;
     end else begin
-      pat_gfx_start <= 1'b0;
+      pat_gfx_start <= pat_gfx_done;
     end
   end
 
@@ -462,7 +462,7 @@ module gfx_pattern_demo_striped #(
       .AXI_ID_WIDTH  (AXI_ID_WIDTH)
   ) svc_fb_pix_i (
       .clk          (clk),
-      .rst_n        (rst_n && pat_gfx_done),
+      .rst_n        (rst_n),
       .m_pix_valid  (fb_pix_valid),
       .m_pix_red    (fb_pix_red),
       .m_pix_grn    (fb_pix_grn),
