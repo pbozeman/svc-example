@@ -28,8 +28,8 @@ module gfx_pattern #(
     output logic [PIXEL_WIDTH-1:0] m_gfx_pixel,
     input  logic                   m_gfx_ready,
 
-    input logic [HW-1:0] h_visible,
-    input logic [HW-1:0] v_visible
+    input logic [H_WIDTH-1:0] h_visible,
+    input logic [V_WIDTH-1:0] v_visible
 );
   localparam HW = H_WIDTH;
   localparam VW = V_WIDTH;
