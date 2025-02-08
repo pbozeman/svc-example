@@ -1,5 +1,5 @@
 // TODO: move the mode config into the makefile
-`define VGA_MODE_640_480_60
+`define VGA_MODE_800_600_60
 
 `include "svc.sv"
 `include "svc_init.sv"

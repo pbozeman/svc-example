@@ -1,4 +1,5 @@
-`define VGA_MODE_640_480_60
+// TODO: add a test mode with this same pixel clock needs. This is too slow
+`define VGA_MODE_800_600_60
 
 `include "svc_ice40_vga_mode.sv"
 `include "svc_model_sram.sv"
@@ -82,10 +83,11 @@ module gfx_pattern_demo_striped_tb;
     // 2 frames
     repeat (2 * (`VGA_MODE_H_WHOLE_LINE * `VGA_MODE_V_WHOLE_FRAME)) begin
       @(posedge pixel_clk);
+      `CHECK_FALSE(vga_error);
     end
   endtask
 
-  `TEST_SUITE_BEGIN(gfx_pattern_demo_tb, 20000000, 6);
+  `TEST_SUITE_BEGIN(gfx_pattern_demo_striped_tb, 20000000, 6);
   `TEST_CASE(test_basic);
   `TEST_SUITE_END();
 endmodule
