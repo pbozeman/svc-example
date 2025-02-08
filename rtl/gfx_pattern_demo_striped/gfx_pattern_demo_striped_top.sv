@@ -47,6 +47,10 @@ module gfx_pattern_demo_striped_top #(
     output logic [7:0] R_E,
     output logic [7:0] R_F
 
+    // TODO: re-enable the vga error count. These pmods are used by the
+    // R sram, so they can't be used for reporting. Either move these,
+    // or do the 2 sram optimization.
+    //
     // output logic [7:0] R_H,
     // output logic [7:0] R_I
 );
