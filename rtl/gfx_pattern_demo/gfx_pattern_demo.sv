@@ -314,12 +314,11 @@ module gfx_pattern_demo #(
       .m_axi_bready (fb_axi_bready)
   );
 
-  // do the pattern once
   always_ff @(posedge clk) begin
     if (!rst_n) begin
       pat_gfx_start <= 1'b1;
     end else begin
-      pat_gfx_start <= 1'b0;
+      pat_gfx_start <= pat_gfx_done;
     end
   end
 
@@ -343,6 +342,15 @@ module gfx_pattern_demo #(
       .h_visible(h_visible),
       .v_visible(v_visible)
   );
+
+  logic fb_pix_rst;
+  always_ff @(posedge clk) begin
+    if (!rst_n) begin
+      fb_pix_rst <= 1'b0;
+    end else begin
+      fb_pix_rst <= fb_pix_rst || pat_gfx_done;
+    end
+  end
 
   svc_fb_pix #(
       .H_WIDTH       (H_WIDTH),
