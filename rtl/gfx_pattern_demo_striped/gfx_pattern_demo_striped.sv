@@ -423,7 +423,6 @@ module gfx_pattern_demo_striped #(
       .m_axi_bready (fb_axi_bready)
   );
 
-  // do the pattern once
   always_ff @(posedge clk) begin
     if (!rst_n) begin
       pat_gfx_start <= 1'b1;
@@ -453,6 +452,15 @@ module gfx_pattern_demo_striped #(
       .v_visible(v_visible)
   );
 
+  logic fb_pix_rst;
+  always_ff @(posedge clk) begin
+    if (!rst_n) begin
+      fb_pix_rst <= 1'b0;
+    end else begin
+      fb_pix_rst <= fb_pix_rst || pat_gfx_done;
+    end
+  end
+
   svc_fb_pix #(
       .H_WIDTH       (H_WIDTH),
       .V_WIDTH       (V_WIDTH),
@@ -462,7 +470,7 @@ module gfx_pattern_demo_striped #(
       .AXI_ID_WIDTH  (AXI_ID_WIDTH)
   ) svc_fb_pix_i (
       .clk          (clk),
-      .rst_n        (rst_n),
+      .rst_n        (fb_pix_rst),
       .m_pix_valid  (fb_pix_valid),
       .m_pix_red    (fb_pix_red),
       .m_pix_grn    (fb_pix_grn),
