@@ -49,6 +49,7 @@ module gfx_pattern_demo_top #(
 
   svc_init svc_init_i (
       .clk  (CLK),
+      .en   (1'b1),
       .rst_n(rst_n)
   );
 
