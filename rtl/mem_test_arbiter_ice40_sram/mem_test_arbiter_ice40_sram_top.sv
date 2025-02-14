@@ -40,6 +40,7 @@ module mem_test_arbiter_ice40_sram_top #(
 
   svc_init svc_init_i (
       .clk  (CLK),
+      .en   (1'b1),
       .rst_n(rst_n)
   );
 
