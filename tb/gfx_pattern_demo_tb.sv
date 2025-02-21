@@ -10,6 +10,8 @@
 module gfx_pattern_demo_tb;
   localparam COLOR_WIDTH = 4;
   localparam SRAM_ADDR_WIDTH = 20;
+
+  // set to 32 to simulate vivado mig ddr
   localparam SRAM_DATA_WIDTH = 16;
 
   localparam PIXEL_WIDTH = COLOR_WIDTH * 3;
@@ -45,6 +47,8 @@ module gfx_pattern_demo_tb;
 
       .pixel_clk  (pixel_clk),
       .pixel_rst_n(rst_n),
+
+      .continious_write(1'b1),
 
       .vga_red  (vga_red),
       .vga_grn  (vga_grn),
