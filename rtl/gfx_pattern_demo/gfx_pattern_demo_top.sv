@@ -65,6 +65,8 @@ module gfx_pattern_demo_top #(
       .pixel_clk  (pixel_clk),
       .pixel_rst_n(rst_n),
 
+      .continious_write(1'b1),
+
       .sram_io_addr(L_SRAM_ADDR_BUS),
       .sram_io_data(L_SRAM_DATA_BUS),
       .sram_io_ce_n(L_SRAM_CS_N),

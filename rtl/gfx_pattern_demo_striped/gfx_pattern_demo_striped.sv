@@ -12,6 +12,8 @@
 
 `include "gfx_pattern.sv"
 
+// TODO: redo this with gfx_pattern_axi
+
 // verilator lint_off: UNUSEDSIGNAL
 // verilator lint_off: UNDRIVEN
 module gfx_pattern_demo_striped #(
