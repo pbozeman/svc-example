@@ -2,10 +2,8 @@
 `define GFX_PATTERN_AXI_SV
 
 `include "svc_axi_burst_adapter.sv"
-`include "svc_fb_pix.sv"
+`include "svc_fb_vga.sv"
 `include "svc_gfx_fb.sv"
-`include "svc_pix_cdc.sv"
-`include "svc_pix_vga.sv"
 
 `include "gfx_pattern.sv"
 
@@ -129,22 +127,10 @@ module gfx_pattern_axi #(
   logic [       H_WIDTH-1:0] h_sync_end;
   logic [       H_WIDTH-1:0] h_line_end;
 
-  logic [       H_WIDTH-1:0] v_visible;
-  logic [       H_WIDTH-1:0] v_sync_start;
-  logic [       H_WIDTH-1:0] v_sync_end;
-  logic [       H_WIDTH-1:0] v_frame_end;
-
-  logic                      fb_pix_valid;
-  logic [   COLOR_WIDTH-1:0] fb_pix_red;
-  logic [   COLOR_WIDTH-1:0] fb_pix_grn;
-  logic [   COLOR_WIDTH-1:0] fb_pix_blu;
-  logic                      fb_pix_ready;
-
-  logic                      vga_pix_valid;
-  logic [   COLOR_WIDTH-1:0] vga_pix_red;
-  logic [   COLOR_WIDTH-1:0] vga_pix_grn;
-  logic [   COLOR_WIDTH-1:0] vga_pix_blu;
-  logic                      vga_pix_ready;
+  logic [       V_WIDTH-1:0] v_visible;
+  logic [       V_WIDTH-1:0] v_sync_start;
+  logic [       V_WIDTH-1:0] v_sync_end;
+  logic [       V_WIDTH-1:0] v_frame_end;
 
   // TODO: these need to be expanded in the macro defs or a pipelined module
   // that does the math needs to be created, because these seemed to result in actual
@@ -316,23 +302,20 @@ module gfx_pattern_axi #(
     end
   end
 
-  svc_fb_pix #(
+  svc_fb_vga #(
       .H_WIDTH       (H_WIDTH),
       .V_WIDTH       (V_WIDTH),
       .COLOR_WIDTH   (COLOR_WIDTH),
       .AXI_ADDR_WIDTH(AXI_ADDR_WIDTH),
       .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
       .AXI_ID_WIDTH  (AXI_ID_WIDTH)
-  ) svc_fb_pix_i (
-      .clk          (clk),
-      .rst_n        (fb_pix_rst),
-      .m_pix_valid  (fb_pix_valid),
-      .m_pix_red    (fb_pix_red),
-      .m_pix_grn    (fb_pix_grn),
-      .m_pix_blu    (fb_pix_blu),
-      .m_pix_ready  (fb_pix_ready),
-      .h_visible    (h_visible),
-      .v_visible    (v_visible),
+  ) svc_fb_vga_i (
+      .clk  (clk),
+      .rst_n(fb_pix_rst),
+
+      .pixel_clk  (pixel_clk),
+      .pixel_rst_n(pixel_rst_n),
+
       .m_axi_arvalid(fb_axi_arvalid),
       .m_axi_arid   (fb_axi_arid),
       .m_axi_araddr (fb_axi_araddr),
@@ -345,43 +328,7 @@ module gfx_pattern_axi #(
       .m_axi_rdata  (fb_axi_rdata),
       .m_axi_rresp  (fb_axi_rresp),
       .m_axi_rlast  (fb_axi_rlast),
-      .m_axi_rready (fb_axi_rready)
-  );
-
-  svc_pix_cdc #(
-      .COLOR_WIDTH(COLOR_WIDTH)
-  ) svc_pix_cdc_i (
-      .s_clk  (clk),
-      .s_rst_n(rst_n),
-
-      .s_pix_valid(fb_pix_valid),
-      .s_pix_red  (fb_pix_red),
-      .s_pix_grn  (fb_pix_grn),
-      .s_pix_blu  (fb_pix_blu),
-      .s_pix_ready(fb_pix_ready),
-
-      .m_clk      (pixel_clk),
-      .m_rst_n    (pixel_rst_n),
-      .m_pix_valid(vga_pix_valid),
-      .m_pix_red  (vga_pix_red),
-      .m_pix_grn  (vga_pix_grn),
-      .m_pix_blu  (vga_pix_blu),
-      .m_pix_ready(vga_pix_ready)
-  );
-
-  svc_pix_vga #(
-      .H_WIDTH    (H_WIDTH),
-      .V_WIDTH    (V_WIDTH),
-      .COLOR_WIDTH(COLOR_WIDTH)
-  ) svc_pix_vga_i (
-      .clk  (pixel_clk),
-      .rst_n(pixel_rst_n),
-
-      .s_pix_valid(vga_pix_valid),
-      .s_pix_red  (vga_pix_red),
-      .s_pix_grn  (vga_pix_grn),
-      .s_pix_blu  (vga_pix_blu),
-      .s_pix_ready(vga_pix_ready),
+      .m_axi_rready (fb_axi_rready),
 
       .h_visible   (h_visible),
       .h_sync_start(h_sync_start),
