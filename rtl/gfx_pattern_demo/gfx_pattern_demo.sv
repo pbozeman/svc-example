@@ -46,10 +46,6 @@ module gfx_pattern_demo #(
   logic [               7:0] sram_axi_awlen;
   logic [               2:0] sram_axi_awsize;
   logic [               1:0] sram_axi_awburst;
-  logic [               3:0] sram_axi_awcache;
-  logic                      sram_axi_awlock;
-  logic [               2:0] sram_axi_awprot;
-  logic [               3:0] sram_axi_awqos;
   logic                      sram_axi_awready;
   logic                      sram_axi_wvalid;
   logic [AXI_DATA_WIDTH-1:0] sram_axi_wdata;
@@ -67,10 +63,6 @@ module gfx_pattern_demo #(
   logic [               7:0] sram_axi_arlen;
   logic [               2:0] sram_axi_arsize;
   logic [               1:0] sram_axi_arburst;
-  logic [               3:0] sram_axi_arcache;
-  logic                      sram_axi_arlock;
-  logic [               2:0] sram_axi_arprot;
-  logic [               3:0] sram_axi_arqos;
   logic                      sram_axi_arready;
   logic                      sram_axi_rvalid;
   logic [  AXI_ID_WIDTH-1:0] sram_axi_rid;
@@ -143,12 +135,8 @@ module gfx_pattern_demo #(
       .m_axi_awvalid(sram_axi_awvalid),
       .m_axi_awaddr (sram_axi_awaddr),
       .m_axi_awburst(sram_axi_awburst),
-      .m_axi_awcache(sram_axi_awcache),
       .m_axi_awid   (sram_axi_awid),
       .m_axi_awlen  (sram_axi_awlen),
-      .m_axi_awlock (sram_axi_awlock),
-      .m_axi_awprot (sram_axi_awprot),
-      .m_axi_awqos  (sram_axi_awqos),
       .m_axi_awsize (sram_axi_awsize),
       .m_axi_awready(sram_axi_awready),
       .m_axi_wdata  (sram_axi_wdata),
@@ -164,12 +152,8 @@ module gfx_pattern_demo #(
       .m_axi_arvalid(sram_axi_arvalid),
       .m_axi_araddr (sram_axi_araddr),
       .m_axi_arburst(sram_axi_arburst),
-      .m_axi_arcache(sram_axi_arcache),
       .m_axi_arid   (sram_axi_arid),
       .m_axi_arlen  (sram_axi_arlen),
-      .m_axi_arlock (sram_axi_arlock),
-      .m_axi_arprot (sram_axi_arprot),
-      .m_axi_arqos  (sram_axi_arqos),
       .m_axi_arsize (sram_axi_arsize),
       .m_axi_arready(sram_axi_arready),
       .m_axi_rvalid (sram_axi_rvalid),

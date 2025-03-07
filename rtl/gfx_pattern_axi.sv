@@ -26,12 +26,8 @@ module gfx_pattern_axi #(
     output logic                      m_axi_awvalid,
     output logic [AXI_ADDR_WIDTH-1:0] m_axi_awaddr,
     output logic [               1:0] m_axi_awburst,
-    output logic [               3:0] m_axi_awcache,
     output logic [  AXI_ID_WIDTH-1:0] m_axi_awid,
     output logic [               7:0] m_axi_awlen,
-    output logic                      m_axi_awlock,
-    output logic [               2:0] m_axi_awprot,
-    output logic [               3:0] m_axi_awqos,
     output logic [               2:0] m_axi_awsize,
     input  logic                      m_axi_awready,
     output logic [AXI_DATA_WIDTH-1:0] m_axi_wdata,
@@ -47,12 +43,8 @@ module gfx_pattern_axi #(
     output logic                      m_axi_arvalid,
     output logic [AXI_ADDR_WIDTH-1:0] m_axi_araddr,
     output logic [               1:0] m_axi_arburst,
-    output logic [               3:0] m_axi_arcache,
     output logic [  AXI_ID_WIDTH-1:0] m_axi_arid,
     output logic [               7:0] m_axi_arlen,
-    output logic                      m_axi_arlock,
-    output logic [               2:0] m_axi_arprot,
-    output logic [               3:0] m_axi_arqos,
     output logic [               2:0] m_axi_arsize,
     input  logic                      m_axi_arready,
     input  logic                      m_axi_rvalid,
@@ -70,15 +62,6 @@ module gfx_pattern_axi #(
     output logic                   vga_error
 );
   localparam PIXEL_WIDTH = COLOR_WIDTH * 3;
-
-  assign m_axi_awcache = 4'b1111;
-  assign m_axi_awlock  = 1'b0;
-  assign m_axi_awprot  = 3'b000;
-  assign m_axi_awqos   = 4'b1000;
-  assign m_axi_arcache = 4'b1111;
-  assign m_axi_arlock  = 1'b0;
-  assign m_axi_arprot  = 3'b000;
-  assign m_axi_arqos   = 4'b1000;
 
   // pat_gfx writes to the gfx/framebuffer
   logic                   pat_gfx_start;
