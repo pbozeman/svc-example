@@ -51,6 +51,8 @@ module gfx_pattern_demo_striped_tb;
       .pixel_clk  (pixel_clk),
       .pixel_rst_n(rst_n),
 
+      .continious_write(1'b1),
+
       .vga_red  (vga_red),
       .vga_grn  (vga_grn),
       .vga_blu  (vga_blu),
