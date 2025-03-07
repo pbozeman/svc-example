@@ -76,6 +76,29 @@ module gfx_pattern_demo_tb;
       .data_io(sram_io_data)
   );
 
+  always @(posedge pixel_clk) begin
+    if (rst_n) begin
+      `CHECK_FALSE(vga_error);
+    end
+  end
+
+  logic [3:0] gfx_wait_cnt;
+  always @(posedge clk) begin
+    if (!rst_n) begin
+      gfx_wait_cnt <= 0;
+    end else begin
+      if (uut.gfx_pattern_axi_i.svc_gfx_fb_i.s_gfx_valid) begin
+        if (uut.gfx_pattern_axi_i.svc_gfx_fb_i.s_gfx_ready) begin
+          gfx_wait_cnt <= 0;
+        end else begin
+          gfx_wait_cnt <= gfx_wait_cnt + 1;
+        end
+      end
+
+      `CHECK_LT(gfx_wait_cnt, 4);
+    end
+  end
+
   task automatic test_basic();
     // 2 frames
     repeat (2 * (`VGA_MODE_H_WHOLE_LINE * `VGA_MODE_V_WHOLE_FRAME)) begin

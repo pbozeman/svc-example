@@ -1,7 +1,6 @@
 `ifndef GFX_PATTERN_AXI_SV
 `define GFX_PATTERN_AXI_SV
 
-`include "svc_axi_burst_adapter.sv"
 `include "svc_fb_vga.sv"
 `include "svc_gfx_fb.sv"
 
@@ -81,56 +80,25 @@ module gfx_pattern_axi #(
   assign m_axi_arprot  = 3'b000;
   assign m_axi_arqos   = 4'b1000;
 
-  logic                      fb_axi_awvalid;
-  logic [AXI_ADDR_WIDTH-1:0] fb_axi_awaddr;
-  logic [  AXI_ID_WIDTH-1:0] fb_axi_awid;
-  logic [               7:0] fb_axi_awlen;
-  logic [               2:0] fb_axi_awsize;
-  logic [               1:0] fb_axi_awburst;
-  logic                      fb_axi_awready;
-  logic                      fb_axi_wvalid;
-  logic [AXI_DATA_WIDTH-1:0] fb_axi_wdata;
-  logic [AXI_STRB_WIDTH-1:0] fb_axi_wstrb;
-  logic                      fb_axi_wlast;
-  logic                      fb_axi_wready;
-  logic                      fb_axi_bvalid;
-  logic [  AXI_ID_WIDTH-1:0] fb_axi_bid;
-  logic [               1:0] fb_axi_bresp;
-  logic                      fb_axi_bready;
-
-  logic                      fb_axi_arvalid;
-  logic [  AXI_ID_WIDTH-1:0] fb_axi_arid;
-  logic [AXI_ADDR_WIDTH-1:0] fb_axi_araddr;
-  logic [               7:0] fb_axi_arlen;
-  logic [               2:0] fb_axi_arsize;
-  logic [               1:0] fb_axi_arburst;
-  logic                      fb_axi_arready;
-  logic                      fb_axi_rvalid;
-  logic [  AXI_ID_WIDTH-1:0] fb_axi_rid;
-  logic [AXI_DATA_WIDTH-1:0] fb_axi_rdata;
-  logic [               1:0] fb_axi_rresp;
-  logic                      fb_axi_rlast;
-  logic                      fb_axi_rready;
-
   // pat_gfx writes to the gfx/framebuffer
-  logic                      pat_gfx_start;
-  logic                      pat_gfx_done;
+  logic                   pat_gfx_start;
+  logic                   pat_gfx_done;
 
-  logic                      pat_gfx_valid;
-  logic [       H_WIDTH-1:0] pat_gfx_x;
-  logic [       V_WIDTH-1:0] pat_gfx_y;
-  logic [   PIXEL_WIDTH-1:0] pat_gfx_pixel;
-  logic                      pat_gfx_ready;
+  logic                   pat_gfx_valid;
+  logic [    H_WIDTH-1:0] pat_gfx_x;
+  logic [    V_WIDTH-1:0] pat_gfx_y;
+  logic [PIXEL_WIDTH-1:0] pat_gfx_pixel;
+  logic                   pat_gfx_ready;
 
-  logic [       H_WIDTH-1:0] h_visible;
-  logic [       H_WIDTH-1:0] h_sync_start;
-  logic [       H_WIDTH-1:0] h_sync_end;
-  logic [       H_WIDTH-1:0] h_line_end;
+  logic [    H_WIDTH-1:0] h_visible;
+  logic [    H_WIDTH-1:0] h_sync_start;
+  logic [    H_WIDTH-1:0] h_sync_end;
+  logic [    H_WIDTH-1:0] h_line_end;
 
-  logic [       V_WIDTH-1:0] v_visible;
-  logic [       V_WIDTH-1:0] v_sync_start;
-  logic [       V_WIDTH-1:0] v_sync_end;
-  logic [       V_WIDTH-1:0] v_frame_end;
+  logic [    V_WIDTH-1:0] v_visible;
+  logic [    V_WIDTH-1:0] v_sync_start;
+  logic [    V_WIDTH-1:0] v_sync_end;
+  logic [    V_WIDTH-1:0] v_frame_end;
 
   // TODO: these need to be expanded in the macro defs or a pipelined module
   // that does the math needs to be created, because these seemed to result in actual
@@ -157,74 +125,6 @@ module gfx_pattern_axi #(
   assign v_sync_end   = MODE_V_SYNC_END;
   assign v_frame_end  = MODE_V_FRAME_END;
 
-  svc_axi_burst_adapter #(
-      .AXI_ADDR_WIDTH      (AXI_ADDR_WIDTH),
-      .AXI_DATA_WIDTH      (AXI_DATA_WIDTH),
-      .AXI_ID_WIDTH        (AXI_ID_WIDTH),
-      .OUTSTANDING_IO_WIDTH(4)
-  ) svc_axi_burst_adapter_i (
-      .clk          (clk),
-      .rst_n        (rst_n),
-      .s_axi_awvalid(fb_axi_awvalid),
-      .s_axi_awaddr (fb_axi_awaddr),
-      .s_axi_awid   (fb_axi_awid),
-      .s_axi_awlen  (fb_axi_awlen),
-      .s_axi_awsize (fb_axi_awsize),
-      .s_axi_awburst(fb_axi_awburst),
-      .s_axi_awready(fb_axi_awready),
-      .s_axi_wvalid (fb_axi_wvalid),
-      .s_axi_wdata  (fb_axi_wdata),
-      .s_axi_wstrb  (fb_axi_wstrb),
-      .s_axi_wlast  (fb_axi_wlast),
-      .s_axi_wready (fb_axi_wready),
-      .s_axi_bvalid (fb_axi_bvalid),
-      .s_axi_bid    (fb_axi_bid),
-      .s_axi_bresp  (fb_axi_bresp),
-      .s_axi_bready (fb_axi_bready),
-      .s_axi_arvalid(fb_axi_arvalid),
-      .s_axi_arid   (fb_axi_arid),
-      .s_axi_araddr (fb_axi_araddr),
-      .s_axi_arlen  (fb_axi_arlen),
-      .s_axi_arsize (fb_axi_arsize),
-      .s_axi_arburst(fb_axi_arburst),
-      .s_axi_arready(fb_axi_arready),
-      .s_axi_rvalid (fb_axi_rvalid),
-      .s_axi_rid    (fb_axi_rid),
-      .s_axi_rdata  (fb_axi_rdata),
-      .s_axi_rresp  (fb_axi_rresp),
-      .s_axi_rlast  (fb_axi_rlast),
-      .s_axi_rready (fb_axi_rready),
-      .m_axi_awvalid(m_axi_awvalid),
-      .m_axi_awaddr (m_axi_awaddr),
-      .m_axi_awid   (m_axi_awid),
-      .m_axi_awlen  (m_axi_awlen),
-      .m_axi_awsize (m_axi_awsize),
-      .m_axi_awburst(m_axi_awburst),
-      .m_axi_awready(m_axi_awready),
-      .m_axi_wvalid (m_axi_wvalid),
-      .m_axi_wdata  (m_axi_wdata),
-      .m_axi_wstrb  (m_axi_wstrb),
-      .m_axi_wlast  (m_axi_wlast),
-      .m_axi_wready (m_axi_wready),
-      .m_axi_bvalid (m_axi_bvalid),
-      .m_axi_bid    (m_axi_bid),
-      .m_axi_bresp  (m_axi_bresp),
-      .m_axi_bready (m_axi_bready),
-      .m_axi_arvalid(m_axi_arvalid),
-      .m_axi_arid   (m_axi_arid),
-      .m_axi_araddr (m_axi_araddr),
-      .m_axi_arlen  (m_axi_arlen),
-      .m_axi_arsize (m_axi_arsize),
-      .m_axi_arburst(m_axi_arburst),
-      .m_axi_arready(m_axi_arready),
-      .m_axi_rvalid (m_axi_rvalid),
-      .m_axi_rid    (m_axi_rid),
-      .m_axi_rdata  (m_axi_rdata),
-      .m_axi_rresp  (m_axi_rresp),
-      .m_axi_rlast  (m_axi_rlast),
-      .m_axi_rready (m_axi_rready)
-  );
-
   svc_gfx_fb #(
       .H_WIDTH       (H_WIDTH),
       .V_WIDTH       (V_WIDTH),
@@ -242,22 +142,22 @@ module gfx_pattern_axi #(
       .s_gfx_ready  (pat_gfx_ready),
       .h_visible    (h_visible),
       .v_visible    (v_visible),
-      .m_axi_awvalid(fb_axi_awvalid),
-      .m_axi_awaddr (fb_axi_awaddr),
-      .m_axi_awid   (fb_axi_awid),
-      .m_axi_awlen  (fb_axi_awlen),
-      .m_axi_awsize (fb_axi_awsize),
-      .m_axi_awburst(fb_axi_awburst),
-      .m_axi_awready(fb_axi_awready),
-      .m_axi_wvalid (fb_axi_wvalid),
-      .m_axi_wdata  (fb_axi_wdata),
-      .m_axi_wstrb  (fb_axi_wstrb),
-      .m_axi_wlast  (fb_axi_wlast),
-      .m_axi_wready (fb_axi_wready),
-      .m_axi_bvalid (fb_axi_bvalid),
-      .m_axi_bid    (fb_axi_bid),
-      .m_axi_bresp  (fb_axi_bresp),
-      .m_axi_bready (fb_axi_bready)
+      .m_axi_awvalid(m_axi_awvalid),
+      .m_axi_awaddr (m_axi_awaddr),
+      .m_axi_awid   (m_axi_awid),
+      .m_axi_awlen  (m_axi_awlen),
+      .m_axi_awsize (m_axi_awsize),
+      .m_axi_awburst(m_axi_awburst),
+      .m_axi_awready(m_axi_awready),
+      .m_axi_wvalid (m_axi_wvalid),
+      .m_axi_wdata  (m_axi_wdata),
+      .m_axi_wstrb  (m_axi_wstrb),
+      .m_axi_wlast  (m_axi_wlast),
+      .m_axi_wready (m_axi_wready),
+      .m_axi_bvalid (m_axi_bvalid),
+      .m_axi_bid    (m_axi_bid),
+      .m_axi_bresp  (m_axi_bresp),
+      .m_axi_bready (m_axi_bready)
   );
 
   always_ff @(posedge clk) begin
@@ -316,19 +216,19 @@ module gfx_pattern_axi #(
       .pixel_clk  (pixel_clk),
       .pixel_rst_n(pixel_rst_n),
 
-      .m_axi_arvalid(fb_axi_arvalid),
-      .m_axi_arid   (fb_axi_arid),
-      .m_axi_araddr (fb_axi_araddr),
-      .m_axi_arlen  (fb_axi_arlen),
-      .m_axi_arsize (fb_axi_arsize),
-      .m_axi_arburst(fb_axi_arburst),
-      .m_axi_arready(fb_axi_arready),
-      .m_axi_rvalid (fb_axi_rvalid),
-      .m_axi_rid    (fb_axi_rid),
-      .m_axi_rdata  (fb_axi_rdata),
-      .m_axi_rresp  (fb_axi_rresp),
-      .m_axi_rlast  (fb_axi_rlast),
-      .m_axi_rready (fb_axi_rready),
+      .m_axi_arvalid(m_axi_arvalid),
+      .m_axi_arid   (m_axi_arid),
+      .m_axi_araddr (m_axi_araddr),
+      .m_axi_arlen  (m_axi_arlen),
+      .m_axi_arsize (m_axi_arsize),
+      .m_axi_arburst(m_axi_arburst),
+      .m_axi_arready(m_axi_arready),
+      .m_axi_rvalid (m_axi_rvalid),
+      .m_axi_rid    (m_axi_rid),
+      .m_axi_rdata  (m_axi_rdata),
+      .m_axi_rresp  (m_axi_rresp),
+      .m_axi_rlast  (m_axi_rlast),
+      .m_axi_rready (m_axi_rready),
 
       .h_visible   (h_visible),
       .h_sync_start(h_sync_start),
