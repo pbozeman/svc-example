@@ -180,8 +180,7 @@ module vga_pattern #(
   assign m_pix_addr                        = 0;
 
   svc_pix_cdc #(
-      .COLOR_WIDTH(COLOR_WIDTH),
-      .ADDR_WIDTH (AW)
+      .COLOR_WIDTH(COLOR_WIDTH)
   ) svc_pix_cdc_i (
       .s_clk  (clk),
       .s_rst_n(rst_n),
@@ -192,7 +191,6 @@ module vga_pattern #(
       .s_pix_blu  (m_pix_blu),
       .s_pix_x    (m_pix_x),
       .s_pix_y    (m_pix_y),
-      .s_pix_addr (m_pix_addr),
 
       .s_pix_ready(m_pix_ready),
 
@@ -204,15 +202,13 @@ module vga_pattern #(
       .m_pix_blu  (vga_pix_blu),
       .m_pix_x    (vga_pix_x),
       .m_pix_y    (vga_pix_y),
-      .m_pix_addr (vga_pix_addr),
       .m_pix_ready(vga_pix_ready)
   );
 
   svc_pix_vga #(
       .H_WIDTH    (HW),
       .V_WIDTH    (VW),
-      .COLOR_WIDTH(COLOR_WIDTH),
-      .ADDR_WIDTH (AW)
+      .COLOR_WIDTH(COLOR_WIDTH)
   ) svc_pix_vga_i (
       .clk  (pixel_clk),
       .rst_n(pixel_rst_n),
@@ -223,7 +219,6 @@ module vga_pattern #(
       .s_pix_blu  (vga_pix_blu),
       .s_pix_x    (vga_pix_x),
       .s_pix_y    (vga_pix_y),
-      .s_pix_addr (vga_pix_addr),
       .s_pix_ready(vga_pix_ready),
 
       .h_visible   (h_visible),
