@@ -87,8 +87,8 @@ module gfx_pattern_demo_tb;
     if (!rst_n) begin
       gfx_wait_cnt <= 0;
     end else begin
-      if (uut.gfx_pattern_axi_i.svc_gfx_fb_i.s_gfx_valid) begin
-        if (uut.gfx_pattern_axi_i.svc_gfx_fb_i.s_gfx_ready) begin
+      if (uut.gfx_pattern_axi_i.svc_gfx_vga_i.s_gfx_valid) begin
+        if (uut.gfx_pattern_axi_i.svc_gfx_vga_i.s_gfx_ready) begin
           gfx_wait_cnt <= 0;
         end else begin
           gfx_wait_cnt <= gfx_wait_cnt + 1;
