@@ -1,8 +1,8 @@
 `ifndef GFX_PATTERN_AXI_SV
 `define GFX_PATTERN_AXI_SV
 
-`include "svc_fb_vga.sv"
-`include "svc_gfx_fb.sv"
+`include "svc.sv"
+`include "svc_gfx_vga.sv"
 
 `include "gfx_pattern.sv"
 
@@ -108,23 +108,29 @@ module gfx_pattern_axi #(
   assign v_sync_end   = MODE_V_SYNC_END;
   assign v_frame_end  = MODE_V_FRAME_END;
 
-  svc_gfx_fb #(
+  svc_gfx_vga #(
       .H_WIDTH       (H_WIDTH),
       .V_WIDTH       (V_WIDTH),
       .PIXEL_WIDTH   (PIXEL_WIDTH),
+      .COLOR_WIDTH   (COLOR_WIDTH),
       .AXI_ADDR_WIDTH(AXI_ADDR_WIDTH),
       .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
       .AXI_ID_WIDTH  (AXI_ID_WIDTH)
-  ) svc_gfx_fb_i (
-      .clk          (clk),
-      .rst_n        (rst_n),
-      .s_gfx_valid  (pat_gfx_valid),
-      .s_gfx_x      (pat_gfx_x),
-      .s_gfx_y      (pat_gfx_y),
-      .s_gfx_pixel  (pat_gfx_pixel),
-      .s_gfx_ready  (pat_gfx_ready),
-      .h_visible    (h_visible),
-      .v_visible    (v_visible),
+  ) svc_gfx_vga_i (
+      .clk  (clk),
+      .rst_n(rst_n),
+
+      .pixel_clk  (pixel_clk),
+      .pixel_rst_n(pixel_rst_n),
+
+      .fb_start(pat_gfx_done),
+
+      .s_gfx_valid(pat_gfx_valid),
+      .s_gfx_x    (pat_gfx_x),
+      .s_gfx_y    (pat_gfx_y),
+      .s_gfx_pixel(pat_gfx_pixel),
+      .s_gfx_ready(pat_gfx_ready),
+
       .m_axi_awvalid(m_axi_awvalid),
       .m_axi_awaddr (m_axi_awaddr),
       .m_axi_awid   (m_axi_awid),
@@ -140,7 +146,38 @@ module gfx_pattern_axi #(
       .m_axi_bvalid (m_axi_bvalid),
       .m_axi_bid    (m_axi_bid),
       .m_axi_bresp  (m_axi_bresp),
-      .m_axi_bready (m_axi_bready)
+      .m_axi_bready (m_axi_bready),
+
+      .m_axi_arvalid(m_axi_arvalid),
+      .m_axi_arid   (m_axi_arid),
+      .m_axi_araddr (m_axi_araddr),
+      .m_axi_arlen  (m_axi_arlen),
+      .m_axi_arsize (m_axi_arsize),
+      .m_axi_arburst(m_axi_arburst),
+      .m_axi_arready(m_axi_arready),
+      .m_axi_rvalid (m_axi_rvalid),
+      .m_axi_rid    (m_axi_rid),
+      .m_axi_rdata  (m_axi_rdata),
+      .m_axi_rresp  (m_axi_rresp),
+      .m_axi_rlast  (m_axi_rlast),
+      .m_axi_rready (m_axi_rready),
+
+      .h_visible   (h_visible),
+      .h_sync_start(h_sync_start),
+      .h_sync_end  (h_sync_end),
+      .h_line_end  (h_line_end),
+
+      .v_visible   (v_visible),
+      .v_sync_start(v_sync_start),
+      .v_sync_end  (v_sync_end),
+      .v_frame_end (v_frame_end),
+
+      .vga_hsync(vga_hsync),
+      .vga_vsync(vga_vsync),
+      .vga_red  (vga_red),
+      .vga_grn  (vga_grn),
+      .vga_blu  (vga_blu),
+      .vga_error(vga_error)
   );
 
   always_ff @(posedge clk) begin
@@ -174,61 +211,6 @@ module gfx_pattern_axi #(
 
       .h_visible(h_visible),
       .v_visible(v_visible)
-  );
-
-  logic fb_pix_rst;
-  always_ff @(posedge clk) begin
-    if (!rst_n) begin
-      fb_pix_rst <= 1'b0;
-    end else begin
-      fb_pix_rst <= fb_pix_rst || pat_gfx_done;
-    end
-  end
-
-  svc_fb_vga #(
-      .H_WIDTH       (H_WIDTH),
-      .V_WIDTH       (V_WIDTH),
-      .COLOR_WIDTH   (COLOR_WIDTH),
-      .AXI_ADDR_WIDTH(AXI_ADDR_WIDTH),
-      .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
-      .AXI_ID_WIDTH  (AXI_ID_WIDTH)
-  ) svc_fb_vga_i (
-      .clk  (clk),
-      .rst_n(fb_pix_rst),
-
-      .pixel_clk  (pixel_clk),
-      .pixel_rst_n(pixel_rst_n),
-
-      .m_axi_arvalid(m_axi_arvalid),
-      .m_axi_arid   (m_axi_arid),
-      .m_axi_araddr (m_axi_araddr),
-      .m_axi_arlen  (m_axi_arlen),
-      .m_axi_arsize (m_axi_arsize),
-      .m_axi_arburst(m_axi_arburst),
-      .m_axi_arready(m_axi_arready),
-      .m_axi_rvalid (m_axi_rvalid),
-      .m_axi_rid    (m_axi_rid),
-      .m_axi_rdata  (m_axi_rdata),
-      .m_axi_rresp  (m_axi_rresp),
-      .m_axi_rlast  (m_axi_rlast),
-      .m_axi_rready (m_axi_rready),
-
-      .h_visible   (h_visible),
-      .h_sync_start(h_sync_start),
-      .h_sync_end  (h_sync_end),
-      .h_line_end  (h_line_end),
-
-      .v_visible   (v_visible),
-      .v_sync_start(v_sync_start),
-      .v_sync_end  (v_sync_end),
-      .v_frame_end (v_frame_end),
-
-      .vga_hsync(vga_hsync),
-      .vga_vsync(vga_vsync),
-      .vga_red  (vga_red),
-      .vga_grn  (vga_grn),
-      .vga_blu  (vga_blu),
-      .vga_error(vga_error)
   );
 
 endmodule
