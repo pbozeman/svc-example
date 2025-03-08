@@ -38,9 +38,11 @@ module gfx_pattern_demo_striped #(
     output logic [NUM_S-1:0]                       sram_io_oe_n,
     output logic [NUM_S-1:0]                       sram_io_ce_n
 );
+  localparam NUM_M = 3;
+
   localparam AXI_ADDR_WIDTH = SRAM_ADDR_WIDTH + $clog2(SRAM_DATA_WIDTH / 8);
   localparam AXI_DATA_WIDTH = SRAM_DATA_WIDTH;
-  localparam AXI_ID_WIDTH = 4;
+  localparam AXI_ID_WIDTH = 4 + $clog2(NUM_M);
   localparam AXI_STRB_WIDTH = SRAM_DATA_WIDTH / 8;
 
   localparam STRIPE_AXI_ADDR_WIDTH = AXI_ADDR_WIDTH + $clog2(NUM_S);
