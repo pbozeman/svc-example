@@ -12,7 +12,8 @@ TOP_MODULES := \
 	rtl/mem_test_striped_arbiter_ice40_sram/mem_test_striped_arbiter_ice40_sram_top.sv \
 	rtl/vga_pattern/vga_pattern_top.sv \
 	rtl/gfx_pattern_demo/gfx_pattern_demo_top.sv \
-	rtl/gfx_pattern_demo_striped/gfx_pattern_demo_striped_top.sv
+	rtl/gfx_pattern_demo_striped/gfx_pattern_demo_striped_top.sv \
+	rtl/gfx_shapes_demo/gfx_shapes_demo_top.sv
 
 CONSTRAINTS_DIR := constraints
 ICE40_DEV_BOARD := vanilla-ice40
