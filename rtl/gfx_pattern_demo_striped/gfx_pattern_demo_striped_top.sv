@@ -11,37 +11,25 @@
 module gfx_pattern_demo_striped_top #(
     parameter  NUM_S            = 2,
     localparam COLOR_WIDTH      = 4,
-    parameter  SRAM_ADDR_WIDTH  = 18,
+    parameter  SRAM_ADDR_WIDTH  = 20,
     parameter  SRAM_DATA_WIDTH  = 16,
-    parameter  SRAM_RDATA_WIDTH = 12
+    parameter  SRAM_RDATA_WIDTH = 16
 ) (
     input  logic CLK,
     output logic LED1,
     output logic LED2,
 
-    // // SRAM A
-    // output logic                        L_SRAM_256_A_OE_N,
-    // output logic                        L_SRAM_256_A_WE_N,
-    // output logic [ SRAM_ADDR_WIDTH-1:0] L_SRAM_256_A_ADDR_BUS,
-    // inout  wire  [SRAM_RDATA_WIDTH-1:0] L_SRAM_256_A_DATA_BUS,
-    //
-    // // SRAM B
-    // output logic                        L_SRAM_256_B_OE_N,
-    // output logic                        L_SRAM_256_B_WE_N,
-    // output logic [ SRAM_ADDR_WIDTH-1:0] L_SRAM_256_B_ADDR_BUS,
-    // inout  wire  [SRAM_RDATA_WIDTH-1:0] L_SRAM_256_B_DATA_BUS,
+    output logic                        R_SRAM_CS_N,
+    output logic                        R_SRAM_OE_N,
+    output logic                        R_SRAM_WE_N,
+    output logic [ SRAM_ADDR_WIDTH-1:0] R_SRAM_ADDR_BUS,
+    inout  wire  [SRAM_RDATA_WIDTH-1:0] R_SRAM_DATA_BUS,
 
-    // SRAM C
-    output logic                        R_SRAM_256_A_OE_N,
-    output logic                        R_SRAM_256_A_WE_N,
-    output logic [ SRAM_ADDR_WIDTH-1:0] R_SRAM_256_A_ADDR_BUS,
-    inout  wire  [SRAM_RDATA_WIDTH-1:0] R_SRAM_256_A_DATA_BUS,
-
-    // SRAM D
-    output logic                        R_SRAM_256_B_OE_N,
-    output logic                        R_SRAM_256_B_WE_N,
-    output logic [ SRAM_ADDR_WIDTH-1:0] R_SRAM_256_B_ADDR_BUS,
-    inout  wire  [SRAM_RDATA_WIDTH-1:0] R_SRAM_256_B_DATA_BUS,
+    output logic                        L_SRAM_CS_N,
+    output logic                        L_SRAM_OE_N,
+    output logic                        L_SRAM_WE_N,
+    output logic [ SRAM_ADDR_WIDTH-1:0] L_SRAM_ADDR_BUS,
+    inout  wire  [SRAM_RDATA_WIDTH-1:0] L_SRAM_DATA_BUS,
 
     // output vga to pmod e/f
     output logic [7:0] R_E,
@@ -90,27 +78,11 @@ module gfx_pattern_demo_striped_top #(
 
       .continious_write(1'b1),
 
-      .sram_io_addr({
-        R_SRAM_256_B_ADDR_BUS, R_SRAM_256_A_ADDR_BUS
-      // L_SRAM_256_B_ADDR_BUS,
-      // L_SRAM_256_A_ADDR_BUS
-      }),
-      .sram_io_data({
-        R_SRAM_256_B_DATA_BUS, R_SRAM_256_A_DATA_BUS
-      // L_SRAM_256_B_DATA_BUS,
-      // L_SRAM_256_A_DATA_BUS
-      }),
-      .sram_io_ce_n(),
-      .sram_io_we_n({
-        R_SRAM_256_B_WE_N, R_SRAM_256_A_WE_N
-      // L_SRAM_256_B_WE_N,
-      // L_SRAM_256_A_WE_N
-      }),
-      .sram_io_oe_n({
-        R_SRAM_256_B_OE_N, R_SRAM_256_A_OE_N
-      // L_SRAM_256_B_OE_N,
-      // L_SRAM_256_A_OE_N
-      }),
+      .sram_io_addr({L_SRAM_ADDR_BUS, R_SRAM_ADDR_BUS}),
+      .sram_io_data({L_SRAM_DATA_BUS, R_SRAM_DATA_BUS}),
+      .sram_io_ce_n({L_SRAM_CS_N, R_SRAM_CS_N}),
+      .sram_io_we_n({L_SRAM_WE_N, R_SRAM_WE_N}),
+      .sram_io_oe_n({L_SRAM_OE_N, R_SRAM_OE_N}),
 
       .vga_red  (vga_red),
       .vga_grn  (vga_grn),
