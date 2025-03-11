@@ -12,7 +12,7 @@ module gfx_shapes_demo_top #(
     localparam COLOR_WIDTH      = 4,
     parameter  SRAM_ADDR_WIDTH  = 20,
     parameter  SRAM_DATA_WIDTH  = 16,
-    parameter  SRAM_RDATA_WIDTH = 12
+    parameter  SRAM_RDATA_WIDTH = 16
 ) (
     input  logic CLK,
     output logic LED1,
@@ -65,7 +65,7 @@ module gfx_shapes_demo_top #(
       .pixel_clk  (pixel_clk),
       .pixel_rst_n(rst_n),
 
-      .continious_write(1'b1),
+      .continious_write(1'b0),
 
       .sram_io_addr(L_SRAM_ADDR_BUS),
       .sram_io_data(L_SRAM_DATA_BUS),

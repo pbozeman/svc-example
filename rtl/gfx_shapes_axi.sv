@@ -3,6 +3,7 @@
 
 `include "svc.sv"
 `include "svc_gfx_vga_fade.sv"
+// `include "svc_gfx_vga.sv"
 
 `include "gfx_shapes.sv"
 
