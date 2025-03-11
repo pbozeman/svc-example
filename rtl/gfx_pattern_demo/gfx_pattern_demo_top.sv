@@ -12,7 +12,7 @@ module gfx_pattern_demo_top #(
     localparam COLOR_WIDTH      = 4,
     parameter  SRAM_ADDR_WIDTH  = 20,
     parameter  SRAM_DATA_WIDTH  = 16,
-    parameter  SRAM_RDATA_WIDTH = 12
+    parameter  SRAM_RDATA_WIDTH = 16
 ) (
     input  logic CLK,
     output logic LED1,
