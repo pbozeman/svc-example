@@ -2,7 +2,7 @@
 `define GFX_PATTERN_AXI_SV
 
 `include "svc.sv"
-`include "svc_gfx_vga_fade.sv"
+`include "svc_gfx_vga.sv"
 
 `include "gfx_pattern.sv"
 
@@ -108,7 +108,7 @@ module gfx_pattern_axi #(
   assign v_sync_end   = MODE_V_SYNC_END;
   assign v_frame_end  = MODE_V_FRAME_END;
 
-  svc_gfx_vga_fade #(
+  svc_gfx_vga #(
       .H_WIDTH       (H_WIDTH),
       .V_WIDTH       (V_WIDTH),
       .PIXEL_WIDTH   (PIXEL_WIDTH),
