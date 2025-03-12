@@ -36,13 +36,14 @@ module adc_xy_tb;
   logic                  adc_grn;
   logic                  adc_blu;
 
-  // Module instantiation
+  // set delay to 0 since we aren't mocking the adc
   adc_xy #(
       .DATA_WIDTH (DATA_WIDTH),
       .SCALE_NUM_X(SCALE_NUM_X),
       .SCALE_DEN_X(SCALE_DEN_X),
       .SCALE_NUM_Y(SCALE_NUM_Y),
-      .SCALE_DEN_Y(SCALE_DEN_Y)
+      .SCALE_DEN_Y(SCALE_DEN_Y),
+      .ADC_DELAY  (0)
   ) uut (
       .clk       (clk),
       .rst_n     (rst_n),
@@ -116,8 +117,8 @@ module adc_xy_tb;
     // green dot at position (300, 400)
     adc_x_io   = 300;
     adc_y_io   = 400;
-    adc_red_io = 1'b1;
-    adc_grn_io = 1'b0;
+    adc_red_io = 1'b0;
+    adc_grn_io = 1'b1;
     adc_blu_io = 1'b0;
 
     adc_ready  = 1'b1;
@@ -130,8 +131,8 @@ module adc_xy_tb;
 
     `CHECK_EQ(adc_x, expected_x);
     `CHECK_EQ(adc_y, expected_y);
-    `CHECK_EQ(adc_red, 1'b1);
-    `CHECK_EQ(adc_grn, 1'b0);
+    `CHECK_EQ(adc_red, 1'b0);
+    `CHECK_EQ(adc_grn, 1'b1);
     `CHECK_EQ(adc_blu, 1'b0);
   endtask
 
