@@ -106,7 +106,7 @@ module gfx_pattern_demo_tb;
     end
   endtask
 
-  `TEST_SUITE_BEGIN(gfx_pattern_demo_tb, 20000000, 6);
+  `TEST_SUITE_BEGIN_SLOW(gfx_pattern_demo_tb);
   `TEST_CASE(test_basic);
   `TEST_SUITE_END();
 endmodule
