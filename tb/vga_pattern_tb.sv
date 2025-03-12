@@ -43,7 +43,7 @@ module vga_pattern_tb;
     end
   endtask
 
-  `TEST_SUITE_BEGIN(vga_pattern_tb, 20000000);
+  `TEST_SUITE_BEGIN_SLOW(vga_pattern_tb);
   `TEST_CASE(test_basic);
   `TEST_SUITE_END();
 endmodule
