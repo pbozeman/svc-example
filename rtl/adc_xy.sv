@@ -15,7 +15,8 @@ module adc_xy #(
     parameter SCALE_NUM_X = 3,
     parameter SCALE_DEN_X = 4,
     parameter SCALE_NUM_Y = 3,
-    parameter SCALE_DEN_Y = 4
+    parameter SCALE_DEN_Y = 4,
+    parameter ADC_DELAY   = 7
 ) (
     input logic clk,
     input logic rst_n,
@@ -38,6 +39,17 @@ module adc_xy #(
     output logic                  adc_grn,
     output logic                  adc_blu
 );
+  // We have to delay by the ADC amount, plus 2 pipeline cycles for the
+  // scaling math.
+  //
+  // Data sheet for the adc says 7 cycle delay for x/y, which is the default
+  // above.
+  //
+  // TODO: there is a little blue line under the player name in game,
+  // so despite the data sheet, this seems wrong, like the gun turned on/off
+  // early or late. Measure and tune this.
+  parameter COLOR_DELAY = (ADC_DELAY + 2);
+
   // X/Y + color
   localparam FIFO_WIDTH = DATA_WIDTH * 2 + 3;
 
@@ -77,13 +89,8 @@ module adc_xy #(
 
   logic                  w_pixel_lit;
 
-  // Data sheet for the adc says 7 cycle delay for x/y, plus 2 scaling cycles
-  //
-  // TODO: there is a little blue line under the player name in game,
-  // so despite the data sheet, this seems wrong, like the gun turned on/off
-  // early or late. Measure and tune this.
   svc_delay #(
-      .CYCLES(9),
+      .CYCLES(COLOR_DELAY),
       .WIDTH (3)
   ) adc_color_delay (
       .clk  (adc_clk),
