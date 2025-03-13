@@ -314,21 +314,21 @@ module gfx_shapes #(
 
       color_cnt  <= 0;
     end else begin
-      state       <= state_next;
-      s_gfx_done  <= s_gfx_done_next;
-      cnt         <= cnt_next;
+      state      <= state_next;
+      s_gfx_done <= s_gfx_done_next;
+      cnt        <= cnt_next;
 
-      line_start  <= line_start_next;
-      line_x0     <= line_x0_next;
-      line_y0     <= line_y0_next;
-      line_x1     <= line_x1_next;
-      line_y1     <= line_y1_next;
-      line_dir    <= line_dir_next;
+      line_start <= line_start_next;
+      line_x0    <= line_x0_next;
+      line_y0    <= line_y0_next;
+      line_x1    <= line_x1_next;
+      line_y1    <= line_y1_next;
+      line_dir   <= line_dir_next;
 
-      line_color  <= line_color_next;
-      color_cnt   <= color_cnt_next;
+      line_color <= line_color_next;
+      color_cnt  <= color_cnt_next;
 
-      sweep_cnt   <= sweep_cnt_next;
+      sweep_cnt  <= sweep_cnt_next;
 
     end
   end
