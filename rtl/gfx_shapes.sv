@@ -4,6 +4,7 @@
 `include "svc.sv"
 `include "svc_gfx_line.sv"
 `include "svc_gfx_rect_fill.sv"
+`include "svc_skidbuf.sv"
 
 module gfx_shapes #(
     parameter H_WIDTH     = 12,
@@ -93,21 +94,49 @@ module gfx_shapes #(
   // Set mux select based on state
   assign gfx_mux_sel = (state == STATE_DRAWING);
 
-  // Output signals next
-  logic                   m_gfx_valid_next;
-  logic [    H_WIDTH-1:0] m_gfx_x_next;
-  logic [    V_WIDTH-1:0] m_gfx_y_next;
-  logic [PIXEL_WIDTH-1:0] m_gfx_pixel_next;
+  // Output signals for skidbuf
+  logic                   sb_gfx_valid;
+  logic [    H_WIDTH-1:0] sb_gfx_x;
+  logic [    V_WIDTH-1:0] sb_gfx_y;
+  logic [PIXEL_WIDTH-1:0] sb_gfx_pixel;
+  logic                   sb_gfx_ready;
 
   // Output mux combinational logic
-  assign m_gfx_valid_next = gfx_mux_sel ? line_valid : rect_valid;
-  assign m_gfx_x_next     = gfx_mux_sel ? line_x : rect_x;
-  assign m_gfx_y_next     = gfx_mux_sel ? line_y : rect_y;
-  assign m_gfx_pixel_next = gfx_mux_sel ? line_pixel : rect_pixel;
+  assign sb_gfx_valid = gfx_mux_sel ? line_valid : rect_valid;
+  assign sb_gfx_x     = gfx_mux_sel ? line_x : rect_x;
+  assign sb_gfx_y     = gfx_mux_sel ? line_y : rect_y;
+  assign sb_gfx_pixel = gfx_mux_sel ? line_pixel : rect_pixel;
 
   // Input demux
-  assign rect_ready       = gfx_mux_sel ? 1'b0 : m_gfx_ready;
-  assign line_ready       = gfx_mux_sel ? m_gfx_ready : 1'b0;
+  assign rect_ready   = gfx_mux_sel ? 1'b0 : sb_gfx_ready;
+  assign line_ready   = gfx_mux_sel ? sb_gfx_ready : 1'b0;
+
+  // Combine signals for skidbuf
+  localparam SB_WIDTH = H_WIDTH + V_WIDTH + PIXEL_WIDTH;
+  logic [SB_WIDTH-1:0] sb_gfx_data_in;
+  logic [SB_WIDTH-1:0] sb_gfx_data_out;
+
+  assign sb_gfx_data_in                  = {sb_gfx_x, sb_gfx_y, sb_gfx_pixel};
+  assign {m_gfx_x, m_gfx_y, m_gfx_pixel} = sb_gfx_data_out;
+
+  // Skidbuffer to properly handle backpressure with registered outputs
+  svc_skidbuf #(
+      .DATA_WIDTH(SB_WIDTH),
+      .OPT_OUTREG(1)          // Use registered outputs
+  ) gfx_skidbuf (
+      .clk  (clk),
+      .rst_n(rst_n),
+
+      // Input side (from mux)
+      .i_valid(sb_gfx_valid),
+      .i_data (sb_gfx_data_in),
+      .o_ready(sb_gfx_ready),
+
+      // Output side (to external interface)
+      .o_valid(m_gfx_valid),
+      .o_data (sb_gfx_data_out),
+      .i_ready(m_gfx_ready)
+  );
 
   // clear screen
   svc_gfx_rect_fill #(
@@ -271,25 +300,19 @@ module gfx_shapes #(
   // State register
   always_ff @(posedge clk) begin
     if (!rst_n) begin
-      state       <= STATE_IDLE;
-      s_gfx_done  <= 1'b0;
-      cnt         <= 0;
+      state      <= STATE_IDLE;
+      s_gfx_done <= 1'b0;
+      cnt        <= 0;
 
-      line_start  <= 0;
-      line_x0     <= 100;  //h_visible / 4;
-      line_y0     <= 100;  //v_visible / 4;
-      line_x1     <= 400;  //(h_visible * 3) / 4;
-      line_y1     <= 400;  //(v_visible * 3) / 4;
-      line_color  <= 0;
-      line_dir    <= 0;
+      line_start <= 0;
+      line_x0    <= 100;  //h_visible / 4;
+      line_y0    <= 100;  //v_visible / 4;
+      line_x1    <= 400;  //(h_visible * 3) / 4;
+      line_y1    <= 400;  //(v_visible * 3) / 4;
+      line_color <= 0;
+      line_dir   <= 0;
 
-      color_cnt   <= 0;
-
-      // Reset output registers
-      m_gfx_valid <= 1'b0;
-      m_gfx_x     <= '0;
-      m_gfx_y     <= '0;
-      m_gfx_pixel <= '0;
+      color_cnt  <= 0;
     end else begin
       state       <= state_next;
       s_gfx_done  <= s_gfx_done_next;
@@ -306,12 +329,6 @@ module gfx_shapes #(
       color_cnt   <= color_cnt_next;
 
       sweep_cnt   <= sweep_cnt_next;
-
-      // Register outputs
-      m_gfx_valid <= m_gfx_valid_next;
-      m_gfx_x     <= m_gfx_x_next;
-      m_gfx_y     <= m_gfx_y_next;
-      m_gfx_pixel <= m_gfx_pixel_next;
 
     end
   end
