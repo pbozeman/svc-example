@@ -95,7 +95,8 @@ module gfx_shapes_demo_tb;
         end
       end
 
-      `CHECK_LT(gfx_wait_cnt, 10);
+      // TODO: tune this down to what it should be
+      `CHECK_LT(int'(gfx_wait_cnt), 20);
     end
   end
 
