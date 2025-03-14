@@ -12,10 +12,10 @@
 
 module adc_xy #(
     parameter DATA_WIDTH  = 10,
-    parameter SCALE_NUM_X = 3,
-    parameter SCALE_DEN_X = 4,
-    parameter SCALE_NUM_Y = 3,
-    parameter SCALE_DEN_Y = 4,
+    parameter SCALE_NUM_X = 5,
+    parameter SCALE_DEN_X = 8,
+    parameter SCALE_NUM_Y = 15,
+    parameter SCALE_DEN_Y = 32,
     parameter ADC_DELAY   = 7
 ) (
     input logic clk,
