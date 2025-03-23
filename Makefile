@@ -13,7 +13,8 @@ TOP_MODULES := \
 	rtl/vga_pattern/vga_pattern_top.sv \
 	rtl/gfx_pattern_demo/gfx_pattern_demo_top.sv \
 	rtl/gfx_pattern_demo_striped/gfx_pattern_demo_striped_top.sv \
-	rtl/gfx_shapes_demo/gfx_shapes_demo_top.sv
+	rtl/gfx_shapes_demo/gfx_shapes_demo_top.sv \
+	rtl/uart_demo/uart_demo_top.sv
 
 CONSTRAINTS_DIR := constraints
 ICE40_DEV_BOARD := vanilla-ice40
