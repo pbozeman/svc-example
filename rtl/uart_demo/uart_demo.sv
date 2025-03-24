@@ -46,14 +46,16 @@ module uart_demo #(
   svc_str_iter #(
       .MAX_STR_LEN(STR_MAX_LEN)
   ) svc_str_iter_i (
-      .clk    (clk),
-      .rst_n  (rst_n),
-      .s_valid(str_valid),
-      .s_msg  (str_msg),
-      .s_ready(str_ready),
-      .m_valid(chr_valid),
-      .m_char (chr_data),
-      .m_ready(chr_ready)
+      .clk      (clk),
+      .rst_n    (rst_n),
+      .s_valid  (str_valid),
+      .s_msg    (str_msg),
+      .s_bin    (1'b0),
+      .s_bin_len('0),
+      .s_ready  (str_ready),
+      .m_valid  (chr_valid),
+      .m_char   (chr_data),
+      .m_ready  (chr_ready)
   );
 
   assign chr_ready = !utx_busy;
