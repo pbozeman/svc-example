@@ -14,7 +14,8 @@ TOP_MODULES := \
 	rtl/gfx_pattern_demo/gfx_pattern_demo_top.sv \
 	rtl/gfx_pattern_demo_striped/gfx_pattern_demo_striped_top.sv \
 	rtl/gfx_shapes_demo/gfx_shapes_demo_top.sv \
-	rtl/uart_demo/uart_demo_top.sv
+	rtl/uart_demo/uart_demo_top.sv \
+	rtl/axi_perf_mem/axi_perf_mem_top.sv
 
 CONSTRAINTS_DIR := constraints
 ICE40_DEV_BOARD := vanilla-ice40
