@@ -3,6 +3,7 @@
 
 `include "svc.sv"
 `include "svc_axi_stats_wr.sv"
+`include "svc_hex_fmt.sv"
 `include "svc_print.sv"
 `include "svc_uart_tx.sv"
 
@@ -66,8 +67,6 @@ module axi_perf #(
     STATE_REPORT_ITER,
     STATE_REPORT_ITER_SEND,
     STATE_REPORT_ITER_SEND_WAIT,
-    STATE_REPORT_ITER_SEND_NL,
-    STATE_REPORT_ITER_SEND_NL_WAIT,
     STATE_REPORT_ITER_SEND_DONE,
     STATE_DONE
   } state_t;
@@ -184,6 +183,20 @@ module axi_perf #(
       .m_axi_bready (m_axi_bready)
   );
 
+  // TODO: there should be a macro for these size calcs
+  localparam HEX_WIDTH = (STAT_WIDTH / 4) * 8;
+  logic [HEX_WIDTH-1:0] stat_val_ascii;
+
+  // TODO: this is on the edge of not meeting timing due to the
+  // stat_val_ascii calc. Pipeline this conversion and add it to the end
+  // of the ready/valid chain from the stat iter.
+  svc_hex_fmt #(
+      .WIDTH(STAT_WIDTH)
+  ) svc_hex_fmt_i (
+      .val  (stat_iter_val),
+      .ascii(stat_val_ascii)
+  );
+
   `SVC_PRINT_INIT(utx_en, utx_data, utx_busy);
 
   always_comb begin
@@ -236,16 +249,6 @@ module axi_perf #(
 
       STATE_REPORT_ITER_SEND_WAIT: begin
         if (!`SVC_PRINT_BUSY) begin
-          state_next = STATE_REPORT_ITER_SEND_NL;
-        end
-      end
-
-      STATE_REPORT_ITER_SEND_NL: begin
-        state_next = STATE_REPORT_ITER_SEND_NL_WAIT;
-      end
-
-      STATE_REPORT_ITER_SEND_NL_WAIT: begin
-        if (!`SVC_PRINT_BUSY) begin
           state_next = STATE_REPORT_ITER_SEND_DONE;
         end
       end
@@ -281,14 +284,7 @@ module axi_perf #(
       end
 
       STATE_REPORT_ITER_SEND: begin
-        `SVC_PRINT({" ", stat_iter_name, ": "});
-        // TODO: print the val - try to see if it can be done via some
-        // conversion and then str concat. If not, just make another
-        // `SVC_PRINT_U32(stat_iter_val);
-      end
-
-      STATE_REPORT_ITER_SEND_NL: begin
-        `SVC_PRINT({"\r\n"});
+        `SVC_PRINT({" ", stat_iter_name, ": 0x", stat_val_ascii, "\r\n"});
       end
 
       default: begin
