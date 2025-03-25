@@ -3,7 +3,7 @@
 
 `include "svc.sv"
 `include "svc_axi_stats_wr.sv"
-`include "svc_hex_fmt.sv"
+`include "svc_hex_fmt_stream.sv"
 `include "svc_print.sv"
 `include "svc_uart_tx.sv"
 
@@ -71,27 +71,36 @@ module axi_perf #(
     STATE_DONE
   } state_t;
 
-  state_t           state;
-  state_t           state_next;
+  state_t            state;
+  state_t            state_next;
 
-  logic             utx_en;
-  logic   [    7:0] utx_data;
-  logic             utx_busy;
+  logic              utx_en;
+  logic   [     7:0] utx_data;
+  logic              utx_busy;
 
-  logic             wr_start;
-  logic             wr_busy;
+  logic              wr_start;
+  logic              wr_busy;
 
-  logic   [ AW-1:0] wr_base_addr;
-  logic   [    7:0] wr_burst_beats;
-  logic   [ AW-1:0] wr_burst_stride;
-  logic   [   15:0] wr_burst_num;
+  logic   [  AW-1:0] wr_base_addr;
+  logic   [     7:0] wr_burst_beats;
+  logic   [  AW-1:0] wr_burst_stride;
+  logic   [    15:0] wr_burst_num;
 
-  logic             stat_iter_start;
-  logic             stat_iter_valid;
-  logic   [SNW-1:0] stat_iter_name;
-  logic   [ SW-1:0] stat_iter_val;
-  logic             stat_iter_last;
-  logic             stat_iter_ready;
+  logic              stat_iter_start;
+  logic              stat_iter_valid;
+  logic   [ SNW-1:0] stat_iter_name;
+  logic   [  SW-1:0] stat_iter_val;
+  logic              stat_iter_last;
+  logic              stat_iter_ready;
+
+  logic   [SW*2-1:0] stat_val_ascii;
+
+  logic              fmt_iter_valid;
+  logic   [ SNW-1:0] fmt_iter_name;
+  logic   [SW*2-1:0] fmt_iter_val;
+  logic              fmt_iter_last;
+  logic              fmt_iter_ready;
+
 
   assign wr_base_addr    = 0;
   assign wr_burst_beats  = 64;
@@ -183,18 +192,22 @@ module axi_perf #(
       .m_axi_bready (m_axi_bready)
   );
 
-  // TODO: there should be a macro for these size calcs
-  localparam HEX_WIDTH = (STAT_WIDTH / 4) * 8;
-  logic [HEX_WIDTH-1:0] stat_val_ascii;
-
-  // TODO: this is on the edge of not meeting timing due to the
-  // stat_val_ascii calc. Pipeline this conversion and add it to the end
-  // of the ready/valid chain from the stat iter.
-  svc_hex_fmt #(
-      .WIDTH(STAT_WIDTH)
+  svc_hex_fmt_stream #(
+      .WIDTH     (STAT_WIDTH),
+      .USER_WIDTH(SNW + 1)
   ) svc_hex_fmt_i (
-      .val  (stat_iter_val),
-      .ascii(stat_val_ascii)
+      .clk  (clk),
+      .rst_n(rst_n),
+
+      .s_valid(stat_iter_valid),
+      .s_data (stat_iter_val),
+      .s_user ({stat_iter_name, stat_iter_last}),
+      .s_ready(stat_iter_ready),
+
+      .m_valid(fmt_iter_valid),
+      .m_data (fmt_iter_val),
+      .m_user ({fmt_iter_name, fmt_iter_last}),
+      .m_ready(fmt_iter_ready)
   );
 
   `SVC_PRINT_INIT(utx_en, utx_data, utx_busy);
@@ -204,7 +217,7 @@ module axi_perf #(
     wr_start        = 1'b0;
 
     stat_iter_start = 1'b0;
-    stat_iter_ready = 1'b0;
+    fmt_iter_ready  = 1'b0;
 
     case (state)
       STATE_IDLE: begin
@@ -238,7 +251,7 @@ module axi_perf #(
       end
 
       STATE_REPORT_ITER: begin
-        if (stat_iter_valid) begin
+        if (fmt_iter_valid) begin
           state_next = STATE_REPORT_ITER_SEND;
         end
       end
@@ -254,8 +267,8 @@ module axi_perf #(
       end
 
       STATE_REPORT_ITER_SEND_DONE: begin
-        stat_iter_ready = 1'b1;
-        if (!stat_iter_last) begin
+        fmt_iter_ready = 1'b1;
+        if (!fmt_iter_last) begin
           state_next = STATE_REPORT_ITER;
         end else begin
           state_next = STATE_DONE;
@@ -284,7 +297,7 @@ module axi_perf #(
       end
 
       STATE_REPORT_ITER_SEND: begin
-        `SVC_PRINT({" ", stat_iter_name, ": 0x", stat_val_ascii, "\r\n"});
+        `SVC_PRINT({" ", fmt_iter_name, ": 0x", fmt_iter_val, "\r\n"});
       end
 
       default: begin
