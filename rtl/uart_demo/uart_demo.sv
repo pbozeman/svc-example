@@ -2,7 +2,6 @@
 `define UART_DEMO_SV
 
 `include "svc.sv"
-`include "svc_str.sv"
 `include "svc_str_iter.sv"
 `include "svc_uart_tx.sv"
 
@@ -77,11 +76,11 @@ module uart_demo #(
         if (!first_done) begin
           first_done <= 1'b1;
           str_valid  <= 1'b1;
-          `SVC_STR_INIT(str_msg, "First\r\n");
+          str_msg    <= "First\r\n";
         end else if (!second_done) begin
           second_done <= 1'b1;
           str_valid   <= 1'b1;
-          `SVC_STR_INIT(str_msg, "Second\r\n");
+          str_msg     <= "Second\r\n";
         end else begin
           str_valid <= 1'b0;
         end

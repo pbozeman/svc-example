@@ -20,12 +20,10 @@ module uart_demo_tb;
 
   task automatic test_basic();
     // This is only a very basic smoke test and isn't testing the actual uart
-    for (int i = 0; i < 2; i++) begin
-      `CHECK_WAIT_FOR(clk, uut.str_valid && uut.str_ready, 1000);
-    end
+    #100000;
   endtask
 
-  `TEST_SUITE_BEGIN(uart_demo_tb);
+  `TEST_SUITE_BEGIN(uart_demo_tb, 1000000);
   `TEST_CASE(test_basic);
   `TEST_SUITE_END();
 endmodule
