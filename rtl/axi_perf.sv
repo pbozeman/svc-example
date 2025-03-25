@@ -12,6 +12,8 @@
 // reporting is going to work
 
 // verilator lint_off: UNUSEDPARAM
+// verilator lint_off: UNUSEDSIGNAL
+// verilator lint_off: UNDRIVEN
 module axi_perf #(
     parameter NAME           = "axi_perf",
     parameter CLOCK_FREQ     = 100_000_000,
@@ -47,6 +49,13 @@ module axi_perf #(
   localparam AW = AXI_ADDR_WIDTH;
   localparam SW = STAT_WIDTH;
 
+  // TODO: these should be coordinated with the stats_wr. Make them global
+  // params?
+  //
+  // STATE_NAME_LEN and STATE_NAME_WIDTH
+  localparam SNL = 16;
+  localparam SNW = SNL * 8;
+
   typedef enum {
     STATE_IDLE,
     STATE_HEADER,
@@ -54,29 +63,36 @@ module axi_perf #(
     STATE_RUN,
     STATE_RUN_WAIT,
     STATE_REPORT,
-    STATE_REPORT_WAIT,
-    STATE_REPORT_STAT,
-    STATE_REPORT_STAT_WAIT,
-    STATE_REPORT_NEWLINE,
+    STATE_REPORT_ITER,
+    STATE_REPORT_ITER_SEND,
+    STATE_REPORT_ITER_SEND_WAIT,
+    STATE_REPORT_ITER_SEND_NL,
+    STATE_REPORT_ITER_SEND_NL_WAIT,
+    STATE_REPORT_ITER_SEND_DONE,
     STATE_DONE
   } state_t;
 
-  state_t          state;
-  state_t          state_next;
+  state_t           state;
+  state_t           state_next;
 
-  logic            utx_en;
-  logic   [   7:0] utx_data;
-  logic            utx_busy;
+  logic             utx_en;
+  logic   [    7:0] utx_data;
+  logic             utx_busy;
 
-  logic            wr_start;
-  logic            wr_busy;
+  logic             wr_start;
+  logic             wr_busy;
 
-  logic   [AW-1:0] wr_base_addr;
-  logic   [   7:0] wr_burst_beats;
-  logic   [AW-1:0] wr_burst_stride;
-  logic   [  15:0] wr_burst_num;
+  logic   [ AW-1:0] wr_base_addr;
+  logic   [    7:0] wr_burst_beats;
+  logic   [ AW-1:0] wr_burst_stride;
+  logic   [   15:0] wr_burst_num;
 
-  logic   [SW-1:0] stat_aw_burst_cnt;
+  logic             stat_iter_start;
+  logic             stat_iter_valid;
+  logic   [SNW-1:0] stat_iter_name;
+  logic   [ SW-1:0] stat_iter_val;
+  logic             stat_iter_last;
+  logic             stat_iter_ready;
 
   assign wr_base_addr    = 0;
   assign wr_burst_beats  = 64;
@@ -134,7 +150,8 @@ module axi_perf #(
   svc_axi_stats_wr #(
       .AXI_ADDR_WIDTH(AXI_ADDR_WIDTH),
       .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
-      .AXI_ID_WIDTH  (AXI_ID_WIDTH)
+      .AXI_ID_WIDTH  (AXI_ID_WIDTH),
+      .STAT_WIDTH    (STAT_WIDTH)
   ) svc_axi_stats_wr_i (
       .clk  (clk),
       .rst_n(rst_n),
@@ -142,7 +159,12 @@ module axi_perf #(
       .stat_clear(1'b0),
       .stat_err  (),
 
-      .stat_aw_burst_cnt(stat_aw_burst_cnt),
+      .stat_iter_start(stat_iter_start),
+      .stat_iter_valid(stat_iter_valid),
+      .stat_iter_name (stat_iter_name),
+      .stat_iter_val  (stat_iter_val),
+      .stat_iter_last (stat_iter_last),
+      .stat_iter_ready(stat_iter_ready),
 
       .m_axi_awvalid(m_axi_awvalid),
       .m_axi_awaddr (m_axi_awaddr),
@@ -165,8 +187,11 @@ module axi_perf #(
   `SVC_PRINT_INIT(utx_en, utx_data, utx_busy);
 
   always_comb begin
-    state_next = state;
-    wr_start   = 1'b0;
+    state_next      = state;
+    wr_start        = 1'b0;
+
+    stat_iter_start = 1'b0;
+    stat_iter_ready = 1'b0;
 
     case (state)
       STATE_IDLE: begin
@@ -195,27 +220,43 @@ module axi_perf #(
       end
 
       STATE_REPORT: begin
-        state_next = STATE_REPORT_WAIT;
+        stat_iter_start = 1'b1;
+        state_next      = STATE_REPORT_ITER;
       end
 
-      STATE_REPORT_WAIT: begin
-        if (!`SVC_PRINT_BUSY) begin
-          state_next = STATE_REPORT_STAT;
+      STATE_REPORT_ITER: begin
+        if (stat_iter_valid) begin
+          state_next = STATE_REPORT_ITER_SEND;
         end
       end
 
-      STATE_REPORT_STAT: begin
-        state_next = STATE_REPORT_STAT_WAIT;
+      STATE_REPORT_ITER_SEND: begin
+        state_next = STATE_REPORT_ITER_SEND_WAIT;
       end
 
-      STATE_REPORT_STAT_WAIT: begin
+      STATE_REPORT_ITER_SEND_WAIT: begin
         if (!`SVC_PRINT_BUSY) begin
-          state_next = STATE_REPORT_NEWLINE;
+          state_next = STATE_REPORT_ITER_SEND_NL;
         end
       end
 
-      STATE_REPORT_NEWLINE: begin
-        state_next = STATE_DONE;
+      STATE_REPORT_ITER_SEND_NL: begin
+        state_next = STATE_REPORT_ITER_SEND_NL_WAIT;
+      end
+
+      STATE_REPORT_ITER_SEND_NL_WAIT: begin
+        if (!`SVC_PRINT_BUSY) begin
+          state_next = STATE_REPORT_ITER_SEND_DONE;
+        end
+      end
+
+      STATE_REPORT_ITER_SEND_DONE: begin
+        stat_iter_ready = 1'b1;
+        if (!stat_iter_last) begin
+          state_next = STATE_REPORT_ITER;
+        end else begin
+          state_next = STATE_DONE;
+        end
       end
 
       STATE_DONE: begin
@@ -236,19 +277,18 @@ module axi_perf #(
 
     case (state)
       STATE_HEADER: begin
-        `SVC_PRINT({"AXI perf\r\n", " name:       ", NAME, "\r\n"});
+        `SVC_PRINT({"\r\nAXI perf\r\n", " name: ", NAME, "\r\n"});
       end
 
-      STATE_REPORT: begin
-        `SVC_PRINT(" aw_burst_cnt: 0x");
+      STATE_REPORT_ITER_SEND: begin
+        `SVC_PRINT({" ", stat_iter_name, ": "});
+        // TODO: print the val - try to see if it can be done via some
+        // conversion and then str concat. If not, just make another
+        // `SVC_PRINT_U32(stat_iter_val);
       end
 
-      STATE_REPORT_STAT: begin
-        `SVC_PRINT_U32(stat_aw_burst_cnt);
-      end
-
-      STATE_REPORT_NEWLINE: begin
-        `SVC_PRINT("\r\n");
+      STATE_REPORT_ITER_SEND_NL: begin
+        `SVC_PRINT({"\r\n"});
       end
 
       default: begin
