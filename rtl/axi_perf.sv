@@ -50,13 +50,6 @@ module axi_perf #(
   localparam AW = AXI_ADDR_WIDTH;
   localparam SW = STAT_WIDTH;
 
-  // TODO: these should be coordinated with the stats_wr. Make them global
-  // params?
-  //
-  // STATE_NAME_LEN and STATE_NAME_WIDTH
-  localparam SNL = 16;
-  localparam SNW = SNL * 8;
-
   typedef enum {
     STATE_IDLE,
     STATE_HEADER,
@@ -88,7 +81,7 @@ module axi_perf #(
 
   logic              stat_iter_start;
   logic              stat_iter_valid;
-  logic   [ SNW-1:0] stat_iter_name;
+  logic   [     7:0] stat_iter_id;
   logic   [  SW-1:0] stat_iter_val;
   logic              stat_iter_last;
   logic              stat_iter_ready;
@@ -96,11 +89,11 @@ module axi_perf #(
   logic   [SW*2-1:0] stat_val_ascii;
 
   logic              fmt_iter_valid;
-  logic   [ SNW-1:0] fmt_iter_name;
-  logic   [SW*2-1:0] fmt_iter_val;
+  logic   [     7:0] fmt_iter_id;
+  logic   [SW*2-1:0] fmt_iter_val_str;
+  logic   [ 8*2-1:0] fmt_iter_id_str;
   logic              fmt_iter_last;
   logic              fmt_iter_ready;
-
 
   assign wr_base_addr    = 0;
   assign wr_burst_beats  = 64;
@@ -169,7 +162,7 @@ module axi_perf #(
 
       .stat_iter_start(stat_iter_start),
       .stat_iter_valid(stat_iter_valid),
-      .stat_iter_name (stat_iter_name),
+      .stat_iter_id   (stat_iter_id),
       .stat_iter_val  (stat_iter_val),
       .stat_iter_last (stat_iter_last),
       .stat_iter_ready(stat_iter_ready),
@@ -194,20 +187,27 @@ module axi_perf #(
 
   svc_hex_fmt_stream #(
       .WIDTH     (STAT_WIDTH),
-      .USER_WIDTH(SNW + 1)
-  ) svc_hex_fmt_i (
+      .USER_WIDTH(1 + 8)
+  ) svc_hex_fmt_stream_i (
       .clk  (clk),
       .rst_n(rst_n),
 
       .s_valid(stat_iter_valid),
       .s_data (stat_iter_val),
-      .s_user ({stat_iter_name, stat_iter_last}),
+      .s_user ({stat_iter_last, stat_iter_id}),
       .s_ready(stat_iter_ready),
 
       .m_valid(fmt_iter_valid),
-      .m_data (fmt_iter_val),
-      .m_user ({fmt_iter_name, fmt_iter_last}),
+      .m_data (fmt_iter_val_str),
+      .m_user ({fmt_iter_last, fmt_iter_id}),
       .m_ready(fmt_iter_ready)
+  );
+
+  svc_hex_fmt #(
+      .WIDTH(8)
+  ) svc_hex_fmt_i (
+      .val  (fmt_iter_id),
+      .ascii(fmt_iter_id_str)
   );
 
   `SVC_PRINT_INIT(utx_en, utx_data, utx_busy);
@@ -297,7 +297,11 @@ module axi_perf #(
       end
 
       STATE_REPORT_ITER_SEND: begin
-        `SVC_PRINT({" ", fmt_iter_name, ": 0x", fmt_iter_val, "\r\n"});
+        // TODO: this is on the edge of not meeting timing due to the hex
+        // conversions and moving around a bunch of bits. Ultimately, this
+        // will all need get swapped out conversions that generate a char
+        // at a time that get sent to the uart directly.
+        `SVC_PRINT({" ", fmt_iter_id_str, ": 0x", fmt_iter_val_str, "\r\n"});
       end
 
       default: begin
