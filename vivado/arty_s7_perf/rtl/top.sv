@@ -26,6 +26,7 @@ module top (
 
   // We are using the DDR MIG gen UI clock, not the system clock
   localparam CLOCK_FREQ = 85_250_000;
+  localparam CLOCK_FREQ_STR = "85.25";
   localparam BAUD_RATE = 115_200;
 
   localparam AXI_ADDR_WIDTH = 28;
@@ -168,6 +169,7 @@ module top (
   axi_perf #(
       .NAME          (NAME),
       .CLOCK_FREQ    (CLOCK_FREQ),
+      .CLOCK_FREQ_STR(CLOCK_FREQ_STR),
       .BAUD_RATE     (BAUD_RATE),
       .AXI_ADDR_WIDTH(AXI_ADDR_WIDTH),
       .AXI_DATA_WIDTH(AXI_DATA_WIDTH),

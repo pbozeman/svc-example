@@ -19,6 +19,7 @@
 module axi_perf #(
     parameter NAME           = "axi_perf",
     parameter CLOCK_FREQ     = 100_000_000,
+    parameter CLOCK_FREQ_STR = "100",
     parameter BAUD_RATE      = 115_200,
     parameter AXI_ADDR_WIDTH = 20,
     parameter AXI_DATA_WIDTH = 16,
@@ -296,7 +297,17 @@ module axi_perf #(
 
     case (state)
       STATE_HEADER: begin
-        `SVC_PRINT({CRLF, "AXI perf", CRLF, " name: ", NAME, CRLF});
+        `SVC_PRINT({
+                   CRLF,
+                   "AXI perf",
+                   CRLF,
+                   " name: ",
+                   NAME,
+                   CRLF,
+                   " freq: ",
+                   CLOCK_FREQ_STR,
+                   CRLF
+                   });
       end
 
       STATE_REPORT_ITER_SEND: begin
