@@ -9,6 +9,7 @@
 
 `include "axi_perf_wr.sv"
 
+
 // This is still a bit hacky and still in POC phase for both stats and how
 // reporting is going to work
 
@@ -50,6 +51,10 @@ module axi_perf #(
   localparam AW = AXI_ADDR_WIDTH;
   localparam SW = STAT_WIDTH;
 
+  // vivado doesn't support \r in a string, so this is the work around. (the
+  // \r becomes just r)
+  localparam CRLF = 16'h0D0A;
+
   typedef enum {
     STATE_IDLE,
     STATE_HEADER,
@@ -85,8 +90,6 @@ module axi_perf #(
   logic   [  SW-1:0] stat_iter_val;
   logic              stat_iter_last;
   logic              stat_iter_ready;
-
-  logic   [SW*2-1:0] stat_val_ascii;
 
   logic              fmt_iter_valid;
   logic   [     7:0] fmt_iter_id;
@@ -293,7 +296,7 @@ module axi_perf #(
 
     case (state)
       STATE_HEADER: begin
-        `SVC_PRINT({"\r\nAXI perf\r\n", " name: ", NAME, "\r\n"});
+        `SVC_PRINT({CRLF, "AXI perf", CRLF, " name: ", NAME, CRLF});
       end
 
       STATE_REPORT_ITER_SEND: begin
@@ -301,7 +304,7 @@ module axi_perf #(
         // conversions and moving around a bunch of bits. Ultimately, this
         // will all need get swapped out conversions that generate a char
         // at a time that get sent to the uart directly.
-        `SVC_PRINT({" ", fmt_iter_id_str, ": 0x", fmt_iter_val_str, "\r\n"});
+        `SVC_PRINT({" ", fmt_iter_id_str, ": 0x", fmt_iter_val_str, CRLF});
       end
 
       default: begin
