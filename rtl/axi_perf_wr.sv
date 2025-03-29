@@ -20,6 +20,7 @@ module axi_perf_wr #(
     input logic [AXI_ADDR_WIDTH-1:0] base_addr,
     input logic [               7:0] burst_beats,
     input logic [AXI_ADDR_WIDTH-1:0] burst_stride,
+    input logic [               2:0] burst_awsize,
     input logic [              15:0] burst_num,
 
     output logic                      m_axi_awvalid,
@@ -71,11 +72,13 @@ module axi_perf_wr #(
   logic   [   7:0] beat_cnt;
   logic   [   7:0] beat_cnt_next;
 
-  assign m_axi_awsize  = `SVC_MAX_AXSIZE(AXI_DATA_WIDTH);
+  assign m_axi_awsize  = burst_awsize;
   assign m_axi_awid    = AXI_ID;
   assign m_axi_awburst = 2'b01;
 
-  assign m_axi_wstrb   = '1;
+  // cap wstrb based on awsize since it might not be full
+  assign m_axi_wstrb   = ((1 << (1 << burst_awsize)) - 1) & AXI_STRB_WIDTH'('1);
+
   assign m_axi_bready  = 1'b1;
 
   always_comb begin
