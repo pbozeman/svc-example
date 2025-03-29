@@ -84,6 +84,7 @@ module axi_perf #(
   logic   [     7:0] wr_burst_beats;
   logic   [  AW-1:0] wr_burst_stride;
   logic   [    15:0] wr_burst_num;
+  logic   [     2:0] wr_burst_awsize;
 
   logic              stat_iter_start;
   logic              stat_iter_valid;
@@ -103,6 +104,7 @@ module axi_perf #(
   assign wr_burst_beats  = 64;
   assign wr_burst_stride = 128 * (AXI_DATA_WIDTH / 8);
   assign wr_burst_num    = 16;
+  assign wr_burst_awsize = `SVC_MAX_AXSIZE(AXI_DATA_WIDTH);
 
   svc_uart_tx #(
       .CLOCK_FREQ(CLOCK_FREQ),
@@ -133,6 +135,7 @@ module axi_perf #(
       .burst_beats (wr_burst_beats),
       .burst_stride(wr_burst_stride),
       .burst_num   (wr_burst_num),
+      .burst_awsize(wr_burst_awsize),
 
       .m_axi_awvalid(m_axi_awvalid),
       .m_axi_awaddr (m_axi_awaddr),
