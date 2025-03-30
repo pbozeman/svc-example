@@ -2,6 +2,7 @@
 
 `include "axi_perf_mem.sv"
 
+
 // verilator lint_off: UNUSEDSIGNAL
 module axi_perf_mem_tb;
   `TEST_CLK_NS(clk, 10);
@@ -11,7 +12,7 @@ module axi_perf_mem_tb;
 
   axi_perf_mem #(
       .CLOCK_FREQ(100),
-      .BAUD_RATE (10)
+      .BAUD_RATE (100)
   ) uut (
       .clk    (clk),
       .rst_n  (rst_n),
@@ -21,10 +22,10 @@ module axi_perf_mem_tb;
   task automatic test_basic();
     // This is only a very basic smoke test to make sure it compiles
     // and we can look at wave forms
-    #100000;
+    #200000;
   endtask
 
-  `TEST_SUITE_BEGIN(axi_perf_mem_tb, 100000);
+  `TEST_SUITE_BEGIN(axi_perf_mem_tb, 200000);
   `TEST_CASE(test_basic);
   `TEST_SUITE_END();
 endmodule
