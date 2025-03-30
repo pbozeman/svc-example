@@ -19,6 +19,10 @@ module uart_demo #(
   localparam STR_MAX_LEN = 128;
   localparam MSG_WIDTH = 8 * STR_MAX_LEN;
 
+  // vivado doesn't support \r in a string, so this is the work around. (the
+  // \r becomes just r)
+  localparam CRLF = 16'h0D0A;
+
   typedef enum {
     STATE_IDLE,
     STATE_HELLO,
@@ -105,7 +109,7 @@ module uart_demo #(
 
         STATE_HELLO: begin
           str_valid <= 1'b1;
-          str_msg   <= "Hello - to upper:\r\n";
+          str_msg   <= MSG_WIDTH'({"Hello - to upper:", CRLF});
           state     <= STATE_HELLO_WAIT;
         end
 
