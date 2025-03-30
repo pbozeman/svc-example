@@ -11,7 +11,6 @@
 `include "svc.sv"
 `include "svc_axi_arbiter.sv"
 `include "svc_axi_null_rd.sv"
-`include "svc_axi_null_wr.sv"
 `include "svc_axi_stats_wr.sv"
 `include "svc_hex_fmt_stream.sv"
 `include "svc_print.sv"
@@ -210,33 +209,6 @@ module axi_perf_arb #(
     );
   end
 
-  // TODO: make this a full writer
-  svc_axi_null_wr #(
-      .AXI_ADDR_WIDTH(AXI_ADDR_WIDTH),
-      .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
-      .AXI_ID_WIDTH  (AIW)
-  ) svc_axi_null_wr_i (
-      .clk  (clk),
-      .rst_n(rst_n),
-
-      .m_axi_awvalid(perf_axi_awvalid[0]),
-      .m_axi_awaddr (perf_axi_awaddr[0]),
-      .m_axi_awid   (perf_axi_awid[0]),
-      .m_axi_awlen  (perf_axi_awlen[0]),
-      .m_axi_awsize (perf_axi_awsize[0]),
-      .m_axi_awburst(perf_axi_awburst[0]),
-      .m_axi_awready(perf_axi_awready[0]),
-      .m_axi_wvalid (perf_axi_wvalid[0]),
-      .m_axi_wdata  (perf_axi_wdata[0]),
-      .m_axi_wstrb  (perf_axi_wstrb[0]),
-      .m_axi_wlast  (perf_axi_wlast[0]),
-      .m_axi_wready (perf_axi_wready[0]),
-      .m_axi_bvalid (perf_axi_bvalid[0]),
-      .m_axi_bid    (perf_axi_bid[0]),
-      .m_axi_bresp  (perf_axi_bresp[0]),
-      .m_axi_bready (perf_axi_bready[0])
-  );
-
   // vivado doesn't support \r in a string, so this is the work around. (the
   // \r becomes just r)
   localparam CRLF = 16'h0D0A;
@@ -255,41 +227,48 @@ module axi_perf_arb #(
     STATE_DONE
   } state_t;
 
-  state_t            state;
-  state_t            state_next;
+  state_t                     state;
+  state_t                     state_next;
 
-  logic              utx_en;
-  logic   [     7:0] utx_data;
-  logic              utx_busy;
+  logic                       utx_en;
+  logic   [      7:0]         utx_data;
+  logic                       utx_busy;
 
-  logic              wr_start;
-  logic              wr_busy;
+  logic   [NUM_M-1:0]         wr_start;
+  logic   [NUM_M-1:0]         wr_busy;
 
-  logic   [  AW-1:0] wr_base_addr;
-  logic   [     7:0] wr_burst_beats;
-  logic   [  AW-1:0] wr_burst_stride;
-  logic   [    15:0] wr_burst_num;
-  logic   [     2:0] wr_burst_awsize;
+  logic   [NUM_M-1:0][AW-1:0] wr_base_addr;
+  logic   [NUM_M-1:0][   7:0] wr_burst_beats;
+  logic   [NUM_M-1:0][AW-1:0] wr_burst_stride;
+  logic   [NUM_M-1:0][  15:0] wr_burst_num;
+  logic   [NUM_M-1:0][   2:0] wr_burst_awsize;
 
-  logic              stat_iter_start;
-  logic              stat_iter_valid;
-  logic   [     7:0] stat_iter_id;
-  logic   [  SW-1:0] stat_iter_val;
-  logic              stat_iter_last;
-  logic              stat_iter_ready;
+  logic                       stat_iter_start;
+  logic                       stat_iter_valid;
+  logic   [      7:0]         stat_iter_id;
+  logic   [   SW-1:0]         stat_iter_val;
+  logic                       stat_iter_last;
+  logic                       stat_iter_ready;
 
-  logic              fmt_iter_valid;
-  logic   [     7:0] fmt_iter_id;
-  logic   [SW*2-1:0] fmt_iter_val_str;
-  logic   [ 8*2-1:0] fmt_iter_id_str;
-  logic              fmt_iter_last;
-  logic              fmt_iter_ready;
+  logic                       fmt_iter_valid;
+  logic   [      7:0]         fmt_iter_id;
+  logic   [ SW*2-1:0]         fmt_iter_val_str;
+  logic   [  8*2-1:0]         fmt_iter_id_str;
+  logic                       fmt_iter_last;
+  logic                       fmt_iter_ready;
 
-  assign wr_base_addr    = 0;
-  assign wr_burst_beats  = 64;
-  assign wr_burst_stride = 128 * (AXI_DATA_WIDTH / 8);
-  assign wr_burst_num    = 16;
-  assign wr_burst_awsize = `SVC_MAX_AXSIZE(AXI_DATA_WIDTH);
+  // TODO: make these configurable
+  assign wr_base_addr[0]    = 0;
+  assign wr_burst_beats[0]  = 64;
+  assign wr_burst_stride[0] = 128 * (AXI_DATA_WIDTH / 8);
+  assign wr_burst_num[0]    = 16;
+  assign wr_burst_awsize[0] = `SVC_MAX_AXSIZE(AXI_DATA_WIDTH);
+
+  assign wr_base_addr[1]    = 0;
+  assign wr_burst_beats[1]  = 64;
+  assign wr_burst_stride[1] = 128 * (AXI_DATA_WIDTH / 8);
+  assign wr_burst_num[1]    = 16;
+  assign wr_burst_awsize[1] = `SVC_MAX_AXSIZE(AXI_DATA_WIDTH);
 
   svc_uart_tx #(
       .CLOCK_FREQ(CLOCK_FREQ),
@@ -305,41 +284,43 @@ module axi_perf_arb #(
       .utx_pin(utx_pin)
   );
 
-  // TODO: move this into a loop with the other writers
-  axi_perf_wr #(
-      .AXI_ADDR_WIDTH(AXI_ADDR_WIDTH),
-      .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
-      .AXI_ID_WIDTH  (AIW)
-  ) axi_perf_wr_i (
-      .clk  (clk),
-      .rst_n(rst_n),
 
-      .start(wr_start),
-      .busy (wr_busy),
+  for (genvar i = 0; i < NUM_M; i++) begin : gen_perf_wr
+    axi_perf_wr #(
+        .AXI_ADDR_WIDTH(AXI_ADDR_WIDTH),
+        .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
+        .AXI_ID_WIDTH  (AIW)
+    ) axi_perf_wr_i (
+        .clk  (clk),
+        .rst_n(rst_n),
 
-      .base_addr   (wr_base_addr),
-      .burst_beats (wr_burst_beats),
-      .burst_stride(wr_burst_stride),
-      .burst_num   (wr_burst_num),
-      .burst_awsize(wr_burst_awsize),
+        .start(wr_start[i]),
+        .busy (wr_busy[i]),
 
-      .m_axi_awvalid(perf_axi_awvalid[1]),
-      .m_axi_awaddr (perf_axi_awaddr[1]),
-      .m_axi_awid   (perf_axi_awid[1]),
-      .m_axi_awlen  (perf_axi_awlen[1]),
-      .m_axi_awsize (perf_axi_awsize[1]),
-      .m_axi_awburst(perf_axi_awburst[1]),
-      .m_axi_awready(perf_axi_awready[1]),
-      .m_axi_wvalid (perf_axi_wvalid[1]),
-      .m_axi_wdata  (perf_axi_wdata[1]),
-      .m_axi_wstrb  (perf_axi_wstrb[1]),
-      .m_axi_wlast  (perf_axi_wlast[1]),
-      .m_axi_wready (perf_axi_wready[1]),
-      .m_axi_bvalid (perf_axi_bvalid[1]),
-      .m_axi_bid    (perf_axi_bid[1]),
-      .m_axi_bresp  (perf_axi_bresp[1]),
-      .m_axi_bready (perf_axi_bready[1])
-  );
+        .base_addr   (wr_base_addr[i]),
+        .burst_beats (wr_burst_beats[i]),
+        .burst_stride(wr_burst_stride[i]),
+        .burst_num   (wr_burst_num[i]),
+        .burst_awsize(wr_burst_awsize[i]),
+
+        .m_axi_awvalid(perf_axi_awvalid[i]),
+        .m_axi_awaddr (perf_axi_awaddr[i]),
+        .m_axi_awid   (perf_axi_awid[i]),
+        .m_axi_awlen  (perf_axi_awlen[i]),
+        .m_axi_awsize (perf_axi_awsize[i]),
+        .m_axi_awburst(perf_axi_awburst[i]),
+        .m_axi_awready(perf_axi_awready[i]),
+        .m_axi_wvalid (perf_axi_wvalid[i]),
+        .m_axi_wdata  (perf_axi_wdata[i]),
+        .m_axi_wstrb  (perf_axi_wstrb[i]),
+        .m_axi_wlast  (perf_axi_wlast[i]),
+        .m_axi_wready (perf_axi_wready[i]),
+        .m_axi_bvalid (perf_axi_bvalid[i]),
+        .m_axi_bid    (perf_axi_bid[i]),
+        .m_axi_bresp  (perf_axi_bresp[i]),
+        .m_axi_bready (perf_axi_bready[i])
+    );
+  end
 
   // TODO: keep the top level, but also have per manager stats
   svc_axi_stats_wr #(
@@ -406,9 +387,12 @@ module axi_perf_arb #(
 
   `SVC_PRINT_INIT(utx_en, utx_data, utx_busy);
 
-  always_comb begin
+  always @(*) begin
     state_next      = state;
-    wr_start        = 1'b0;
+
+    // TODO: state management for all managers, for now, hack it in
+    wr_start[0]     = 1'b0;
+    wr_start[1]     = 1'b0;
 
     stat_iter_start = 1'b0;
     fmt_iter_ready  = 1'b0;
@@ -429,12 +413,14 @@ module axi_perf_arb #(
       end
 
       STATE_RUN: begin
-        wr_start   = 1'b1;
-        state_next = STATE_RUN_WAIT;
+        // TODO: make these configurable
+        wr_start[0] = 1'b1;
+        wr_start[1] = 1'b1;
+        state_next  = STATE_RUN_WAIT;
       end
 
       STATE_RUN_WAIT: begin
-        if (!wr_busy) begin
+        if (!wr_busy[0] && !wr_busy[1]) begin
           state_next = STATE_REPORT;
         end
       end
