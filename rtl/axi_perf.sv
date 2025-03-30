@@ -295,7 +295,7 @@ module axi_perf #(
     end
   end
 
-  always_ff @(posedge clk) begin
+  always @(posedge clk) begin
     `SVC_PRINT_INIT_FF;
 
     case (state)

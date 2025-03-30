@@ -51,10 +51,10 @@ module axi_perf_ice40_sram_tb;
   task automatic test_basic();
     // This is only a very basic smoke test to make sure it compiles
     // and we can look at wave forms
-    #100000;
+    #200000;
   endtask
 
-  `TEST_SUITE_BEGIN(axi_perf_ice40_sram_tb, 100000);
+  `TEST_SUITE_BEGIN(axi_perf_ice40_sram_tb, 200000);
   `TEST_CASE(test_basic);
   `TEST_SUITE_END();
 endmodule
