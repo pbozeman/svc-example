@@ -1,6 +1,7 @@
 `ifndef BLINKY_REG_SV
 `define BLINKY_REG_SV
 
+`include "svc_accumulator.sv"
 `include "svc_skidbuf.sv"
 
 // Example of a memory mapped blinky controller.
@@ -14,9 +15,9 @@
 //                                      0:   enable (0 disabled, 1 enabled),
 //                                      1:   blink  (0 solid, 1 blink)
 //                                      2-31: reserved: values are don't care
-// 0x01       RW         clock_shift:   toggle led at (clk >> shift)
+// 0x01       RW         cnt_toggle:    toggle led at cnt_toggle
 // 0x02       RO         clock_freq:    clock frequency in cycles per second
-// 0x03       RO         counter:       current value of the counter
+// 0x03       RO         cnt:           current value of the counter
 //
 // 0x04-0xFF             reserved
 
@@ -52,13 +53,13 @@ module blinky_reg #(
   //
   //--------------------------------------------------------------------------
 
-  localparam DEFAULT_CLK_SHIFT = 1;
+  localparam DEFAULT_CNT_TOGGLE = CLK_FREQ / 2;
 
-  logic [31:0] clk_shift;
-  logic [31:0] clk_shift_next;
+  logic [31:0] cnt_toggle;
+  logic [31:0] cnt_toggle_next;
 
-  logic [31:0] cnt_max;
   logic [31:0] cnt;
+  logic        cnt_clr;
 
   logic        flag_enable;
   logic        flag_enable_next;
@@ -66,25 +67,34 @@ module blinky_reg #(
   logic        flag_blink;
   logic        flag_blink_next;
 
-  assign cnt_max = (clk_shift == 0) ? 1 : (CLK_FREQ >> clk_shift);
+  // This wasn't intended to be a timing demo, but once this is used with
+  // a debug bridge in the design, the 32 bit add could not meet timing on
+  // an ice40. Hence, the usage of the pipelined accumulator.
+  svc_accumulator #(
+      .WIDTH(32)
+  ) svc_accumulator_i (
+      .clk  (clk),
+      .rst_n(rst_n),
+      .clr  (cnt_clr),
+      .en   (1'b1),
+      .val  (1),
+      .acc  (cnt)
+  );
 
   always_ff @(posedge clk) begin
     if (!rst_n) begin
-      cnt <= 0;
-      led <= 1'b0;
+      led     <= 1'b0;
+      cnt_clr <= 1'b1;
     end else begin
       if (!flag_enable) begin
         led <= 1'b0;
       end else begin
+        cnt_clr <= 1'b0;
         if (!flag_blink) begin
           led <= 1'b1;
-        end else begin
-          if (cnt < cnt_max) begin
-            cnt <= cnt + 1;
-          end else begin
-            cnt <= 0;
-            led <= ~led;
-          end
+        end else if (cnt == cnt_toggle) begin
+          cnt_clr <= 1'b1;
+          led     <= ~led;
         end
       end
     end
@@ -150,7 +160,7 @@ module blinky_reg #(
 
     flag_blink_next    = flag_blink;
     flag_enable_next   = flag_enable;
-    clk_shift_next     = clk_shift;
+    cnt_toggle_next    = cnt_toggle;
 
     // do both an incoming check and outgoing check here,
     // since we are going to set bvalid
@@ -166,7 +176,7 @@ module blinky_reg #(
       end else begin
         case (sb_awaddr)
           8'h00:   {flag_blink_next, flag_enable_next} = 2'(sb_wdata);
-          8'h01:   clk_shift_next = sb_wdata;
+          8'h01:   cnt_toggle_next = sb_wdata;
           8'h02:   s_axil_bresp_next = 2'b10;
           8'h03:   s_axil_bresp_next = 2'b10;
           default: s_axil_bresp_next = 2'b11;
@@ -181,12 +191,12 @@ module blinky_reg #(
 
       flag_enable   <= 1'b0;
       flag_blink    <= 1'b0;
-      clk_shift     <= DEFAULT_CLK_SHIFT;
+      cnt_toggle    <= DEFAULT_CNT_TOGGLE;
     end else begin
       s_axil_bvalid <= s_axil_bvalid_next;
       flag_blink    <= flag_blink_next;
       flag_enable   <= flag_enable_next;
-      clk_shift     <= clk_shift_next;
+      cnt_toggle    <= cnt_toggle_next;
     end
   end
 
@@ -235,7 +245,7 @@ module blinky_reg #(
       s_axil_rresp_next  = 2'b00;
       case (sb_araddr)
         8'h00:   s_axil_rdata_next = 32'({flag_blink, flag_enable});
-        8'h01:   s_axil_rdata_next = clk_shift;
+        8'h01:   s_axil_rdata_next = cnt_toggle;
         8'h02:   s_axil_rdata_next = CLK_FREQ;
         8'h03:   s_axil_rdata_next = cnt;
         default: s_axil_rresp_next = 2'b11;
