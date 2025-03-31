@@ -114,10 +114,10 @@ module blinky_reg_tb;
     logic [31:0] rd_data;
 
     axi_read(8'h00, rd_data);
-    `CHECK_EQ(rd_data, 32'h0);
+    `CHECK_EQ(rd_data, 0);
 
     axi_read(8'h01, rd_data);
-    `CHECK_EQ(rd_data, 32'd1);
+    `CHECK_EQ(rd_data, CLK_FREQ / 2);
 
     axi_read(8'h02, rd_data);
     `CHECK_EQ(rd_data, CLK_FREQ);
