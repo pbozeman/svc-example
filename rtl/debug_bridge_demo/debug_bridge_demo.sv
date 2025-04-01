@@ -21,12 +21,13 @@ module debug_bridge_demo #(
 
     output logic led
 );
-  logic        utx_en;
+  logic        utx_valid;
   logic [ 7:0] utx_data;
-  logic        utx_busy;
+  logic        utx_ready;
 
   logic        urx_valid;
   logic [ 7:0] urx_data;
+  logic        urx_ready;
 
   logic [31:0] m_axil_awaddr;
   logic        m_axil_awvalid;
@@ -56,6 +57,7 @@ module debug_bridge_demo #(
 
       .urx_valid(urx_valid),
       .urx_data (urx_data),
+      .urx_ready(urx_ready),
 
       .urx_pin(urx_pin)
   );
@@ -67,9 +69,9 @@ module debug_bridge_demo #(
       .clk  (clk),
       .rst_n(rst_n),
 
-      .utx_en  (utx_en),
-      .utx_data(utx_data),
-      .utx_busy(utx_busy),
+      .utx_valid(utx_valid),
+      .utx_data (utx_data),
+      .utx_ready(utx_ready),
 
       .utx_pin(utx_pin)
   );
@@ -80,10 +82,11 @@ module debug_bridge_demo #(
 
       .urx_valid(urx_valid),
       .urx_data (urx_data),
+      .urx_ready(urx_ready),
 
-      .utx_en  (utx_en),
-      .utx_data(utx_data),
-      .utx_busy(utx_busy),
+      .utx_valid(utx_valid),
+      .utx_data (utx_data),
+      .utx_ready(utx_ready),
 
       .m_axil_awaddr (m_axil_awaddr),
       .m_axil_awvalid(m_axil_awvalid),

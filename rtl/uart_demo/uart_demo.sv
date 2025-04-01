@@ -10,15 +10,13 @@ module uart_demo #(
     parameter CLOCK_FREQ = 100_000_000,
     parameter BAUD_RATE  = 115_200
 ) (
-    input logic clk,
-    input logic rst_n,
-
+    input  logic clk,
+    input  logic rst_n,
     input  logic urx_pin,
     output logic utx_pin
 );
   localparam STR_MAX_LEN = 128;
   localparam MSG_WIDTH = 8 * STR_MAX_LEN;
-
   // vivado doesn't support \r in a string, so this is the work around. (the
   // \r becomes just r)
   localparam CRLF = 16'h0D0A;
@@ -32,17 +30,17 @@ module uart_demo #(
 
   state_t                 state;
 
-  logic                   utx_en;
+  logic                   utx_valid;
   logic   [          7:0] utx_data;
-  logic                   utx_busy;
+  logic                   utx_ready;
 
   logic                   urx_valid;
   logic   [          7:0] urx_data;
+  logic                   urx_ready;
 
   logic                   str_valid;
   logic   [MSG_WIDTH-1:0] str_msg;
   logic                   str_ready;
-
   logic                   chr_valid;
   logic   [          7:0] chr_data;
   logic                   chr_ready;
@@ -54,27 +52,24 @@ module uart_demo #(
       .CLOCK_FREQ(CLOCK_FREQ),
       .BAUD_RATE (BAUD_RATE)
   ) svc_uart_rx_i (
-      .clk  (clk),
-      .rst_n(rst_n),
-
+      .clk      (clk),
+      .rst_n    (rst_n),
       .urx_valid(urx_valid),
       .urx_data (urx_data),
-
-      .urx_pin(urx_pin)
+      .urx_ready(urx_ready),
+      .urx_pin  (urx_pin)
   );
 
   svc_uart_tx #(
       .CLOCK_FREQ(CLOCK_FREQ),
       .BAUD_RATE (BAUD_RATE)
   ) svc_uart_tx_i (
-      .clk  (clk),
-      .rst_n(rst_n),
-
-      .utx_en  (utx_en),
-      .utx_data(utx_data),
-      .utx_busy(utx_busy),
-
-      .utx_pin(utx_pin)
+      .clk      (clk),
+      .rst_n    (rst_n),
+      .utx_valid(utx_valid),
+      .utx_data (utx_data),
+      .utx_ready(utx_ready),
+      .utx_pin  (utx_pin)
   );
 
   svc_str_iter #(
@@ -100,7 +95,7 @@ module uart_demo #(
       echo_data  <= 0;
     end else begin
       str_valid  <= str_valid && !str_ready;
-      echo_valid <= echo_valid && !utx_busy;
+      echo_valid <= echo_valid && !(utx_valid && utx_ready);
 
       case (state)
         STATE_IDLE: begin
@@ -126,9 +121,8 @@ module uart_demo #(
         end
 
         STATE_ECHO: begin
-          if (urx_valid) begin
+          if (urx_valid && urx_ready) begin
             echo_valid <= 1'b1;
-
             // to upper
             // a = 61, z = 7a
             // a - A = 8'h20;
@@ -140,15 +134,15 @@ module uart_demo #(
           end
         end
       endcase
-
     end
   end
 
   // This is a janky mux between the hello string and the data we received and
   // did a toupper on. It's fine for a demo.
-  assign chr_ready = !utx_busy;
-  assign utx_en    = (!utx_busy && (chr_valid || echo_valid));
+  assign chr_ready = utx_ready;
+  assign utx_valid = (chr_valid || echo_valid);
   assign utx_data  = (state != STATE_ECHO ? chr_data : echo_data);
+  assign urx_ready = (state == STATE_ECHO) && (!echo_valid || utx_ready);
 
 endmodule
 `endif
