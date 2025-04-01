@@ -73,9 +73,9 @@ module axi_perf #(
   state_t            state;
   state_t            state_next;
 
-  logic              utx_en;
+  logic              utx_valid;
   logic   [     7:0] utx_data;
-  logic              utx_busy;
+  logic              utx_ready;
 
   logic              wr_start;
   logic              wr_busy;
@@ -113,9 +113,9 @@ module axi_perf #(
       .clk  (clk),
       .rst_n(rst_n),
 
-      .utx_en  (utx_en),
-      .utx_data(utx_data),
-      .utx_busy(utx_busy),
+      .utx_valid(utx_valid),
+      .utx_data (utx_data),
+      .utx_ready(utx_ready),
 
       .utx_pin(utx_pin)
   );
@@ -217,7 +217,7 @@ module axi_perf #(
       .ascii(fmt_iter_id_str)
   );
 
-  `SVC_PRINT_INIT(utx_en, utx_data, utx_busy);
+  `SVC_PRINT_INIT(utx_valid, utx_data, utx_ready);
 
   always_comb begin
     state_next      = state;
