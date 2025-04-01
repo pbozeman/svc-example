@@ -9,6 +9,9 @@ module axi_perf_mem_tb;
   `TEST_RST_N(clk, rst_n);
 
   logic utx_pin;
+  logic urx_pin;
+
+  assign urx_pin = 1'b1;
 
   axi_perf_mem #(
       .CLOCK_FREQ(100),
@@ -16,7 +19,8 @@ module axi_perf_mem_tb;
   ) uut (
       .clk    (clk),
       .rst_n  (rst_n),
-      .utx_pin(utx_pin)
+      .utx_pin(utx_pin),
+      .urx_pin(urx_pin)
   );
 
   task automatic test_basic();

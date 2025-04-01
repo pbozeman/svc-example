@@ -18,6 +18,7 @@ module axi_perf_mem #(
     input logic clk,
     input logic rst_n,
 
+    input  logic urx_pin,
     output logic utx_pin
 );
   logic                      mem_axi_awvalid;
@@ -107,8 +108,10 @@ module axi_perf_mem #(
       .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
       .AXI_ID_WIDTH  (AXI_ID_WIDTH)
   ) axi_perf_i (
-      .clk    (clk),
-      .rst_n  (rst_n),
+      .clk  (clk),
+      .rst_n(rst_n),
+
+      .urx_pin(urx_pin),
       .utx_pin(utx_pin),
 
       .m_axi_awvalid(mem_axi_awvalid),
