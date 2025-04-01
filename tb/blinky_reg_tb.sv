@@ -137,7 +137,7 @@ module blinky_reg_tb;
   endtask
 
   task automatic test_invalid_access();
-    m_axil_awaddr  = 8'h04;
+    m_axil_awaddr  = 8'h05;
     m_axil_awvalid = 1'b1;
     m_axil_wdata   = 32'h0;
     m_axil_wstrb   = 4'hF;

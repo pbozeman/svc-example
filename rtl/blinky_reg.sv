@@ -18,6 +18,7 @@
 // 0x01       RW         cnt_toggle:    toggle led at cnt_toggle
 // 0x02       RO         clock_freq:    clock frequency in cycles per second
 // 0x03       RO         cnt:           current value of the counter
+// 0x04       RO         led:           current value of the led
 //
 // 0x04-0xFF             reserved
 
@@ -87,7 +88,8 @@ module blinky_reg #(
       cnt_clr <= 1'b1;
     end else begin
       if (!flag_enable) begin
-        led <= 1'b0;
+        led     <= 1'b0;
+        cnt_clr <= 1'b1;
       end else begin
         cnt_clr <= 1'b0;
         if (!flag_blink) begin
@@ -179,6 +181,7 @@ module blinky_reg #(
           8'h01:   cnt_toggle_next = sb_wdata;
           8'h02:   s_axil_bresp_next = 2'b10;
           8'h03:   s_axil_bresp_next = 2'b10;
+          8'h04:   s_axil_bresp_next = 2'b10;
           default: s_axil_bresp_next = 2'b11;
         endcase
       end
@@ -248,6 +251,7 @@ module blinky_reg #(
         8'h01:   s_axil_rdata_next = cnt_toggle;
         8'h02:   s_axil_rdata_next = CLK_FREQ;
         8'h03:   s_axil_rdata_next = cnt;
+        8'h04:   s_axil_rdata_next = 32'(led);
         default: s_axil_rresp_next = 2'b11;
       endcase
     end
