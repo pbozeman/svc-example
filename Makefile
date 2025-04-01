@@ -15,7 +15,6 @@ TOP_MODULES := \
 	rtl/gfx_pattern_demo_striped/gfx_pattern_demo_striped_top.sv \
 	rtl/uart_demo/uart_demo_top.sv \
 	rtl/axi_perf_mem/axi_perf_mem_top.sv \
-	rtl/axi_perf_arb_mem/axi_perf_arb_mem_top.sv \
 	rtl/axi_perf_ice40_sram/axi_perf_ice40_sram_top.sv \
 	rtl/debug_bridge_demo/debug_bridge_demo_top.sv
 

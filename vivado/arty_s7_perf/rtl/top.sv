@@ -1,5 +1,5 @@
 `include "svc.sv"
-`include "axi_perf_arb.sv"
+`include "axi_perf.sv"
 
 module top (
     input  wire        CLK100MHZ,
@@ -166,7 +166,7 @@ module top (
       .ui_clk_rst         (ui_clk_rst)
   );
 
-  axi_perf_arb #(
+  axi_perf #(
       .NAME          (NAME),
       .CLOCK_FREQ    (CLOCK_FREQ),
       .CLOCK_FREQ_STR(CLOCK_FREQ_STR),
