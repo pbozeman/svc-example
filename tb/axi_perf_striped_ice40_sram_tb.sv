@@ -12,6 +12,7 @@ module axi_perf_striped_ice40_sram_tb;
   `TEST_CLK_NS(clk, 10);
   `TEST_RST_N(clk, rst_n);
 
+  logic                                  urx_pin;
   logic                                  utx_pin;
 
   logic [NUM_S-1:0][SRAM_ADDR_WIDTH-1:0] sram_io_addr;
@@ -20,14 +21,18 @@ module axi_perf_striped_ice40_sram_tb;
   logic [NUM_S-1:0]                      sram_io_oe_n;
   logic [NUM_S-1:0]                      sram_io_ce_n;
 
+  assign urx_pin = 1'b1;
+
   axi_perf_striped_ice40_sram #(
       .CLOCK_FREQ     (100),
       .BAUD_RATE      (10),
       .SRAM_ADDR_WIDTH(SRAM_ADDR_WIDTH),
       .SRAM_DATA_WIDTH(SRAM_DATA_WIDTH)
   ) uut (
-      .clk    (clk),
-      .rst_n  (rst_n),
+      .clk  (clk),
+      .rst_n(rst_n),
+
+      .urx_pin(urx_pin),
       .utx_pin(utx_pin),
 
       .sram_io_addr(sram_io_addr),

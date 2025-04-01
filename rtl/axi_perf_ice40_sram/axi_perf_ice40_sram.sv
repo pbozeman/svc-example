@@ -16,6 +16,7 @@ module axi_perf_ice40_sram #(
     input logic clk,
     input logic rst_n,
 
+    input  logic urx_pin,
     output logic utx_pin,
 
     // sram controller to io pins
@@ -122,8 +123,10 @@ module axi_perf_ice40_sram #(
       .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
       .AXI_ID_WIDTH  (AXI_ID_WIDTH)
   ) axi_perf_i (
-      .clk    (clk),
-      .rst_n  (rst_n),
+      .clk  (clk),
+      .rst_n(rst_n),
+
+      .urx_pin(urx_pin),
       .utx_pin(utx_pin),
 
       .m_axi_awvalid(m_axi_awvalid),

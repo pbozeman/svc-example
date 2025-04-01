@@ -7,8 +7,12 @@ module axi_perf_mem_top (
     input  logic CLK,
     output logic LED1,
     output logic LED2,
-    output logic UART_TX
+    output logic UART_TX,
+    input  logic UART_RX
 );
+  localparam CLOCK_FREQ = 100_000_000;
+  localparam BAUD_RATE = 115_200;
+
   logic rst_n;
 
   svc_init svc_init_i (
@@ -17,9 +21,13 @@ module axi_perf_mem_top (
       .rst_n(rst_n)
   );
 
-  axi_perf_mem axi_perf_mem_i (
+  axi_perf_mem #(
+      .CLOCK_FREQ(CLOCK_FREQ),
+      .BAUD_RATE (BAUD_RATE)
+  ) axi_perf_mem_i (
       .clk    (CLK),
       .rst_n  (rst_n),
+      .urx_pin(UART_RX),
       .utx_pin(UART_TX)
   );
 

@@ -5,8 +5,8 @@
 `include "svc_axi_arbiter.sv"
 `include "svc_axi_null_rd.sv"
 `include "svc_axi_stats_wr.sv"
-`include "svc_hex_fmt_stream.sv"
-`include "svc_print.sv"
+`include "svc_axil_bridge_uart.sv"
+`include "svc_uart_rx.sv"
 `include "svc_uart_tx.sv"
 
 `include "axi_perf_wr.sv"
@@ -31,6 +31,7 @@ module axi_perf #(
     input logic clk,
     input logic rst_n,
 
+    input  logic urx_pin,
     output logic utx_pin,
 
     output logic                      m_axi_awvalid,
@@ -105,6 +106,34 @@ module axi_perf #(
   logic [      1:0]            m_axi_rresp;
   logic                        m_axi_rlast;
   logic                        m_axi_rready;
+
+  // control interface
+  logic                        ctrl_awvalid;
+  logic [     31:0]            ctrl_awaddr;
+  logic                        ctrl_awready;
+  logic [     31:0]            ctrl_wdata;
+  logic [      3:0]            ctrl_wstrb;
+  logic                        ctrl_wvalid;
+  logic                        ctrl_wready;
+  logic                        ctrl_bvalid;
+  logic [      1:0]            ctrl_bresp;
+  logic                        ctrl_bready;
+
+  logic                        ctrl_arvalid;
+  logic [     31:0]            ctrl_araddr;
+  logic                        ctrl_arready;
+  logic                        ctrl_rvalid;
+  logic [     31:0]            ctrl_rdata;
+  logic [      1:0]            ctrl_rresp;
+  logic                        ctrl_rready;
+
+  logic                        utx_valid;
+  logic [      7:0]            utx_data;
+  logic                        utx_ready;
+
+  logic                        urx_valid;
+  logic [      7:0]            urx_data;
+  logic                        urx_ready;
 
   // arb from the perf signals to the m_ output signals going to the memory
   // device
@@ -202,6 +231,67 @@ module axi_perf #(
     );
   end
 
+  // control interface
+
+  svc_uart_rx #(
+      .CLOCK_FREQ(CLOCK_FREQ),
+      .BAUD_RATE (BAUD_RATE)
+  ) svc_uart_rx_i (
+      .clk  (clk),
+      .rst_n(rst_n),
+
+      .urx_valid(urx_valid),
+      .urx_data (urx_data),
+      .urx_ready(urx_ready),
+
+      .urx_pin(urx_pin)
+  );
+
+  svc_uart_tx #(
+      .CLOCK_FREQ(CLOCK_FREQ),
+      .BAUD_RATE (BAUD_RATE)
+  ) svc_uart_tx_i (
+      .clk  (clk),
+      .rst_n(rst_n),
+
+      .utx_valid(utx_valid),
+      .utx_data (utx_data),
+      .utx_ready(utx_ready),
+
+      .utx_pin(utx_pin)
+  );
+  svc_axil_bridge_uart svc_axil_bridge_uart_i (
+      .clk  (clk),
+      .rst_n(rst_n),
+
+      .urx_valid(urx_valid),
+      .urx_data (urx_data),
+      .urx_ready(urx_ready),
+
+      .utx_valid(utx_valid),
+      .utx_data (utx_data),
+      .utx_ready(utx_ready),
+
+      .m_axil_awaddr (ctrl_awaddr),
+      .m_axil_awvalid(ctrl_awvalid),
+      .m_axil_awready(ctrl_awready),
+      .m_axil_wdata  (ctrl_wdata),
+      .m_axil_wstrb  (ctrl_wstrb),
+      .m_axil_wvalid (ctrl_wvalid),
+      .m_axil_wready (ctrl_wready),
+      .m_axil_bresp  (ctrl_bresp),
+      .m_axil_bvalid (ctrl_bvalid),
+      .m_axil_bready (ctrl_bready),
+
+      .m_axil_arvalid(ctrl_arvalid),
+      .m_axil_araddr (ctrl_araddr),
+      .m_axil_arready(ctrl_arready),
+      .m_axil_rdata  (ctrl_rdata),
+      .m_axil_rresp  (ctrl_rresp),
+      .m_axil_rvalid (ctrl_rvalid),
+      .m_axil_rready (ctrl_rready)
+  );
+
   // vivado doesn't support \r in a string, so this is the work around. (the
   // \r becomes just r)
   localparam CRLF = 16'h0D0A;
@@ -223,10 +313,6 @@ module axi_perf #(
   state_t                     state;
   state_t                     state_next;
 
-  logic                       utx_valid;
-  logic   [      7:0]         utx_data;
-  logic                       utx_ready;
-
   logic   [NUM_M-1:0]         wr_start;
   logic   [NUM_M-1:0]         wr_busy;
 
@@ -235,13 +321,6 @@ module axi_perf #(
   logic   [NUM_M-1:0][AW-1:0] wr_burst_stride;
   logic   [NUM_M-1:0][  15:0] wr_burst_num;
   logic   [NUM_M-1:0][   2:0] wr_burst_awsize;
-
-  logic                       stat_iter_start;
-  logic                       stat_iter_valid;
-  logic   [      7:0]         stat_iter_id;
-  logic   [   SW-1:0]         stat_iter_val;
-  logic                       stat_iter_last;
-  logic                       stat_iter_ready;
 
   logic                       fmt_iter_valid;
   logic   [      7:0]         fmt_iter_id;
@@ -262,21 +341,6 @@ module axi_perf #(
   assign wr_burst_stride[1] = 128 * (AXI_DATA_WIDTH / 8);
   assign wr_burst_num[1]    = 16;
   assign wr_burst_awsize[1] = `SVC_MAX_AXSIZE(AXI_DATA_WIDTH);
-
-  svc_uart_tx #(
-      .CLOCK_FREQ(CLOCK_FREQ),
-      .BAUD_RATE (BAUD_RATE)
-  ) svc_uart_tx_i (
-      .clk  (clk),
-      .rst_n(rst_n),
-
-      .utx_valid(utx_valid),
-      .utx_data (utx_data),
-      .utx_ready(utx_ready),
-
-      .utx_pin(utx_pin)
-  );
-
 
   for (genvar i = 0; i < NUM_M; i++) begin : gen_perf_wr
     axi_perf_wr #(
@@ -328,13 +392,27 @@ module axi_perf #(
       .stat_clear(1'b0),
       .stat_err  (),
 
-      .stat_iter_start(stat_iter_start),
-      .stat_iter_valid(stat_iter_valid),
-      .stat_iter_id   (stat_iter_id),
-      .stat_iter_val  (stat_iter_val),
-      .stat_iter_last (stat_iter_last),
-      .stat_iter_ready(stat_iter_ready),
+      // control interface
+      .s_axil_awaddr (8'(ctrl_awaddr)),
+      .s_axil_awvalid(ctrl_awvalid),
+      .s_axil_awready(ctrl_awready),
+      .s_axil_wdata  (ctrl_wdata),
+      .s_axil_wstrb  (ctrl_wstrb),
+      .s_axil_wvalid (ctrl_wvalid),
+      .s_axil_wready (ctrl_wready),
+      .s_axil_bvalid (ctrl_bvalid),
+      .s_axil_bresp  (ctrl_bresp),
+      .s_axil_bready (ctrl_bready),
 
+      .s_axil_arvalid(ctrl_arvalid),
+      .s_axil_araddr (8'(ctrl_araddr)),
+      .s_axil_arready(ctrl_arready),
+      .s_axil_rvalid (ctrl_rvalid),
+      .s_axil_rdata  (ctrl_rdata),
+      .s_axil_rresp  (ctrl_rresp),
+      .s_axil_rready (ctrl_rready),
+
+      // interface for stats
       .m_axi_awvalid(m_axi_awvalid),
       .m_axi_awaddr (m_axi_awaddr),
       .m_axi_awid   (m_axi_awid),
@@ -353,56 +431,18 @@ module axi_perf #(
       .m_axi_bready (m_axi_bready)
   );
 
-  svc_hex_fmt_stream #(
-      .WIDTH     (STAT_WIDTH),
-      .USER_WIDTH(1 + 8)
-  ) svc_hex_fmt_stream_i (
-      .clk  (clk),
-      .rst_n(rst_n),
-
-      .s_valid(stat_iter_valid),
-      .s_data (stat_iter_val),
-      .s_user ({stat_iter_last, stat_iter_id}),
-      .s_ready(stat_iter_ready),
-
-      .m_valid(fmt_iter_valid),
-      .m_data (fmt_iter_val_str),
-      .m_user ({fmt_iter_last, fmt_iter_id}),
-      .m_ready(fmt_iter_ready)
-  );
-
-  svc_hex_fmt #(
-      .WIDTH(8)
-  ) svc_hex_fmt_i (
-      .val  (fmt_iter_id),
-      .ascii(fmt_iter_id_str)
-  );
-
-  `SVC_PRINT_INIT(utx_valid, utx_data, utx_ready);
-
   always @(*) begin
-    state_next      = state;
+    state_next     = state;
 
     // TODO: state management for all managers, for now, hack it in
-    wr_start[0]     = 1'b0;
-    wr_start[1]     = 1'b0;
+    wr_start[0]    = 1'b0;
+    wr_start[1]    = 1'b0;
 
-    stat_iter_start = 1'b0;
-    fmt_iter_ready  = 1'b0;
+    fmt_iter_ready = 1'b0;
 
     case (state)
       STATE_IDLE: begin
-        state_next = STATE_HEADER;
-      end
-
-      STATE_HEADER: begin
-        state_next = STATE_HEADER_WAIT;
-      end
-
-      STATE_HEADER_WAIT: begin
-        if (!`SVC_PRINT_BUSY) begin
-          state_next = STATE_RUN;
-        end
+        state_next = STATE_RUN;
       end
 
       STATE_RUN: begin
@@ -414,36 +454,6 @@ module axi_perf #(
 
       STATE_RUN_WAIT: begin
         if (!wr_busy[0] && !wr_busy[1]) begin
-          state_next = STATE_REPORT;
-        end
-      end
-
-      STATE_REPORT: begin
-        stat_iter_start = 1'b1;
-        state_next      = STATE_REPORT_ITER;
-      end
-
-      STATE_REPORT_ITER: begin
-        if (fmt_iter_valid) begin
-          state_next = STATE_REPORT_ITER_SEND;
-        end
-      end
-
-      STATE_REPORT_ITER_SEND: begin
-        state_next = STATE_REPORT_ITER_SEND_WAIT;
-      end
-
-      STATE_REPORT_ITER_SEND_WAIT: begin
-        if (!`SVC_PRINT_BUSY) begin
-          state_next = STATE_REPORT_ITER_SEND_DONE;
-        end
-      end
-
-      STATE_REPORT_ITER_SEND_DONE: begin
-        fmt_iter_ready = 1'b1;
-        if (!fmt_iter_last) begin
-          state_next = STATE_REPORT_ITER;
-        end else begin
           state_next = STATE_DONE;
         end
       end
@@ -459,37 +469,6 @@ module axi_perf #(
     end else begin
       state <= state_next;
     end
-  end
-
-  always @(posedge clk) begin
-    `SVC_PRINT_INIT_FF;
-
-    case (state)
-      STATE_HEADER: begin
-        `SVC_PRINT({
-                   CRLF,
-                   "AXI perf",
-                   CRLF,
-                   " name: ",
-                   NAME,
-                   CRLF,
-                   " freq: ",
-                   CLOCK_FREQ_STR,
-                   CRLF
-                   });
-      end
-
-      STATE_REPORT_ITER_SEND: begin
-        // TODO: this is on the edge of not meeting timing due to the hex
-        // conversions and moving around a bunch of bits. Ultimately, this
-        // will all need get swapped out conversions that generate a char
-        // at a time that get sent to the uart directly.
-        `SVC_PRINT({" ", fmt_iter_id_str, ": 0x", fmt_iter_val_str, CRLF});
-      end
-
-      default: begin
-      end
-    endcase
   end
 
 endmodule

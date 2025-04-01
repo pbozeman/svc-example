@@ -4,6 +4,7 @@
 module top (
     input  wire        CLK100MHZ,
     input  wire        reset,
+    input  wire        UART_RX,
     output wire        UART_TX,
     output wire [ 3:0] led,
     output wire [13:0] ddr3_addr,
@@ -175,8 +176,10 @@ module top (
       .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
       .AXI_ID_WIDTH  (AXI_ID_WIDTH)
   ) axi_perf_i (
-      .clk    (clk),
-      .rst_n  (rst_n),
+      .clk  (clk),
+      .rst_n(rst_n),
+
+      .urx_pin(UART_RX),
       .utx_pin(UART_TX),
 
       .m_axi_awvalid(ddr_axi_awvalid),
