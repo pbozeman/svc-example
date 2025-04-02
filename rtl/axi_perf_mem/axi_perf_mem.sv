@@ -13,7 +13,8 @@ module axi_perf_mem #(
     parameter AXI_ADDR_WIDTH = 8,
     parameter AXI_DATA_WIDTH = 16,
     parameter AXI_ID_WIDTH   = 4,
-    parameter AXI_STRB_WIDTH = AXI_DATA_WIDTH / 8
+    parameter AXI_STRB_WIDTH = AXI_DATA_WIDTH / 8,
+    parameter STAT_WIDTH     = 32
 ) (
     input logic clk,
     input logic rst_n,
@@ -106,7 +107,8 @@ module axi_perf_mem #(
       .BAUD_RATE     (BAUD_RATE),
       .AXI_ADDR_WIDTH(AXI_ADDR_WIDTH),
       .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
-      .AXI_ID_WIDTH  (AXI_ID_WIDTH)
+      .AXI_ID_WIDTH  (AXI_ID_WIDTH),
+      .STAT_WIDTH    (STAT_WIDTH)
   ) axi_perf_i (
       .clk  (clk),
       .rst_n(rst_n),
