@@ -23,8 +23,8 @@ TOP_MODULES := \
 
 CONSTRAINTS_DIR := constraints
 ICE40_DEV_BOARD := vanilla-ice40
-ICE40_DEVICE    := hx8k
-ICE40_PACKAGE   := ct256
+ICE40_DEVICE    := hx4k
+ICE40_PACKAGE   := tq144
 ICE40_CLK_FREQ  := 100
 
 include svc/mk/sv.mk
