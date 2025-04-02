@@ -6,6 +6,8 @@
 `include "svc_axi_null_rd.sv"
 `include "svc_axi_stats_wr.sv"
 `include "svc_axil_bridge_uart.sv"
+`include "svc_axil_invalid_rd.sv"
+`include "svc_axil_router_rd.sv"
 `include "svc_uart_rx.sv"
 `include "svc_uart_tx.sv"
 
@@ -60,6 +62,19 @@ module axi_perf #(
 
   localparam AIW = AXI_ID_WIDTH - $clog2(NUM_M);
 
+  // TODO: these widths are going to be used in a lot of places. Standardize
+  // their naming and put them in a common spot in svc.
+
+  // AXI Bridge widths
+  localparam AB_AW = 32;
+  localparam AB_DW = 32;
+  localparam AB_SW = AB_DW / 8;
+
+  // Stat widths
+  localparam S_AW = 8;
+  localparam S_DW = 32;
+  localparam S_SW = S_DW / 8;
+
   logic [NUM_M-1:0]            perf_axi_awvalid;
   logic [NUM_M-1:0][   AW-1:0] perf_axi_awaddr;
   logic [NUM_M-1:0][  AIW-1:0] perf_axi_awid;
@@ -107,12 +122,14 @@ module axi_perf #(
   logic                        m_axi_rlast;
   logic                        m_axi_rready;
 
-  // control interface
+  //
+  // external control interface
+  //
   logic                        ctrl_awvalid;
-  logic [     31:0]            ctrl_awaddr;
+  logic [AB_AW-1:0]            ctrl_awaddr;
   logic                        ctrl_awready;
-  logic [     31:0]            ctrl_wdata;
-  logic [      3:0]            ctrl_wstrb;
+  logic [AB_DW-1:0]            ctrl_wdata;
+  logic [AB_SW-1:0]            ctrl_wstrb;
   logic                        ctrl_wvalid;
   logic                        ctrl_wready;
   logic                        ctrl_bvalid;
@@ -120,10 +137,10 @@ module axi_perf #(
   logic                        ctrl_bready;
 
   logic                        ctrl_arvalid;
-  logic [     31:0]            ctrl_araddr;
+  logic [AB_AW-1:0]            ctrl_araddr;
   logic                        ctrl_arready;
   logic                        ctrl_rvalid;
-  logic [     31:0]            ctrl_rdata;
+  logic [AB_DW-1:0]            ctrl_rdata;
   logic [      1:0]            ctrl_rresp;
   logic                        ctrl_rready;
 
@@ -134,6 +151,36 @@ module axi_perf #(
   logic                        urx_valid;
   logic [      7:0]            urx_data;
   logic                        urx_ready;
+
+  //
+  // axi stats control interface
+  //
+  logic                        stats_awvalid;
+  logic [ S_AW-1:0]            stats_awaddr;
+  logic                        stats_awready;
+  logic [ S_DW-1:0]            stats_wdata;
+  logic [ S_SW-1:0]            stats_wstrb;
+  logic                        stats_wvalid;
+  logic                        stats_wready;
+  logic                        stats_bvalid;
+  logic [      1:0]            stats_bresp;
+  logic                        stats_bready;
+
+  logic                        stats_arvalid;
+  logic [ S_AW-1:0]            stats_araddr;
+  logic                        stats_arready;
+  logic                        stats_rvalid;
+  logic [ S_DW-1:0]            stats_rdata;
+  logic [      1:0]            stats_rresp;
+  logic                        stats_rready;
+
+  logic                        invalid_arvalid;
+  logic [ S_AW-1:0]            invalid_araddr;
+  logic                        invalid_arready;
+  logic                        invalid_rvalid;
+  logic [ S_DW-1:0]            invalid_rdata;
+  logic [      1:0]            invalid_rresp;
+  logic                        invalid_rready;
 
   // arb from the perf signals to the m_ output signals going to the memory
   // device
@@ -231,8 +278,11 @@ module axi_perf #(
     );
   end
 
+  //-------------------------------------------------------------------------
+  //
   // control interface
-
+  //
+  //-------------------------------------------------------------------------
   svc_uart_rx #(
       .CLOCK_FREQ(CLOCK_FREQ),
       .BAUD_RATE (BAUD_RATE)
@@ -260,7 +310,11 @@ module axi_perf #(
 
       .utx_pin(utx_pin)
   );
-  svc_axil_bridge_uart svc_axil_bridge_uart_i (
+
+  svc_axil_bridge_uart #(
+      .AXIL_ADDR_WIDTH(AB_AW),
+      .AXIL_DATA_WIDTH(AB_DW)
+  ) svc_axil_bridge_uart_i (
       .clk  (clk),
       .rst_n(rst_n),
 
@@ -291,6 +345,61 @@ module axi_perf #(
       .m_axil_rvalid (ctrl_rvalid),
       .m_axil_rready (ctrl_rready)
   );
+
+  // FIXME: remove when we add the other subs
+  svc_axil_invalid_rd #(
+      .AXIL_ADDR_WIDTH(S_AW),
+      .AXIL_DATA_WIDTH(S_DW)
+  ) svc_axil_invalid_rd_i (
+      .clk  (clk),
+      .rst_n(rst_n),
+
+      .s_axil_arvalid(invalid_arvalid),
+      .s_axil_araddr (invalid_araddr),
+      .s_axil_arready(invalid_arready),
+
+      .s_axil_rvalid(invalid_rvalid),
+      .s_axil_rdata (invalid_rdata),
+      .s_axil_rresp (invalid_rresp),
+      .s_axil_rready(invalid_rready)
+  );
+
+  svc_axil_router_rd #(
+      .S_AXIL_ADDR_WIDTH(AB_AW),
+      .S_AXIL_DATA_WIDTH(AB_DW),
+      .M_AXIL_ADDR_WIDTH(S_AW),
+      .M_AXIL_DATA_WIDTH(S_DW),
+      .NUM_S            (2)
+  ) svc_axil_router_i (
+      .clk  (clk),
+      .rst_n(rst_n),
+
+      .s_axil_arvalid(ctrl_arvalid),
+      .s_axil_araddr (ctrl_araddr),
+      .s_axil_arready(ctrl_arready),
+      .s_axil_rdata  (ctrl_rdata),
+      .s_axil_rresp  (ctrl_rresp),
+      .s_axil_rvalid (ctrl_rvalid),
+      .s_axil_rready (ctrl_rready),
+
+      .m_axil_arvalid({invalid_arvalid, stats_arvalid}),
+      .m_axil_araddr ({invalid_araddr, stats_araddr}),
+      .m_axil_arready({invalid_arready, stats_arready}),
+      .m_axil_rdata  ({invalid_rdata, stats_rdata}),
+      .m_axil_rresp  ({invalid_rresp, stats_rresp}),
+      .m_axil_rvalid ({invalid_rvalid, stats_rvalid}),
+      .m_axil_rready ({invalid_rready, stats_rready})
+  );
+
+  // FIXME: replace this with a _wr router. It's fine for now since wr isn't
+  // used, and we only have 1 debug addr in this poc
+
+  assign stats_awvalid = 1'b0;
+  assign stats_awaddr  = 0;
+  assign stats_wdata   = 0;
+  assign stats_wstrb   = 0;
+  assign stats_wvalid  = 1'b0;
+  assign stats_bready  = 1'b0;
 
   // vivado doesn't support \r in a string, so this is the work around. (the
   // \r becomes just r)
@@ -393,24 +502,24 @@ module axi_perf #(
       .stat_err  (),
 
       // control interface
-      .s_axil_awaddr (8'(ctrl_awaddr)),
-      .s_axil_awvalid(ctrl_awvalid),
-      .s_axil_awready(ctrl_awready),
-      .s_axil_wdata  (ctrl_wdata),
-      .s_axil_wstrb  (ctrl_wstrb),
-      .s_axil_wvalid (ctrl_wvalid),
-      .s_axil_wready (ctrl_wready),
-      .s_axil_bvalid (ctrl_bvalid),
-      .s_axil_bresp  (ctrl_bresp),
-      .s_axil_bready (ctrl_bready),
+      .s_axil_awaddr (8'(stats_awaddr)),
+      .s_axil_awvalid(stats_awvalid),
+      .s_axil_awready(stats_awready),
+      .s_axil_wdata  (stats_wdata),
+      .s_axil_wstrb  (stats_wstrb),
+      .s_axil_wvalid (stats_wvalid),
+      .s_axil_wready (stats_wready),
+      .s_axil_bvalid (stats_bvalid),
+      .s_axil_bresp  (stats_bresp),
+      .s_axil_bready (stats_bready),
 
-      .s_axil_arvalid(ctrl_arvalid),
-      .s_axil_araddr (8'(ctrl_araddr)),
-      .s_axil_arready(ctrl_arready),
-      .s_axil_rvalid (ctrl_rvalid),
-      .s_axil_rdata  (ctrl_rdata),
-      .s_axil_rresp  (ctrl_rresp),
-      .s_axil_rready (ctrl_rready),
+      .s_axil_arvalid(stats_arvalid),
+      .s_axil_araddr (8'(stats_araddr)),
+      .s_axil_arready(stats_arready),
+      .s_axil_rvalid (stats_rvalid),
+      .s_axil_rdata  (stats_rdata),
+      .s_axil_rresp  (stats_rresp),
+      .s_axil_rready (stats_rready),
 
       // interface for stats
       .m_axi_awvalid(m_axi_awvalid),
