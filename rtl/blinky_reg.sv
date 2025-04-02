@@ -3,6 +3,7 @@
 
 `include "svc_accumulator.sv"
 `include "svc_skidbuf.sv"
+`include "svc_unused.sv"
 
 // Example of a memory mapped blinky controller.
 //
@@ -15,38 +16,41 @@
 //                                      0:   enable (0 disabled, 1 enabled),
 //                                      1:   blink  (0 solid, 1 blink)
 //                                      2-31: reserved: values are don't care
-// 0x01       RW         cnt_toggle:    toggle led at cnt_toggle
-// 0x02       RO         clock_freq:    clock frequency in cycles per second
-// 0x03       RO         cnt:           current value of the counter
-// 0x04       RO         led:           current value of the led
+// 0x04       RW         cnt_toggle:    toggle led at cnt_toggle
+// 0x08       RO         clock_freq:    clock frequency in cycles per second
+// 0x0C       RO         cnt:           current value of the counter
+// 0x10       RO         led:           current value of the led
 //
 // 0x04-0xFF             reserved
 
 module blinky_reg #(
-    parameter CLK_FREQ = 100_000_000
+    parameter CLK_FREQ        = 100_000_000,
+    parameter AXIL_ADDR_WIDTH = 8,
+    parameter AXIL_DATA_WIDTH = 32,
+    parameter AXIL_STRB_WIDTH = AXIL_DATA_WIDTH / 8
 ) (
     input  logic clk,
     input  logic rst_n,
     output logic led,
 
-    input  logic [ 7:0] s_axil_awaddr,
-    input  logic        s_axil_awvalid,
-    output logic        s_axil_awready,
-    input  logic [31:0] s_axil_wdata,
-    input  logic [ 3:0] s_axil_wstrb,
-    input  logic        s_axil_wvalid,
-    output logic        s_axil_wready,
-    output logic        s_axil_bvalid,
-    output logic [ 1:0] s_axil_bresp,
-    input  logic        s_axil_bready,
+    input  logic [AXIL_ADDR_WIDTH-1:0] s_axil_awaddr,
+    input  logic                       s_axil_awvalid,
+    output logic                       s_axil_awready,
+    input  logic [AXIL_DATA_WIDTH-1:0] s_axil_wdata,
+    input  logic [AXIL_STRB_WIDTH-1:0] s_axil_wstrb,
+    input  logic                       s_axil_wvalid,
+    output logic                       s_axil_wready,
+    output logic                       s_axil_bvalid,
+    output logic [                1:0] s_axil_bresp,
+    input  logic                       s_axil_bready,
 
-    input  logic        s_axil_arvalid,
-    input  logic [ 7:0] s_axil_araddr,
-    output logic        s_axil_arready,
-    output logic        s_axil_rvalid,
-    output logic [31:0] s_axil_rdata,
-    output logic [ 1:0] s_axil_rresp,
-    input  logic        s_axil_rready
+    input  logic                       s_axil_arvalid,
+    input  logic [AXIL_ADDR_WIDTH-1:0] s_axil_araddr,
+    output logic                       s_axil_arready,
+    output logic                       s_axil_rvalid,
+    output logic [AXIL_DATA_WIDTH-1:0] s_axil_rdata,
+    output logic [                1:0] s_axil_rresp,
+    input  logic                       s_axil_rready
 );
   //--------------------------------------------------------------------------
   //
@@ -107,30 +111,37 @@ module blinky_reg #(
   // The control interface
   //
   //--------------------------------------------------------------------------
+  localparam AW = AXIL_ADDR_WIDTH;
+  localparam DW = AXIL_DATA_WIDTH;
+  localparam SW = AXIL_STRB_WIDTH;
+
+  // convert byte addr to word addr (reg idx)
+  parameter ADDRLSB = $clog2(AXIL_DATA_WIDTH) - 3;
+  parameter RAW = AW - ADDRLSB;
 
   //
   // control interface writes
   //
-  logic        sb_awvalid;
-  logic [ 7:0] sb_awaddr;
-  logic        sb_awready;
+  logic            sb_awvalid;
+  logic [ RAW-1:0] sb_awaddr;
+  logic            sb_awready;
 
-  logic        sb_wvalid;
-  logic [31:0] sb_wdata;
-  logic [ 3:0] sb_wstrb;
-  logic        sb_wready;
+  logic            sb_wvalid;
+  logic [  DW-1:0] sb_wdata;
+  logic [SW-1 : 0] sb_wstrb;
+  logic            sb_wready;
 
-  logic        s_axil_bvalid_next;
-  logic [ 1:0] s_axil_bresp_next;
+  logic            s_axil_bvalid_next;
+  logic [     1:0] s_axil_bresp_next;
 
   svc_skidbuf #(
-      .DATA_WIDTH(8)
+      .DATA_WIDTH(RAW)
   ) svc_skidbuf_aw (
       .clk  (clk),
       .rst_n(rst_n),
 
       .i_valid(s_axil_awvalid),
-      .i_data (s_axil_awaddr),
+      .i_data (s_axil_awaddr[AW-1:ADDRLSB]),
       .o_ready(s_axil_awready),
 
       .o_valid(sb_awvalid),
@@ -139,7 +150,7 @@ module blinky_reg #(
   );
 
   svc_skidbuf #(
-      .DATA_WIDTH(32 + 4)
+      .DATA_WIDTH(DW + SW)
   ) svc_skidbuf_w (
       .clk  (clk),
       .rst_n(rst_n),
@@ -177,12 +188,12 @@ module blinky_reg #(
         s_axil_bresp_next = 2'b10;
       end else begin
         case (sb_awaddr)
-          8'h00:   {flag_blink_next, flag_enable_next} = 2'(sb_wdata);
-          8'h01:   cnt_toggle_next = sb_wdata;
-          8'h02:   s_axil_bresp_next = 2'b10;
-          8'h03:   s_axil_bresp_next = 2'b10;
-          8'h04:   s_axil_bresp_next = 2'b10;
-          default: s_axil_bresp_next = 2'b11;
+          RAW'(00): {flag_blink_next, flag_enable_next} = 2'(sb_wdata);
+          RAW'(01): cnt_toggle_next = sb_wdata;
+          RAW'(02): s_axil_bresp_next = 2'b10;
+          RAW'(03): s_axil_bresp_next = 2'b10;
+          RAW'(04): s_axil_bresp_next = 2'b10;
+          default:  s_axil_bresp_next = 2'b11;
         endcase
       end
     end
@@ -210,22 +221,22 @@ module blinky_reg #(
   //
   // control interface reads
   //
-  logic        sb_arvalid;
-  logic [ 7:0] sb_araddr;
-  logic        sb_arready;
+  logic           sb_arvalid;
+  logic [RAW-1:0] sb_araddr;
+  logic           sb_arready;
 
-  logic        s_axil_rvalid_next;
-  logic [31:0] s_axil_rdata_next;
-  logic [ 1:0] s_axil_rresp_next;
+  logic           s_axil_rvalid_next;
+  logic [ DW-1:0] s_axil_rdata_next;
+  logic [    1:0] s_axil_rresp_next;
 
   svc_skidbuf #(
-      .DATA_WIDTH(8)
+      .DATA_WIDTH(RAW)
   ) svc_skidbuf_ar (
       .clk  (clk),
       .rst_n(rst_n),
 
       .i_valid(s_axil_arvalid),
-      .i_data (s_axil_araddr),
+      .i_data (s_axil_araddr[AW-1:ADDRLSB]),
       .o_ready(s_axil_arready),
 
       .o_valid(sb_arvalid),
@@ -247,12 +258,12 @@ module blinky_reg #(
 
       s_axil_rresp_next  = 2'b00;
       case (sb_araddr)
-        8'h00:   s_axil_rdata_next = 32'({flag_blink, flag_enable});
-        8'h01:   s_axil_rdata_next = cnt_toggle;
-        8'h02:   s_axil_rdata_next = CLK_FREQ;
-        8'h03:   s_axil_rdata_next = cnt;
-        8'h04:   s_axil_rdata_next = 32'(led);
-        default: s_axil_rresp_next = 2'b11;
+        RAW'(00): s_axil_rdata_next = DW'({flag_blink, flag_enable});
+        RAW'(01): s_axil_rdata_next = cnt_toggle;
+        RAW'(02): s_axil_rdata_next = CLK_FREQ;
+        RAW'(03): s_axil_rdata_next = cnt;
+        RAW'(04): s_axil_rdata_next = DW'(led);
+        default:  s_axil_rresp_next = 2'b11;
       endcase
     end
   end
@@ -269,6 +280,8 @@ module blinky_reg #(
     s_axil_rdata <= s_axil_rdata_next;
     s_axil_rresp <= s_axil_rresp_next;
   end
+
+  `SVC_UNUSED({s_axil_araddr[ADDRLSB-1:0], s_axil_awaddr[ADDRLSB-1:0]});
 
 endmodule
 `endif

@@ -5,31 +5,37 @@ module blinky_reg_tb;
   `TEST_CLK_NS(clk, 10);
   `TEST_RST_N(clk, rst_n);
 
+  localparam AW = 8;
+  localparam DW = 32;
+  localparam SW = DW / 8;
+
   localparam CLK_FREQ = 100_000_000;
 
-  logic        led;
+  logic          led;
 
-  logic [ 7:0] m_axil_awaddr;
-  logic        m_axil_awvalid;
-  logic        m_axil_awready;
-  logic [31:0] m_axil_wdata;
-  logic [ 3:0] m_axil_wstrb;
-  logic        m_axil_wvalid;
-  logic        m_axil_wready;
-  logic [ 1:0] m_axil_bresp;
-  logic        m_axil_bvalid;
-  logic        m_axil_bready;
+  logic [AW-1:0] m_axil_awaddr;
+  logic          m_axil_awvalid;
+  logic          m_axil_awready;
+  logic [DW-1:0] m_axil_wdata;
+  logic [SW-1:0] m_axil_wstrb;
+  logic          m_axil_wvalid;
+  logic          m_axil_wready;
+  logic [   1:0] m_axil_bresp;
+  logic          m_axil_bvalid;
+  logic          m_axil_bready;
 
-  logic [ 7:0] m_axil_araddr;
-  logic        m_axil_arvalid;
-  logic        m_axil_arready;
-  logic [31:0] m_axil_rdata;
-  logic [ 1:0] m_axil_rresp;
-  logic        m_axil_rvalid;
-  logic        m_axil_rready;
+  logic [AW-1:0] m_axil_araddr;
+  logic          m_axil_arvalid;
+  logic          m_axil_arready;
+  logic [DW-1:0] m_axil_rdata;
+  logic [   1:0] m_axil_rresp;
+  logic          m_axil_rvalid;
+  logic          m_axil_rready;
 
   blinky_reg #(
-      .CLK_FREQ(CLK_FREQ)
+      .CLK_FREQ       (CLK_FREQ),
+      .AXIL_ADDR_WIDTH(AW),
+      .AXIL_DATA_WIDTH(DW)
   ) uut (
       .clk  (clk),
       .rst_n(rst_n),
@@ -58,15 +64,15 @@ module blinky_reg_tb;
   always_ff @(posedge clk) begin
     if (~rst_n) begin
       m_axil_awvalid <= 1'b0;
-      m_axil_awaddr  <= 8'h00;
+      m_axil_awaddr  <= AW'(0);
 
       m_axil_wvalid  <= 1'b0;
-      m_axil_wstrb   <= 4'h0;
-      m_axil_wdata   <= 32'h0;
+      m_axil_wstrb   <= SW'(0);
+      m_axil_wdata   <= DW'(0);
 
       m_axil_bready  <= 1'b0;
 
-      m_axil_araddr  <= 8'h00;
+      m_axil_araddr  <= AW'(00);
       m_axil_arvalid <= 1'b0;
 
       m_axil_rready  <= 1'b0;
@@ -76,11 +82,12 @@ module blinky_reg_tb;
     end
   end
 
-  task automatic axi_write(input logic [7:0] addr, input logic [31:0] data);
+  task automatic axi_write(input logic [AW-1:0] addr,
+                           input logic [DW-1:0] data);
     m_axil_awaddr  = addr;
     m_axil_awvalid = 1'b1;
     m_axil_wdata   = data;
-    m_axil_wstrb   = 4'hF;
+    m_axil_wstrb   = '1;
     m_axil_wvalid  = 1'b1;
     m_axil_bready  = 1'b1;
     `TICK(clk);
@@ -92,7 +99,8 @@ module blinky_reg_tb;
     `TICK(clk);
   endtask
 
-  task automatic axi_read(input logic [7:0] addr, output logic [31:0] data);
+  task automatic axi_read(input logic [AW-1:0] addr,
+                          output logic [DW-1:0] data);
     m_axil_araddr  = addr;
     m_axil_arvalid = 1'b1;
     m_axil_rready  = 1'b1;
@@ -111,36 +119,37 @@ module blinky_reg_tb;
   endtask
 
   task automatic test_default_register_values();
-    logic [31:0] rd_data;
+    logic [DW-1:0] rd_data;
 
-    axi_read(8'h00, rd_data);
+    axi_read(AW'(0), rd_data);
     `CHECK_EQ(rd_data, 0);
 
-    axi_read(8'h01, rd_data);
+    axi_read(AW'(4), rd_data);
     `CHECK_EQ(rd_data, CLK_FREQ / 2);
 
-    axi_read(8'h02, rd_data);
+    axi_read(AW'(8), rd_data);
     `CHECK_EQ(rd_data, CLK_FREQ);
   endtask
 
   task automatic test_enable_led();
-    logic [31:0] rd_data;
+    logic [DW-1:0] rd_data;
 
-    axi_write(8'h00, 32'h1);
+    axi_write(AW'(0), 32'h1);
     `TICK(clk);
 
-    axi_read(8'h00, rd_data);
-    `CHECK_EQ(rd_data, 32'h1);
+    axi_read(AW'(0), rd_data);
+    `CHECK_EQ(rd_data, DW'(1));
 
     repeat (10) `TICK(clk);
     `CHECK_TRUE(led);
   endtask
 
   task automatic test_invalid_access();
-    m_axil_awaddr  = 8'h05;
+    // there are 4 valid registers
+    m_axil_awaddr  = AW'(5 * 4);
     m_axil_awvalid = 1'b1;
-    m_axil_wdata   = 32'h0;
-    m_axil_wstrb   = 4'hF;
+    m_axil_wdata   = DW'(0);
+    m_axil_wstrb   = '1;
     m_axil_wvalid  = 1'b1;
     m_axil_bready  = 1'b1;
 
