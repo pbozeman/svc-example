@@ -12,6 +12,7 @@ module axi_perf_mem_top (
 );
   localparam CLOCK_FREQ = 100_000_000;
   localparam BAUD_RATE = 115_200;
+  localparam STAT_WIDTH = 16;
 
   logic rst_n;
 
@@ -23,7 +24,8 @@ module axi_perf_mem_top (
 
   axi_perf_mem #(
       .CLOCK_FREQ(CLOCK_FREQ),
-      .BAUD_RATE (BAUD_RATE)
+      .BAUD_RATE (BAUD_RATE),
+      .STAT_WIDTH(STAT_WIDTH)
   ) axi_perf_mem_i (
       .clk    (CLK),
       .rst_n  (rst_n),
