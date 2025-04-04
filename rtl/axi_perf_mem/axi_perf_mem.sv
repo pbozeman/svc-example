@@ -7,7 +7,6 @@
 `include "axi_perf.sv"
 
 module axi_perf_mem #(
-    parameter NAME           = "axi_perf_mem",
     parameter CLOCK_FREQ     = 100_000_000,
     parameter BAUD_RATE      = 115_200,
     parameter AXI_ADDR_WIDTH = 8,
@@ -102,7 +101,6 @@ module axi_perf_mem #(
   );
 
   axi_perf #(
-      .NAME          (NAME),
       .CLOCK_FREQ    (CLOCK_FREQ),
       .BAUD_RATE     (BAUD_RATE),
       .AXI_ADDR_WIDTH(AXI_ADDR_WIDTH),

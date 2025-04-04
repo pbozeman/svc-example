@@ -7,7 +7,6 @@
 `include "axi_perf.sv"
 
 module axi_perf_ice40_sram #(
-    parameter NAME            = "axi_ice40_sram",
     parameter CLOCK_FREQ      = 100_000_000,
     parameter BAUD_RATE       = 115_200,
     parameter SRAM_ADDR_WIDTH = 20,
@@ -116,7 +115,6 @@ module axi_perf_ice40_sram #(
   assign m_axi_rready  = 1'b0;
 
   axi_perf #(
-      .NAME          (NAME),
       .CLOCK_FREQ    (CLOCK_FREQ),
       .BAUD_RATE     (BAUD_RATE),
       .AXI_ADDR_WIDTH(AXI_ADDR_WIDTH),
