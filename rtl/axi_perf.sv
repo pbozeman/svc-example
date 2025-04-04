@@ -4,24 +4,21 @@
 `include "svc.sv"
 `include "svc_axi_arbiter.sv"
 `include "svc_axi_null_rd.sv"
+`include "svc_axi_null_rd.sv"
 `include "svc_axi_stats_wr.sv"
 `include "svc_axil_bridge_uart.sv"
 `include "svc_axil_router.sv"
 `include "svc_uart_rx.sv"
 `include "svc_uart_tx.sv"
+`include "svc_unused.sv"
 
 `include "axi_perf_wr.sv"
 
 // This is still a bit hacky and still in POC phase for both stats and how
 // reporting is going to work
 
-// verilator lint_off: UNUSEDPARAM
-// verilator lint_off: UNUSEDSIGNAL
-// verilator lint_off: UNDRIVEN
 module axi_perf #(
-    parameter NAME           = "axi_perf",
     parameter CLOCK_FREQ     = 100_000_000,
-    parameter CLOCK_FREQ_STR = "100",
     parameter BAUD_RATE      = 115_200,
     parameter AXI_ADDR_WIDTH = 20,
     parameter AXI_DATA_WIDTH = 16,
@@ -57,7 +54,6 @@ module axi_perf #(
   localparam DW = AXI_DATA_WIDTH;
   localparam IW = AXI_ID_WIDTH;
   localparam STRBW = AXI_STRB_WIDTH;
-  localparam SW = STAT_WIDTH;
 
   localparam AIW = AXI_ID_WIDTH - $clog2(NUM_M);
 
@@ -406,10 +402,6 @@ module axi_perf #(
       .m_axil_rready ({stats_perf_rready, stats_top_rready})
   );
 
-  // vivado doesn't support \r in a string, so this is the work around. (the
-  // \r becomes just r)
-  localparam CRLF = 16'h0D0A;
-
   typedef enum {
     STATE_IDLE,
     STATE_HEADER,
@@ -435,13 +427,6 @@ module axi_perf #(
   logic   [NUM_M-1:0][AW-1:0] wr_burst_stride;
   logic   [NUM_M-1:0][  15:0] wr_burst_num;
   logic   [NUM_M-1:0][   2:0] wr_burst_awsize;
-
-  logic                       fmt_iter_valid;
-  logic   [      7:0]         fmt_iter_id;
-  logic   [ SW*2-1:0]         fmt_iter_val_str;
-  logic   [  8*2-1:0]         fmt_iter_id_str;
-  logic                       fmt_iter_last;
-  logic                       fmt_iter_ready;
 
   // TODO: make these configurable
   assign wr_base_addr[0]    = 0;
@@ -601,13 +586,11 @@ module axi_perf #(
   );
 
   always @(*) begin
-    state_next     = state;
+    state_next  = state;
 
     // TODO: state management for all managers, for now, hack it in
-    wr_start[0]    = 1'b0;
-    wr_start[1]    = 1'b0;
-
-    fmt_iter_ready = 1'b0;
+    wr_start[0] = 1'b0;
+    wr_start[1] = 1'b0;
 
     case (state)
       STATE_IDLE: begin
@@ -639,6 +622,18 @@ module axi_perf #(
       state <= state_next;
     end
   end
+
+  // TODO: remove all of these when these get passed in
+  assign m_axi_arready = 1'b0;
+  assign m_axi_rvalid  = 1'b0;
+  assign m_axi_rid     = 0;
+  assign m_axi_rlast   = 1'b0;
+  assign m_axi_rdata   = 0;
+  assign m_axi_rresp   = 2'b11;
+
+  `SVC_UNUSED({m_axi_arvalid, m_axi_araddr, m_axi_arid, m_axi_arlen,
+               m_axi_arsize, m_axi_arburst, m_axi_rready});
+
 
 endmodule
 `endif
