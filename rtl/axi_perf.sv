@@ -148,7 +148,9 @@ module axi_perf #(
   logic                        urx_ready;
 
   // our control interface
+  // verilator lint_off: UNUSEDSIGNAL
   logic [ S_AW-1:0]            ctrl_awaddr;
+  // verilator lint_on: UNUSEDSIGNAL
   logic                        ctrl_awvalid;
   logic                        ctrl_awready;
   logic [ S_DW-1:0]            ctrl_wdata;
@@ -658,26 +660,94 @@ module axi_perf #(
     CTRL_DONE = 1
   } reg_id_t;
 
-  // all writes are invalid
-  svc_axil_invalid_wr #(
-      .AXIL_ADDR_WIDTH(S_AW),
-      .AXIL_DATA_WIDTH(S_DW)
-  ) svc_axil_invalid_wr_i (
-      .clk           (clk),
-      .rst_n         (rst_n),
-      .s_axil_awaddr (ctrl_awaddr),
-      .s_axil_awvalid(ctrl_awvalid),
-      .s_axil_awready(ctrl_awready),
-      .s_axil_wdata  (ctrl_wdata),
-      .s_axil_wstrb  (ctrl_wstrb),
-      .s_axil_wvalid (ctrl_wvalid),
-      .s_axil_wready (ctrl_wready),
-      .s_axil_bvalid (ctrl_bvalid),
-      .s_axil_bresp  (ctrl_bresp),
-      .s_axil_bready (ctrl_bready)
+  //
+  // control interface writes
+  //
+  logic              sb_awvalid;
+  logic [   RAW-1:0] sb_awaddr;
+  logic              sb_awready;
+
+  logic              sb_wvalid;
+  // verilator lint_off: UNUSEDSIGNAL
+  logic [  S_DW-1:0] sb_wdata;
+  // verilator lint_on: UNUSEDSIGNAL
+  logic [S_SW-1 : 0] sb_wstrb;
+  logic              sb_wready;
+
+  logic              ctrl_bvalid_next;
+  logic [       1:0] ctrl_bresp_next;
+
+  svc_skidbuf #(
+      .DATA_WIDTH(RAW)
+  ) svc_skidbuf_aw (
+      .clk  (clk),
+      .rst_n(rst_n),
+
+      .i_valid(ctrl_awvalid),
+      .i_data (ctrl_awaddr[S_AW-1:S_ADDRLSB]),
+      .o_ready(ctrl_awready),
+
+      .o_valid(sb_awvalid),
+      .o_data (sb_awaddr),
+      .i_ready(sb_awready)
   );
 
-  // read controls
+  svc_skidbuf #(
+      .DATA_WIDTH(S_DW + S_SW)
+  ) svc_skidbuf_w (
+      .clk  (clk),
+      .rst_n(rst_n),
+
+      .i_valid(ctrl_wvalid),
+      .i_data ({ctrl_wstrb, ctrl_wdata}),
+      .o_ready(ctrl_wready),
+
+      .o_valid(sb_wvalid),
+      .o_data ({sb_wstrb, sb_wdata}),
+      .i_ready(sb_wready)
+  );
+
+  always_comb begin
+    sb_awready       = 1'b0;
+    sb_wready        = 1'b0;
+
+    ctrl_bvalid_next = ctrl_bvalid && !ctrl_bready;
+    ctrl_bresp_next  = ctrl_bresp;
+
+    // do both an incoming check and outgoing check here,
+    // since we are going to set bvalid
+    if (sb_awvalid && sb_wvalid && (!ctrl_bvalid || ctrl_bready)) begin
+      sb_awready       = 1'b1;
+      sb_wready        = 1'b1;
+      ctrl_bvalid_next = 1'b1;
+      ctrl_bresp_next  = 2'b00;
+
+      // we only accept full writes
+      if (sb_wstrb != '1) begin
+        ctrl_bresp_next = 2'b10;
+      end else begin
+        case (sb_awaddr)
+          default: ctrl_bresp_next = 2'b11;
+        endcase
+      end
+    end
+  end
+
+  always_ff @(posedge clk) begin
+    if (!rst_n) begin
+      ctrl_bvalid <= 1'b0;
+    end else begin
+      ctrl_bvalid <= ctrl_bvalid_next;
+    end
+  end
+
+  always_ff @(posedge clk) begin
+    ctrl_bresp <= ctrl_bresp_next;
+  end
+
+  //
+  // control interface reads
+  //
   logic            sb_arvalid;
   logic [ RAW-1:0] sb_araddr;
   logic            sb_arready;
