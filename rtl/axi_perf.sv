@@ -120,24 +120,24 @@ module axi_perf #(
   //
   // external control interface
   //
-  logic                        ctrl_awvalid;
-  logic [AB_AW-1:0]            ctrl_awaddr;
-  logic                        ctrl_awready;
-  logic [AB_DW-1:0]            ctrl_wdata;
-  logic [AB_SW-1:0]            ctrl_wstrb;
-  logic                        ctrl_wvalid;
-  logic                        ctrl_wready;
-  logic                        ctrl_bvalid;
-  logic [      1:0]            ctrl_bresp;
-  logic                        ctrl_bready;
+  logic                        ab_awvalid;
+  logic [AB_AW-1:0]            ab_awaddr;
+  logic                        ab_awready;
+  logic [AB_DW-1:0]            ab_wdata;
+  logic [AB_SW-1:0]            ab_wstrb;
+  logic                        ab_wvalid;
+  logic                        ab_wready;
+  logic                        ab_bvalid;
+  logic [      1:0]            ab_bresp;
+  logic                        ab_bready;
 
-  logic                        ctrl_arvalid;
-  logic [AB_AW-1:0]            ctrl_araddr;
-  logic                        ctrl_arready;
-  logic                        ctrl_rvalid;
-  logic [AB_DW-1:0]            ctrl_rdata;
-  logic [      1:0]            ctrl_rresp;
-  logic                        ctrl_rready;
+  logic                        ab_arvalid;
+  logic [AB_AW-1:0]            ab_araddr;
+  logic                        ab_arready;
+  logic                        ab_rvalid;
+  logic [AB_DW-1:0]            ab_rdata;
+  logic [      1:0]            ab_rresp;
+  logic                        ab_rready;
 
   logic                        utx_valid;
   logic [      7:0]            utx_data;
@@ -146,6 +146,28 @@ module axi_perf #(
   logic                        urx_valid;
   logic [      7:0]            urx_data;
   logic                        urx_ready;
+
+  // our control interface
+  logic [ S_AW-1:0]            ctrl_awaddr;
+  logic                        ctrl_awvalid;
+  logic                        ctrl_awready;
+  logic [ S_DW-1:0]            ctrl_wdata;
+  logic [ S_SW-1:0]            ctrl_wstrb;
+  logic                        ctrl_wvalid;
+  logic                        ctrl_wready;
+  logic                        ctrl_bvalid;
+  logic [      1:0]            ctrl_bresp;
+  logic                        ctrl_bready;
+
+  logic                        ctrl_arvalid;
+  // verilator lint_off: UNUSEDSIGNAL
+  logic [ S_AW-1:0]            ctrl_araddr;
+  // verilator lint_on: UNUSEDSIGNAL
+  logic                        ctrl_arready;
+  logic                        ctrl_rvalid;
+  logic [ S_DW-1:0]            ctrl_rdata;
+  logic [      1:0]            ctrl_rresp;
+  logic                        ctrl_rready;
 
   //
   // axi stats control interface
@@ -332,24 +354,24 @@ module axi_perf #(
       .utx_data (utx_data),
       .utx_ready(utx_ready),
 
-      .m_axil_awaddr (ctrl_awaddr),
-      .m_axil_awvalid(ctrl_awvalid),
-      .m_axil_awready(ctrl_awready),
-      .m_axil_wdata  (ctrl_wdata),
-      .m_axil_wstrb  (ctrl_wstrb),
-      .m_axil_wvalid (ctrl_wvalid),
-      .m_axil_wready (ctrl_wready),
-      .m_axil_bresp  (ctrl_bresp),
-      .m_axil_bvalid (ctrl_bvalid),
-      .m_axil_bready (ctrl_bready),
+      .m_axil_awaddr (ab_awaddr),
+      .m_axil_awvalid(ab_awvalid),
+      .m_axil_awready(ab_awready),
+      .m_axil_wdata  (ab_wdata),
+      .m_axil_wstrb  (ab_wstrb),
+      .m_axil_wvalid (ab_wvalid),
+      .m_axil_wready (ab_wready),
+      .m_axil_bresp  (ab_bresp),
+      .m_axil_bvalid (ab_bvalid),
+      .m_axil_bready (ab_bready),
 
-      .m_axil_arvalid(ctrl_arvalid),
-      .m_axil_araddr (ctrl_araddr),
-      .m_axil_arready(ctrl_arready),
-      .m_axil_rdata  (ctrl_rdata),
-      .m_axil_rresp  (ctrl_rresp),
-      .m_axil_rvalid (ctrl_rvalid),
-      .m_axil_rready (ctrl_rready)
+      .m_axil_arvalid(ab_arvalid),
+      .m_axil_araddr (ab_araddr),
+      .m_axil_arready(ab_arready),
+      .m_axil_rdata  (ab_rdata),
+      .m_axil_rresp  (ab_rresp),
+      .m_axil_rvalid (ab_rvalid),
+      .m_axil_rready (ab_rready)
   );
 
   svc_axil_router #(
@@ -357,49 +379,49 @@ module axi_perf #(
       .S_AXIL_DATA_WIDTH(AB_DW),
       .M_AXIL_ADDR_WIDTH(S_AW),
       .M_AXIL_DATA_WIDTH(S_DW),
-      .NUM_S            (NUM_M + 1)
+      .NUM_S            (NUM_M + 2)
   ) svc_axil_router_i (
       .clk  (clk),
       .rst_n(rst_n),
 
-      .s_axil_awaddr (ctrl_awaddr),
-      .s_axil_awvalid(ctrl_awvalid),
-      .s_axil_awready(ctrl_awready),
-      .s_axil_wdata  (ctrl_wdata),
-      .s_axil_wstrb  (ctrl_wstrb),
-      .s_axil_wvalid (ctrl_wvalid),
-      .s_axil_wready (ctrl_wready),
-      .s_axil_bresp  (ctrl_bresp),
-      .s_axil_bvalid (ctrl_bvalid),
-      .s_axil_bready (ctrl_bready),
+      .s_axil_awaddr (ab_awaddr),
+      .s_axil_awvalid(ab_awvalid),
+      .s_axil_awready(ab_awready),
+      .s_axil_wdata  (ab_wdata),
+      .s_axil_wstrb  (ab_wstrb),
+      .s_axil_wvalid (ab_wvalid),
+      .s_axil_wready (ab_wready),
+      .s_axil_bresp  (ab_bresp),
+      .s_axil_bvalid (ab_bvalid),
+      .s_axil_bready (ab_bready),
 
-      .s_axil_arvalid(ctrl_arvalid),
-      .s_axil_araddr (ctrl_araddr),
-      .s_axil_arready(ctrl_arready),
-      .s_axil_rdata  (ctrl_rdata),
-      .s_axil_rresp  (ctrl_rresp),
-      .s_axil_rvalid (ctrl_rvalid),
-      .s_axil_rready (ctrl_rready),
+      .s_axil_arvalid(ab_arvalid),
+      .s_axil_araddr (ab_araddr),
+      .s_axil_arready(ab_arready),
+      .s_axil_rdata  (ab_rdata),
+      .s_axil_rresp  (ab_rresp),
+      .s_axil_rvalid (ab_rvalid),
+      .s_axil_rready (ab_rready),
 
-      .m_axil_awvalid({stats_perf_awvalid, stats_top_awvalid}),
-      .m_axil_awaddr ({stats_perf_awaddr, stats_top_awaddr}),
-      .m_axil_awready({stats_perf_awready, stats_top_awready}),
-      .m_axil_wvalid ({stats_perf_wvalid, stats_top_wvalid}),
-      .m_axil_wdata  ({stats_perf_wdata, stats_top_wdata}),
-      .m_axil_wstrb  ({stats_perf_wstrb, stats_top_wstrb}),
-      .m_axil_wready ({stats_perf_wready, stats_top_wready}),
-      .m_axil_bvalid ({stats_perf_bvalid, stats_top_bvalid}),
-      .m_axil_bresp  ({stats_perf_bresp, stats_top_bresp}),
-      .m_axil_bready ({stats_perf_bready, stats_top_bready}),
+      .m_axil_awvalid({stats_perf_awvalid, stats_top_awvalid, ctrl_awvalid}),
+      .m_axil_awaddr ({stats_perf_awaddr, stats_top_awaddr, ctrl_awaddr}),
+      .m_axil_awready({stats_perf_awready, stats_top_awready, ctrl_awready}),
+      .m_axil_wvalid ({stats_perf_wvalid, stats_top_wvalid, ctrl_wvalid}),
+      .m_axil_wdata  ({stats_perf_wdata, stats_top_wdata, ctrl_wdata}),
+      .m_axil_wstrb  ({stats_perf_wstrb, stats_top_wstrb, ctrl_wstrb}),
+      .m_axil_wready ({stats_perf_wready, stats_top_wready, ctrl_wready}),
+      .m_axil_bvalid ({stats_perf_bvalid, stats_top_bvalid, ctrl_bvalid}),
+      .m_axil_bresp  ({stats_perf_bresp, stats_top_bresp, ctrl_bresp}),
+      .m_axil_bready ({stats_perf_bready, stats_top_bready, ctrl_bready}),
 
+      .m_axil_arvalid({stats_perf_arvalid, stats_top_arvalid, ctrl_arvalid}),
+      .m_axil_araddr ({stats_perf_araddr, stats_top_araddr, ctrl_araddr}),
+      .m_axil_arready({stats_perf_arready, stats_top_arready, ctrl_arready}),
+      .m_axil_rdata  ({stats_perf_rdata, stats_top_rdata, ctrl_rdata}),
+      .m_axil_rresp  ({stats_perf_rresp, stats_top_rresp, ctrl_rresp}),
+      .m_axil_rvalid ({stats_perf_rvalid, stats_top_rvalid, ctrl_rvalid}),
+      .m_axil_rready ({stats_perf_rready, stats_top_rready, ctrl_rready})
 
-      .m_axil_arvalid({stats_perf_arvalid, stats_top_arvalid}),
-      .m_axil_araddr ({stats_perf_araddr, stats_top_araddr}),
-      .m_axil_arready({stats_perf_arready, stats_top_arready}),
-      .m_axil_rdata  ({stats_perf_rdata, stats_top_rdata}),
-      .m_axil_rresp  ({stats_perf_rresp, stats_top_rresp}),
-      .m_axil_rvalid ({stats_perf_rvalid, stats_top_rvalid}),
-      .m_axil_rready ({stats_perf_rready, stats_top_rready})
   );
 
   typedef enum {
@@ -621,6 +643,100 @@ module axi_perf #(
     end else begin
       state <= state_next;
     end
+  end
+
+  //--------------------------------------------------------------------------
+  //
+  // control interface
+  //
+  //--------------------------------------------------------------------------
+  localparam S_ADDRLSB = $clog2(S_DW) - 3;
+  localparam RAW = S_AW - S_ADDRLSB;
+
+  typedef enum logic [RAW-1:0] {
+    CTRL_IDLE = 0,
+    CTRL_DONE = 1
+  } reg_id_t;
+
+  // all writes are invalid
+  svc_axil_invalid_wr #(
+      .AXIL_ADDR_WIDTH(S_AW),
+      .AXIL_DATA_WIDTH(S_DW)
+  ) svc_axil_invalid_wr_i (
+      .clk           (clk),
+      .rst_n         (rst_n),
+      .s_axil_awaddr (ctrl_awaddr),
+      .s_axil_awvalid(ctrl_awvalid),
+      .s_axil_awready(ctrl_awready),
+      .s_axil_wdata  (ctrl_wdata),
+      .s_axil_wstrb  (ctrl_wstrb),
+      .s_axil_wvalid (ctrl_wvalid),
+      .s_axil_wready (ctrl_wready),
+      .s_axil_bvalid (ctrl_bvalid),
+      .s_axil_bresp  (ctrl_bresp),
+      .s_axil_bready (ctrl_bready)
+  );
+
+  // read controls
+  logic            sb_arvalid;
+  logic [ RAW-1:0] sb_araddr;
+  logic            sb_arready;
+
+  logic            ctrl_rvalid_next;
+  logic [S_DW-1:0] ctrl_rdata_next;
+  logic [     1:0] ctrl_rresp_next;
+
+  svc_skidbuf #(
+      .DATA_WIDTH(RAW)
+  ) svc_skidbuf_ar (
+      .clk  (clk),
+      .rst_n(rst_n),
+
+      .i_valid(ctrl_arvalid),
+      .i_data (ctrl_araddr[S_AW-1:S_ADDRLSB]),
+      .o_ready(ctrl_arready),
+
+      .o_valid(sb_arvalid),
+      .o_data (sb_araddr),
+      .i_ready(sb_arready)
+  );
+
+  always_comb begin
+    sb_arready       = 1'b0;
+    ctrl_rvalid_next = ctrl_rvalid && !ctrl_rready;
+    ctrl_rdata_next  = ctrl_rdata;
+    ctrl_rresp_next  = ctrl_rresp;
+
+    // do both an incoming check and outgoing check here,
+    // since we are going to set rvalid
+    if (sb_arvalid && (!ctrl_rvalid || !ctrl_rready)) begin
+      sb_arready       = 1'b1;
+      ctrl_rvalid_next = 1'b1;
+      ctrl_rresp_next  = 2'b00;
+
+      case (sb_araddr)
+        CTRL_IDLE: ctrl_rdata_next = S_DW'(state == STATE_IDLE);
+        CTRL_DONE: ctrl_rdata_next = S_DW'(state == STATE_DONE);
+
+        default: begin
+          ctrl_rdata_next = 0;
+          ctrl_rresp_next = 2'b11;
+        end
+      endcase
+    end
+  end
+
+  always_ff @(posedge clk) begin
+    if (!rst_n) begin
+      ctrl_rvalid <= 1'b0;
+    end else begin
+      ctrl_rvalid <= ctrl_rvalid_next;
+    end
+  end
+
+  always_ff @(posedge clk) begin
+    ctrl_rdata <= ctrl_rdata_next;
+    ctrl_rresp <= ctrl_rresp_next;
   end
 
   // TODO: remove all of these when these get passed in
