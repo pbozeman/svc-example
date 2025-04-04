@@ -438,6 +438,9 @@ module axi_perf #(
   logic                       ctrl_start;
   logic                       ctrl_start_next;
 
+  logic                       ctrl_clear;
+  logic                       ctrl_clear_next;
+
   logic   [NUM_M-1:0]         wr_start;
   logic   [NUM_M-1:0]         wr_busy;
 
@@ -507,7 +510,7 @@ module axi_perf #(
         .clk  (clk),
         .rst_n(rst_n),
 
-        .stat_clear(1'b0),
+        .stat_clear(ctrl_clear),
         .stat_err  (),
 
         // control interface
@@ -562,7 +565,7 @@ module axi_perf #(
       .clk  (clk),
       .rst_n(rst_n),
 
-      .stat_clear(1'b0),
+      .stat_clear(ctrl_clear),
       .stat_err  (),
 
       // control interface
@@ -650,8 +653,11 @@ module axi_perf #(
   localparam RAW = S_AW - S_ADDRLSB;
 
   typedef enum logic [RAW-1:0] {
-    CTRL_START = 0,
-    CTRL_IDLE  = 1
+    REG_START    = 0,
+    REG_IDLE     = 1,
+    REG_NUM_M    = 2,
+    REG_CLK_FREQ = 3,
+    REG_CLEAR    = 4
   } reg_id_t;
 
   //
@@ -709,6 +715,7 @@ module axi_perf #(
     ctrl_bresp_next  = ctrl_bresp;
 
     ctrl_start_next  = ctrl_start && state != STATE_IDLE;
+    ctrl_clear_next  = 1'b0;
 
     // do both an incoming check and outgoing check here,
     // since we are going to set bvalid
@@ -723,8 +730,9 @@ module axi_perf #(
         ctrl_bresp_next = 2'b10;
       end else begin
         case (sb_awaddr)
-          CTRL_START: ctrl_start_next = 1'(sb_wdata);
-          default:    ctrl_bresp_next = 2'b11;
+          REG_START: ctrl_start_next = 1'(sb_wdata);
+          REG_CLEAR: ctrl_clear_next = 1'(sb_wdata);
+          default:   ctrl_bresp_next = 2'b11;
         endcase
       end
     end
@@ -734,9 +742,11 @@ module axi_perf #(
     if (!rst_n) begin
       ctrl_bvalid <= 1'b0;
       ctrl_start  <= 1'b0;
+      ctrl_clear  <= 1'b0;
     end else begin
       ctrl_bvalid <= ctrl_bvalid_next;
       ctrl_start  <= ctrl_start_next;
+      ctrl_clear  <= ctrl_clear_next;
     end
   end
 
@@ -784,8 +794,11 @@ module axi_perf #(
       ctrl_rresp_next  = 2'b00;
 
       case (sb_araddr)
-        CTRL_START: ctrl_rdata_next = S_DW'(ctrl_start);
-        CTRL_IDLE:  ctrl_rdata_next = S_DW'(state == STATE_IDLE);
+        REG_START:    ctrl_rdata_next = S_DW'(ctrl_start);
+        REG_IDLE:     ctrl_rdata_next = S_DW'(state == STATE_IDLE);
+        REG_NUM_M:    ctrl_rdata_next = S_DW'(NUM_M);
+        REG_CLK_FREQ: ctrl_rdata_next = S_DW'(CLOCK_FREQ);
+        REG_CLEAR:    ctrl_rdata_next = S_DW'(ctrl_clear);
 
         default: begin
           ctrl_rdata_next = 0;
