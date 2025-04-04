@@ -12,10 +12,13 @@
 `include "svc_uart_tx.sv"
 `include "svc_unused.sv"
 
+`include "axi_perf_ctrl.sv"
 `include "axi_perf_wr.sv"
 
 // This is still a bit hacky and still in POC phase for both stats and how
 // reporting is going to work
+//
+// TODO: review each of the axi names for consistency.
 
 module axi_perf #(
     parameter CLOCK_FREQ     = 100_000_000,
@@ -149,27 +152,49 @@ module axi_perf #(
 
   // our control interface
   // verilator lint_off: UNUSEDSIGNAL
-  logic [ S_AW-1:0]            ctrl_awaddr;
+  logic [ S_AW-1:0]            ctrl_top_awaddr;
   // verilator lint_on: UNUSEDSIGNAL
-  logic                        ctrl_awvalid;
-  logic                        ctrl_awready;
-  logic [ S_DW-1:0]            ctrl_wdata;
-  logic [ S_SW-1:0]            ctrl_wstrb;
-  logic                        ctrl_wvalid;
-  logic                        ctrl_wready;
-  logic                        ctrl_bvalid;
-  logic [      1:0]            ctrl_bresp;
-  logic                        ctrl_bready;
+  logic                        ctrl_top_awvalid;
+  logic                        ctrl_top_awready;
+  logic [ S_DW-1:0]            ctrl_top_wdata;
+  logic [ S_SW-1:0]            ctrl_top_wstrb;
+  logic                        ctrl_top_wvalid;
+  logic                        ctrl_top_wready;
+  logic                        ctrl_top_bvalid;
+  logic [      1:0]            ctrl_top_bresp;
+  logic                        ctrl_top_bready;
 
-  logic                        ctrl_arvalid;
+  logic                        ctrl_top_arvalid;
   // verilator lint_off: UNUSEDSIGNAL
-  logic [ S_AW-1:0]            ctrl_araddr;
+  logic [ S_AW-1:0]            ctrl_top_araddr;
   // verilator lint_on: UNUSEDSIGNAL
-  logic                        ctrl_arready;
-  logic                        ctrl_rvalid;
-  logic [ S_DW-1:0]            ctrl_rdata;
-  logic [      1:0]            ctrl_rresp;
-  logic                        ctrl_rready;
+  logic                        ctrl_top_arready;
+  logic                        ctrl_top_rvalid;
+  logic [ S_DW-1:0]            ctrl_top_rdata;
+  logic [      1:0]            ctrl_top_rresp;
+  logic                        ctrl_top_rready;
+
+  //
+  // per _wr control interface
+  //
+  logic [NUM_M-1:0]            ctrl_awvalid;
+  logic [NUM_M-1:0][ S_AW-1:0] ctrl_awaddr;
+  logic [NUM_M-1:0]            ctrl_awready;
+  logic [NUM_M-1:0][ S_DW-1:0] ctrl_wdata;
+  logic [NUM_M-1:0][ S_SW-1:0] ctrl_wstrb;
+  logic [NUM_M-1:0]            ctrl_wvalid;
+  logic [NUM_M-1:0]            ctrl_wready;
+  logic [NUM_M-1:0]            ctrl_bvalid;
+  logic [NUM_M-1:0][      1:0] ctrl_bresp;
+  logic [NUM_M-1:0]            ctrl_bready;
+
+  logic [NUM_M-1:0]            ctrl_arvalid;
+  logic [NUM_M-1:0][ S_AW-1:0] ctrl_araddr;
+  logic [NUM_M-1:0]            ctrl_arready;
+  logic [NUM_M-1:0]            ctrl_rvalid;
+  logic [NUM_M-1:0][ S_DW-1:0] ctrl_rdata;
+  logic [NUM_M-1:0][      1:0] ctrl_rresp;
+  logic [NUM_M-1:0]            ctrl_rready;
 
   //
   // axi stats control interface
@@ -381,7 +406,7 @@ module axi_perf #(
       .S_AXIL_DATA_WIDTH(AB_DW),
       .M_AXIL_ADDR_WIDTH(S_AW),
       .M_AXIL_DATA_WIDTH(S_DW),
-      .NUM_S            (NUM_M + 2)
+      .NUM_S            (2 * NUM_M + 2)
   ) svc_axil_router_i (
       .clk  (clk),
       .rst_n(rst_n),
@@ -405,25 +430,58 @@ module axi_perf #(
       .s_axil_rvalid (ab_rvalid),
       .s_axil_rready (ab_rready),
 
-      .m_axil_awvalid({stats_perf_awvalid, stats_top_awvalid, ctrl_awvalid}),
-      .m_axil_awaddr ({stats_perf_awaddr, stats_top_awaddr, ctrl_awaddr}),
-      .m_axil_awready({stats_perf_awready, stats_top_awready, ctrl_awready}),
-      .m_axil_wvalid ({stats_perf_wvalid, stats_top_wvalid, ctrl_wvalid}),
-      .m_axil_wdata  ({stats_perf_wdata, stats_top_wdata, ctrl_wdata}),
-      .m_axil_wstrb  ({stats_perf_wstrb, stats_top_wstrb, ctrl_wstrb}),
-      .m_axil_wready ({stats_perf_wready, stats_top_wready, ctrl_wready}),
-      .m_axil_bvalid ({stats_perf_bvalid, stats_top_bvalid, ctrl_bvalid}),
-      .m_axil_bresp  ({stats_perf_bresp, stats_top_bresp, ctrl_bresp}),
-      .m_axil_bready ({stats_perf_bready, stats_top_bready, ctrl_bready}),
+      .m_axil_awvalid({
+        stats_perf_awvalid, ctrl_awvalid, stats_top_awvalid, ctrl_top_awvalid
+      }),
+      .m_axil_awaddr({
+        stats_perf_awaddr, ctrl_awaddr, stats_top_awaddr, ctrl_top_awaddr
+      }),
+      .m_axil_awready({
+        stats_perf_awready, ctrl_awready, stats_top_awready, ctrl_top_awready
+      }),
+      .m_axil_wvalid({
+        stats_perf_wvalid, ctrl_wvalid, stats_top_wvalid, ctrl_top_wvalid
+      }),
+      .m_axil_wdata({
+        stats_perf_wdata, ctrl_wdata, stats_top_wdata, ctrl_top_wdata
+      }),
+      .m_axil_wstrb({
+        stats_perf_wstrb, ctrl_wstrb, stats_top_wstrb, ctrl_top_wstrb
+      }),
+      .m_axil_wready({
+        stats_perf_wready, ctrl_wready, stats_top_wready, ctrl_top_wready
+      }),
+      .m_axil_bvalid({
+        stats_perf_bvalid, ctrl_bvalid, stats_top_bvalid, ctrl_top_bvalid
+      }),
+      .m_axil_bresp({
+        stats_perf_bresp, ctrl_bresp, stats_top_bresp, ctrl_top_bresp
+      }),
+      .m_axil_bready({
+        stats_perf_bready, ctrl_bready, stats_top_bready, ctrl_top_bready
+      }),
 
-      .m_axil_arvalid({stats_perf_arvalid, stats_top_arvalid, ctrl_arvalid}),
-      .m_axil_araddr ({stats_perf_araddr, stats_top_araddr, ctrl_araddr}),
-      .m_axil_arready({stats_perf_arready, stats_top_arready, ctrl_arready}),
-      .m_axil_rdata  ({stats_perf_rdata, stats_top_rdata, ctrl_rdata}),
-      .m_axil_rresp  ({stats_perf_rresp, stats_top_rresp, ctrl_rresp}),
-      .m_axil_rvalid ({stats_perf_rvalid, stats_top_rvalid, ctrl_rvalid}),
-      .m_axil_rready ({stats_perf_rready, stats_top_rready, ctrl_rready})
-
+      .m_axil_arvalid({
+        stats_perf_arvalid, ctrl_arvalid, stats_top_arvalid, ctrl_top_arvalid
+      }),
+      .m_axil_araddr({
+        stats_perf_araddr, ctrl_araddr, stats_top_araddr, ctrl_top_araddr
+      }),
+      .m_axil_arready({
+        stats_perf_arready, ctrl_arready, stats_top_arready, ctrl_top_arready
+      }),
+      .m_axil_rdata({
+        stats_perf_rdata, ctrl_rdata, stats_top_rdata, ctrl_top_rdata
+      }),
+      .m_axil_rresp({
+        stats_perf_rresp, ctrl_rresp, stats_top_rresp, ctrl_top_rresp
+      }),
+      .m_axil_rvalid({
+        stats_perf_rvalid, ctrl_rvalid, stats_top_rvalid, ctrl_top_rvalid
+      }),
+      .m_axil_rready({
+        stats_perf_rready, ctrl_rready, stats_top_rready, ctrl_top_rready
+      })
   );
 
   typedef enum {
@@ -435,11 +493,11 @@ module axi_perf #(
   state_t                     state;
   state_t                     state_next;
 
-  logic                       ctrl_start;
-  logic                       ctrl_start_next;
+  logic                       ctrl_top_start;
+  logic                       ctrl_top_start_next;
 
-  logic                       ctrl_clear;
-  logic                       ctrl_clear_next;
+  logic                       ctrl_top_clear;
+  logic                       ctrl_top_clear_next;
 
   logic   [NUM_M-1:0]         wr_start;
   logic   [NUM_M-1:0]         wr_busy;
@@ -450,20 +508,42 @@ module axi_perf #(
   logic   [NUM_M-1:0][  15:0] wr_burst_num;
   logic   [NUM_M-1:0][   2:0] wr_burst_awsize;
 
-  // TODO: make these configurable
-  assign wr_base_addr[0]    = 0;
-  assign wr_burst_beats[0]  = 64;
-  assign wr_burst_stride[0] = 128 * (AXI_DATA_WIDTH / 8);
-  assign wr_burst_num[0]    = 16;
-  assign wr_burst_awsize[0] = `SVC_MAX_AXSIZE(AXI_DATA_WIDTH);
-
-  assign wr_base_addr[1]    = 0;
-  assign wr_burst_beats[1]  = 64;
-  assign wr_burst_stride[1] = 128 * (AXI_DATA_WIDTH / 8);
-  assign wr_burst_num[1]    = 16;
-  assign wr_burst_awsize[1] = `SVC_MAX_AXSIZE(AXI_DATA_WIDTH);
-
   for (genvar i = 0; i < NUM_M; i++) begin : gen_perf_wr
+    axi_perf_ctrl #(
+        .AXI_ADDR_WIDTH (AXI_ADDR_WIDTH),
+        .AXI_DATA_WIDTH (AXI_DATA_WIDTH),
+        .AXIL_ADDR_WIDTH(S_AW),
+        .AXIL_DATA_WIDTH(S_DW)
+    ) axi_perf_ctrl_i (
+        .clk  (clk),
+        .rst_n(rst_n),
+
+        .base_addr   (wr_base_addr[i]),
+        .burst_beats (wr_burst_beats[i]),
+        .burst_stride(wr_burst_stride[i]),
+        .burst_num   (wr_burst_num[i]),
+        .burst_awsize(wr_burst_awsize[i]),
+
+        .s_axil_awaddr (ctrl_awaddr[i]),
+        .s_axil_awvalid(ctrl_awvalid[i]),
+        .s_axil_awready(ctrl_awready[i]),
+        .s_axil_wdata  (ctrl_wdata[i]),
+        .s_axil_wstrb  (ctrl_wstrb[i]),
+        .s_axil_wvalid (ctrl_wvalid[i]),
+        .s_axil_wready (ctrl_wready[i]),
+        .s_axil_bvalid (ctrl_bvalid[i]),
+        .s_axil_bresp  (ctrl_bresp[i]),
+        .s_axil_bready (ctrl_bready[i]),
+
+        .s_axil_arvalid(ctrl_arvalid[i]),
+        .s_axil_araddr (ctrl_araddr[i]),
+        .s_axil_arready(ctrl_arready[i]),
+        .s_axil_rvalid (ctrl_rvalid[i]),
+        .s_axil_rdata  (ctrl_rdata[i]),
+        .s_axil_rresp  (ctrl_rresp[i]),
+        .s_axil_rready (ctrl_rready[i])
+    );
+
     axi_perf_wr #(
         .AXI_ADDR_WIDTH(AXI_ADDR_WIDTH),
         .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
@@ -510,7 +590,7 @@ module axi_perf #(
         .clk  (clk),
         .rst_n(rst_n),
 
-        .stat_clear(ctrl_clear),
+        .stat_clear(ctrl_top_clear),
         .stat_err  (),
 
         // control interface
@@ -565,7 +645,7 @@ module axi_perf #(
       .clk  (clk),
       .rst_n(rst_n),
 
-      .stat_clear(ctrl_clear),
+      .stat_clear(ctrl_top_clear),
       .stat_err  (),
 
       // control interface
@@ -616,7 +696,7 @@ module axi_perf #(
 
     case (state)
       STATE_IDLE: begin
-        if (ctrl_start) begin
+        if (ctrl_top_start) begin
           state_next = STATE_RUN;
         end
       end
@@ -674,8 +754,8 @@ module axi_perf #(
   logic [S_SW-1 : 0] sb_wstrb;
   logic              sb_wready;
 
-  logic              ctrl_bvalid_next;
-  logic [       1:0] ctrl_bresp_next;
+  logic              ctrl_top_bvalid_next;
+  logic [       1:0] ctrl_top_bresp_next;
 
   svc_skidbuf #(
       .DATA_WIDTH(RAW)
@@ -683,9 +763,9 @@ module axi_perf #(
       .clk  (clk),
       .rst_n(rst_n),
 
-      .i_valid(ctrl_awvalid),
-      .i_data (ctrl_awaddr[S_AW-1:S_ADDRLSB]),
-      .o_ready(ctrl_awready),
+      .i_valid(ctrl_top_awvalid),
+      .i_data (ctrl_top_awaddr[S_AW-1:S_ADDRLSB]),
+      .o_ready(ctrl_top_awready),
 
       .o_valid(sb_awvalid),
       .o_data (sb_awaddr),
@@ -698,9 +778,9 @@ module axi_perf #(
       .clk  (clk),
       .rst_n(rst_n),
 
-      .i_valid(ctrl_wvalid),
-      .i_data ({ctrl_wstrb, ctrl_wdata}),
-      .o_ready(ctrl_wready),
+      .i_valid(ctrl_top_wvalid),
+      .i_data ({ctrl_top_wstrb, ctrl_top_wdata}),
+      .o_ready(ctrl_top_wready),
 
       .o_valid(sb_wvalid),
       .o_data ({sb_wstrb, sb_wdata}),
@@ -708,31 +788,31 @@ module axi_perf #(
   );
 
   always_comb begin
-    sb_awready       = 1'b0;
-    sb_wready        = 1'b0;
+    sb_awready           = 1'b0;
+    sb_wready            = 1'b0;
 
-    ctrl_bvalid_next = ctrl_bvalid && !ctrl_bready;
-    ctrl_bresp_next  = ctrl_bresp;
+    ctrl_top_bvalid_next = ctrl_top_bvalid && !ctrl_top_bready;
+    ctrl_top_bresp_next  = ctrl_top_bresp;
 
-    ctrl_start_next  = ctrl_start && state != STATE_IDLE;
-    ctrl_clear_next  = 1'b0;
+    ctrl_top_start_next  = ctrl_top_start && state != STATE_IDLE;
+    ctrl_top_clear_next  = 1'b0;
 
     // do both an incoming check and outgoing check here,
     // since we are going to set bvalid
-    if (sb_awvalid && sb_wvalid && (!ctrl_bvalid || ctrl_bready)) begin
-      sb_awready       = 1'b1;
-      sb_wready        = 1'b1;
-      ctrl_bvalid_next = 1'b1;
-      ctrl_bresp_next  = 2'b00;
+    if (sb_awvalid && sb_wvalid && (!ctrl_top_bvalid || ctrl_top_bready)) begin
+      sb_awready           = 1'b1;
+      sb_wready            = 1'b1;
+      ctrl_top_bvalid_next = 1'b1;
+      ctrl_top_bresp_next  = 2'b00;
 
       // we only accept full writes
       if (sb_wstrb != '1) begin
-        ctrl_bresp_next = 2'b10;
+        ctrl_top_bresp_next = 2'b10;
       end else begin
         case (sb_awaddr)
-          REG_START: ctrl_start_next = 1'(sb_wdata);
-          REG_CLEAR: ctrl_clear_next = 1'(sb_wdata);
-          default:   ctrl_bresp_next = 2'b11;
+          REG_START: ctrl_top_start_next = 1'(sb_wdata);
+          REG_CLEAR: ctrl_top_clear_next = 1'(sb_wdata);
+          default:   ctrl_top_bresp_next = 2'b11;
         endcase
       end
     end
@@ -740,18 +820,18 @@ module axi_perf #(
 
   always_ff @(posedge clk) begin
     if (!rst_n) begin
-      ctrl_bvalid <= 1'b0;
-      ctrl_start  <= 1'b0;
-      ctrl_clear  <= 1'b0;
+      ctrl_top_bvalid <= 1'b0;
+      ctrl_top_start  <= 1'b0;
+      ctrl_top_clear  <= 1'b0;
     end else begin
-      ctrl_bvalid <= ctrl_bvalid_next;
-      ctrl_start  <= ctrl_start_next;
-      ctrl_clear  <= ctrl_clear_next;
+      ctrl_top_bvalid <= ctrl_top_bvalid_next;
+      ctrl_top_start  <= ctrl_top_start_next;
+      ctrl_top_clear  <= ctrl_top_clear_next;
     end
   end
 
   always_ff @(posedge clk) begin
-    ctrl_bresp <= ctrl_bresp_next;
+    ctrl_top_bresp <= ctrl_top_bresp_next;
   end
 
   //
@@ -761,9 +841,9 @@ module axi_perf #(
   logic [ RAW-1:0] sb_araddr;
   logic            sb_arready;
 
-  logic            ctrl_rvalid_next;
-  logic [S_DW-1:0] ctrl_rdata_next;
-  logic [     1:0] ctrl_rresp_next;
+  logic            ctrl_top_rvalid_next;
+  logic [S_DW-1:0] ctrl_top_rdata_next;
+  logic [     1:0] ctrl_top_rresp_next;
 
   svc_skidbuf #(
       .DATA_WIDTH(RAW)
@@ -771,9 +851,9 @@ module axi_perf #(
       .clk  (clk),
       .rst_n(rst_n),
 
-      .i_valid(ctrl_arvalid),
-      .i_data (ctrl_araddr[S_AW-1:S_ADDRLSB]),
-      .o_ready(ctrl_arready),
+      .i_valid(ctrl_top_arvalid),
+      .i_data (ctrl_top_araddr[S_AW-1:S_ADDRLSB]),
+      .o_ready(ctrl_top_arready),
 
       .o_valid(sb_arvalid),
       .o_data (sb_araddr),
@@ -781,28 +861,28 @@ module axi_perf #(
   );
 
   always_comb begin
-    sb_arready       = 1'b0;
-    ctrl_rvalid_next = ctrl_rvalid && !ctrl_rready;
-    ctrl_rdata_next  = ctrl_rdata;
-    ctrl_rresp_next  = ctrl_rresp;
+    sb_arready           = 1'b0;
+    ctrl_top_rvalid_next = ctrl_top_rvalid && !ctrl_top_rready;
+    ctrl_top_rdata_next  = ctrl_top_rdata;
+    ctrl_top_rresp_next  = ctrl_top_rresp;
 
     // do both an incoming check and outgoing check here,
     // since we are going to set rvalid
-    if (sb_arvalid && (!ctrl_rvalid || !ctrl_rready)) begin
-      sb_arready       = 1'b1;
-      ctrl_rvalid_next = 1'b1;
-      ctrl_rresp_next  = 2'b00;
+    if (sb_arvalid && (!ctrl_top_rvalid || !ctrl_top_rready)) begin
+      sb_arready           = 1'b1;
+      ctrl_top_rvalid_next = 1'b1;
+      ctrl_top_rresp_next  = 2'b00;
 
       case (sb_araddr)
-        REG_START:    ctrl_rdata_next = S_DW'(ctrl_start);
-        REG_IDLE:     ctrl_rdata_next = S_DW'(state == STATE_IDLE);
-        REG_NUM_M:    ctrl_rdata_next = S_DW'(NUM_M);
-        REG_CLK_FREQ: ctrl_rdata_next = S_DW'(CLOCK_FREQ);
-        REG_CLEAR:    ctrl_rdata_next = S_DW'(ctrl_clear);
+        REG_START:    ctrl_top_rdata_next = S_DW'(ctrl_top_start);
+        REG_IDLE:     ctrl_top_rdata_next = S_DW'(state == STATE_IDLE);
+        REG_NUM_M:    ctrl_top_rdata_next = S_DW'(NUM_M);
+        REG_CLK_FREQ: ctrl_top_rdata_next = S_DW'(CLOCK_FREQ);
+        REG_CLEAR:    ctrl_top_rdata_next = S_DW'(ctrl_top_clear);
 
         default: begin
-          ctrl_rdata_next = 0;
-          ctrl_rresp_next = 2'b11;
+          ctrl_top_rdata_next = 0;
+          ctrl_top_rresp_next = 2'b11;
         end
       endcase
     end
@@ -810,15 +890,15 @@ module axi_perf #(
 
   always_ff @(posedge clk) begin
     if (!rst_n) begin
-      ctrl_rvalid <= 1'b0;
+      ctrl_top_rvalid <= 1'b0;
     end else begin
-      ctrl_rvalid <= ctrl_rvalid_next;
+      ctrl_top_rvalid <= ctrl_top_rvalid_next;
     end
   end
 
   always_ff @(posedge clk) begin
-    ctrl_rdata <= ctrl_rdata_next;
-    ctrl_rresp <= ctrl_rresp_next;
+    ctrl_top_rdata <= ctrl_top_rdata_next;
+    ctrl_top_rresp <= ctrl_top_rresp_next;
   end
 
   // TODO: remove all of these when these get passed in
