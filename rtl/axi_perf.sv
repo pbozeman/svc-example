@@ -428,20 +428,15 @@ module axi_perf #(
 
   typedef enum {
     STATE_IDLE,
-    STATE_HEADER,
-    STATE_HEADER_WAIT,
     STATE_RUN,
-    STATE_RUN_WAIT,
-    STATE_REPORT,
-    STATE_REPORT_ITER,
-    STATE_REPORT_ITER_SEND,
-    STATE_REPORT_ITER_SEND_WAIT,
-    STATE_REPORT_ITER_SEND_DONE,
-    STATE_DONE
+    STATE_RUN_WAIT
   } state_t;
 
   state_t                     state;
   state_t                     state_next;
+
+  logic                       ctrl_start;
+  logic                       ctrl_start_next;
 
   logic   [NUM_M-1:0]         wr_start;
   logic   [NUM_M-1:0]         wr_busy;
@@ -618,7 +613,9 @@ module axi_perf #(
 
     case (state)
       STATE_IDLE: begin
-        state_next = STATE_RUN;
+        if (ctrl_start) begin
+          state_next = STATE_RUN;
+        end
       end
 
       STATE_RUN: begin
@@ -630,11 +627,8 @@ module axi_perf #(
 
       STATE_RUN_WAIT: begin
         if (!wr_busy[0] && !wr_busy[1]) begin
-          state_next = STATE_DONE;
+          state_next = STATE_IDLE;
         end
-      end
-
-      STATE_DONE: begin
       end
     endcase
   end
@@ -656,8 +650,8 @@ module axi_perf #(
   localparam RAW = S_AW - S_ADDRLSB;
 
   typedef enum logic [RAW-1:0] {
-    CTRL_IDLE = 0,
-    CTRL_DONE = 1
+    CTRL_START = 0,
+    CTRL_IDLE  = 1
   } reg_id_t;
 
   //
@@ -714,6 +708,8 @@ module axi_perf #(
     ctrl_bvalid_next = ctrl_bvalid && !ctrl_bready;
     ctrl_bresp_next  = ctrl_bresp;
 
+    ctrl_start_next  = ctrl_start && state != STATE_IDLE;
+
     // do both an incoming check and outgoing check here,
     // since we are going to set bvalid
     if (sb_awvalid && sb_wvalid && (!ctrl_bvalid || ctrl_bready)) begin
@@ -727,7 +723,8 @@ module axi_perf #(
         ctrl_bresp_next = 2'b10;
       end else begin
         case (sb_awaddr)
-          default: ctrl_bresp_next = 2'b11;
+          CTRL_START: ctrl_start_next = 1'(sb_wdata);
+          default:    ctrl_bresp_next = 2'b11;
         endcase
       end
     end
@@ -736,8 +733,10 @@ module axi_perf #(
   always_ff @(posedge clk) begin
     if (!rst_n) begin
       ctrl_bvalid <= 1'b0;
+      ctrl_start  <= 1'b0;
     end else begin
       ctrl_bvalid <= ctrl_bvalid_next;
+      ctrl_start  <= ctrl_start_next;
     end
   end
 
@@ -785,8 +784,8 @@ module axi_perf #(
       ctrl_rresp_next  = 2'b00;
 
       case (sb_araddr)
-        CTRL_IDLE: ctrl_rdata_next = S_DW'(state == STATE_IDLE);
-        CTRL_DONE: ctrl_rdata_next = S_DW'(state == STATE_DONE);
+        CTRL_START: ctrl_rdata_next = S_DW'(ctrl_start);
+        CTRL_IDLE:  ctrl_rdata_next = S_DW'(state == STATE_IDLE);
 
         default: begin
           ctrl_rdata_next = 0;
