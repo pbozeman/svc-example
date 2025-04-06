@@ -54,7 +54,7 @@ module axi_perf #(
 );
   // TODO: pass NUM_M in as a top param to make it easier to test a bunch
   // of configs
-  localparam NUM_M = 1;
+  localparam NUM_M = 2;
   localparam AW = AXI_ADDR_WIDTH;
   localparam DW = AXI_DATA_WIDTH;
   localparam IW = AXI_ID_WIDTH;
@@ -521,15 +521,14 @@ module axi_perf #(
 
   typedef enum {
     STATE_IDLE,
-    STATE_RUN,
-    STATE_RUN_WAIT
+    STATE_RUNNING
   } state_t;
 
   state_t                     state;
   state_t                     state_next;
 
-  logic                       ctrl_top_start;
-  logic                       ctrl_top_start_next;
+  logic   [NUM_M-1:0]         ctrl_top_start;
+  logic   [NUM_M-1:0]         ctrl_top_start_next;
 
   logic                       ctrl_top_clear;
   logic                       ctrl_top_clear_next;
@@ -728,17 +727,13 @@ module axi_perf #(
 
     case (state)
       STATE_IDLE: begin
-        if (ctrl_top_start) begin
-          state_next = STATE_RUN;
+        if (|ctrl_top_start) begin
+          wr_start   = ctrl_top_start;
+          state_next = STATE_RUNNING;
         end
       end
 
-      STATE_RUN: begin
-        wr_start   = '1;
-        state_next = STATE_RUN_WAIT;
-      end
-
-      STATE_RUN_WAIT: begin
+      STATE_RUNNING: begin
         if (!(|wr_busy)) begin
           state_next = STATE_IDLE;
         end
@@ -824,7 +819,7 @@ module axi_perf #(
     ctrl_top_bvalid_next = ctrl_top_bvalid && !ctrl_top_bready;
     ctrl_top_bresp_next  = ctrl_top_bresp;
 
-    ctrl_top_start_next  = ctrl_top_start && state != STATE_IDLE;
+    ctrl_top_start_next  = state == STATE_IDLE ? ctrl_top_start : 0;
     ctrl_top_clear_next  = 1'b0;
 
     // do both an incoming check and outgoing check here,
@@ -840,7 +835,7 @@ module axi_perf #(
         ctrl_top_bresp_next = 2'b10;
       end else begin
         case (sb_awaddr)
-          REG_START: ctrl_top_start_next = 1'(sb_wdata);
+          REG_START: ctrl_top_start_next = NUM_M'(sb_wdata);
           REG_CLEAR: ctrl_top_clear_next = 1'(sb_wdata);
           default:   ctrl_top_bresp_next = 2'b11;
         endcase
@@ -851,12 +846,12 @@ module axi_perf #(
   always_ff @(posedge clk) begin
     if (!rst_n) begin
       ctrl_top_bvalid <= 1'b0;
-      ctrl_top_start  <= 1'b0;
       ctrl_top_clear  <= 1'b0;
+      ctrl_top_start  <= 0;
     end else begin
       ctrl_top_bvalid <= ctrl_top_bvalid_next;
-      ctrl_top_start  <= ctrl_top_start_next;
       ctrl_top_clear  <= ctrl_top_clear_next;
+      ctrl_top_start  <= ctrl_top_start_next;
     end
   end
 
