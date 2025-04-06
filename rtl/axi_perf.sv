@@ -528,10 +528,7 @@ module axi_perf #(
   state_t                     state_next;
 
   logic   [NUM_M-1:0]         ctrl_top_start;
-  logic   [NUM_M-1:0]         ctrl_top_start_next;
-
   logic                       ctrl_top_clear;
-  logic                       ctrl_top_clear_next;
 
   logic   [NUM_M-1:0]         wr_start;
   logic   [NUM_M-1:0]         wr_busy;
@@ -545,7 +542,6 @@ module axi_perf #(
   for (genvar i = 0; i < NUM_M; i++) begin : gen_perf_wr
     axi_perf_ctrl #(
         .AXI_ADDR_WIDTH (AXI_ADDR_WIDTH),
-        .AXI_DATA_WIDTH (AXI_DATA_WIDTH),
         .AXIL_ADDR_WIDTH(S_AW),
         .AXIL_DATA_WIDTH(S_DW)
     ) axi_perf_ctrl_i (
@@ -754,10 +750,9 @@ module axi_perf #(
   // control interface
   //
   //--------------------------------------------------------------------------
-  localparam S_ADDRLSB = $clog2(S_DW) - 3;
-  localparam RAW = S_AW - S_ADDRLSB;
+  localparam NUM_R = 6;
 
-  typedef enum logic [RAW-1:0] {
+  typedef enum {
     REG_START      = 0,
     REG_IDLE       = 1,
     REG_NUM_M      = 2,
@@ -766,167 +761,76 @@ module axi_perf #(
     REG_DATA_WIDTH = 5
   } reg_id_t;
 
-  //
-  // control interface writes
-  //
-  logic              sb_awvalid;
-  logic [   RAW-1:0] sb_awaddr;
-  logic              sb_awready;
+  localparam [NUM_R-1:0] REG_WRITE_MASK = 6'b010001;
 
-  logic              sb_wvalid;
-  // verilator lint_off: UNUSEDSIGNAL
-  logic [  S_DW-1:0] sb_wdata;
-  // verilator lint_on: UNUSEDSIGNAL
-  logic [S_SW-1 : 0] sb_wstrb;
-  logic              sb_wready;
+  logic [NUM_R-1:0][S_DW-1:0] r_val;
+  logic [NUM_R-1:0][S_DW-1:0] r_val_next;
+  logic [NUM_R-1:0][S_DW-1:0] r_val_dynamic;
 
-  logic              ctrl_top_bvalid_next;
-  logic [       1:0] ctrl_top_bresp_next;
+  always_ff @(posedge clk) begin
+    if (!rst_n) begin
+      r_val          <= '0;
+      ctrl_top_start <= '0;
+      ctrl_top_clear <= 1'b0;
+    end else begin
+      r_val <= r_val_next;
 
-  svc_skidbuf #(
-      .DATA_WIDTH(RAW)
-  ) svc_skidbuf_aw (
-      .clk  (clk),
-      .rst_n(rst_n),
-
-      .i_valid(ctrl_top_awvalid),
-      .i_data (ctrl_top_awaddr[S_AW-1:S_ADDRLSB]),
-      .o_ready(ctrl_top_awready),
-
-      .o_valid(sb_awvalid),
-      .o_data (sb_awaddr),
-      .i_ready(sb_awready)
-  );
-
-  svc_skidbuf #(
-      .DATA_WIDTH(S_DW + S_SW)
-  ) svc_skidbuf_w (
-      .clk  (clk),
-      .rst_n(rst_n),
-
-      .i_valid(ctrl_top_wvalid),
-      .i_data ({ctrl_top_wstrb, ctrl_top_wdata}),
-      .o_ready(ctrl_top_wready),
-
-      .o_valid(sb_wvalid),
-      .o_data ({sb_wstrb, sb_wdata}),
-      .i_ready(sb_wready)
-  );
-
-  always_comb begin
-    sb_awready           = 1'b0;
-    sb_wready            = 1'b0;
-
-    ctrl_top_bvalid_next = ctrl_top_bvalid && !ctrl_top_bready;
-    ctrl_top_bresp_next  = ctrl_top_bresp;
-
-    ctrl_top_start_next  = state == STATE_IDLE ? ctrl_top_start : 0;
-    ctrl_top_clear_next  = 1'b0;
-
-    // do both an incoming check and outgoing check here,
-    // since we are going to set bvalid
-    if (sb_awvalid && sb_wvalid && (!ctrl_top_bvalid || ctrl_top_bready)) begin
-      sb_awready           = 1'b1;
-      sb_wready            = 1'b1;
-      ctrl_top_bvalid_next = 1'b1;
-      ctrl_top_bresp_next  = 2'b00;
-
-      // we only accept full writes
-      if (sb_wstrb != '1) begin
-        ctrl_top_bresp_next = 2'b10;
+      if (state == STATE_IDLE) begin
+        ctrl_top_start <= NUM_M'(r_val_next[REG_START]);
+        ctrl_top_clear <= r_val_next[REG_CLEAR][0];
       end else begin
-        case (sb_awaddr)
-          REG_START: ctrl_top_start_next = NUM_M'(sb_wdata);
-          REG_CLEAR: ctrl_top_clear_next = 1'(sb_wdata);
-          default:   ctrl_top_bresp_next = 2'b11;
-        endcase
+        ctrl_top_start <= 0;
+        ctrl_top_clear <= 0;
       end
+
     end
   end
 
-  always_ff @(posedge clk) begin
-    if (!rst_n) begin
-      ctrl_top_bvalid <= 1'b0;
-      ctrl_top_clear  <= 1'b0;
-      ctrl_top_start  <= 0;
-    end else begin
-      ctrl_top_bvalid <= ctrl_top_bvalid_next;
-      ctrl_top_clear  <= ctrl_top_clear_next;
-      ctrl_top_start  <= ctrl_top_start_next;
-    end
+  // Map dynamic values into register array for reading
+  always_comb begin
+    r_val_dynamic                 = r_val;
+
+    r_val_dynamic[REG_IDLE]       = S_DW'(state == STATE_IDLE);
+    r_val_dynamic[REG_NUM_M]      = S_DW'(NUM_M);
+    r_val_dynamic[REG_CLK_FREQ]   = S_DW'(CLOCK_FREQ);
+    r_val_dynamic[REG_DATA_WIDTH] = S_DW'(AXI_DATA_WIDTH);
+    r_val_dynamic[REG_START]      = S_DW'(ctrl_top_start);
+    r_val_dynamic[REG_CLEAR]      = S_DW'(ctrl_top_clear);
   end
 
-  always_ff @(posedge clk) begin
-    ctrl_top_bresp <= ctrl_top_bresp_next;
-  end
-
-  //
-  // control interface reads
-  //
-  logic            sb_arvalid;
-  logic [ RAW-1:0] sb_araddr;
-  logic            sb_arready;
-
-  logic            ctrl_top_rvalid_next;
-  logic [S_DW-1:0] ctrl_top_rdata_next;
-  logic [     1:0] ctrl_top_rresp_next;
-
-  svc_skidbuf #(
-      .DATA_WIDTH(RAW)
-  ) svc_skidbuf_ar (
+  svc_axil_regfile #(
+      .N              (NUM_R),
+      .DATA_WIDTH     (S_DW),
+      .AXIL_ADDR_WIDTH(S_AW),
+      .AXIL_DATA_WIDTH(S_DW),
+      .AXIL_STRB_WIDTH(S_SW),
+      .REG_WRITE_MASK (REG_WRITE_MASK)
+  ) ctrl_regfile (
       .clk  (clk),
       .rst_n(rst_n),
 
-      .i_valid(ctrl_top_arvalid),
-      .i_data (ctrl_top_araddr[S_AW-1:S_ADDRLSB]),
-      .o_ready(ctrl_top_arready),
+      // note use of r_val_dynamic
+      .r_val     (r_val_dynamic),
+      .r_val_next(r_val_next),
 
-      .o_valid(sb_arvalid),
-      .o_data (sb_araddr),
-      .i_ready(sb_arready)
+      .s_axil_awaddr (ctrl_top_awaddr),
+      .s_axil_awvalid(ctrl_top_awvalid),
+      .s_axil_awready(ctrl_top_awready),
+      .s_axil_wdata  (ctrl_top_wdata),
+      .s_axil_wstrb  (ctrl_top_wstrb),
+      .s_axil_wvalid (ctrl_top_wvalid),
+      .s_axil_wready (ctrl_top_wready),
+      .s_axil_bvalid (ctrl_top_bvalid),
+      .s_axil_bresp  (ctrl_top_bresp),
+      .s_axil_bready (ctrl_top_bready),
+      .s_axil_araddr (ctrl_top_araddr),
+      .s_axil_arvalid(ctrl_top_arvalid),
+      .s_axil_arready(ctrl_top_arready),
+      .s_axil_rvalid (ctrl_top_rvalid),
+      .s_axil_rdata  (ctrl_top_rdata),
+      .s_axil_rresp  (ctrl_top_rresp),
+      .s_axil_rready (ctrl_top_rready)
   );
-
-  always_comb begin
-    sb_arready           = 1'b0;
-    ctrl_top_rvalid_next = ctrl_top_rvalid && !ctrl_top_rready;
-    ctrl_top_rdata_next  = ctrl_top_rdata;
-    ctrl_top_rresp_next  = ctrl_top_rresp;
-
-    // do both an incoming check and outgoing check here,
-    // since we are going to set rvalid
-    if (sb_arvalid && (!ctrl_top_rvalid || !ctrl_top_rready)) begin
-      sb_arready           = 1'b1;
-      ctrl_top_rvalid_next = 1'b1;
-      ctrl_top_rresp_next  = 2'b00;
-
-      case (sb_araddr)
-        REG_START:      ctrl_top_rdata_next = S_DW'(ctrl_top_start);
-        REG_IDLE:       ctrl_top_rdata_next = S_DW'(state == STATE_IDLE);
-        REG_NUM_M:      ctrl_top_rdata_next = S_DW'(NUM_M);
-        REG_CLK_FREQ:   ctrl_top_rdata_next = S_DW'(CLOCK_FREQ);
-        REG_CLEAR:      ctrl_top_rdata_next = S_DW'(ctrl_top_clear);
-        REG_DATA_WIDTH: ctrl_top_rdata_next = S_DW'(AXI_DATA_WIDTH);
-
-        default: begin
-          ctrl_top_rdata_next = 0;
-          ctrl_top_rresp_next = 2'b11;
-        end
-      endcase
-    end
-  end
-
-  always_ff @(posedge clk) begin
-    if (!rst_n) begin
-      ctrl_top_rvalid <= 1'b0;
-    end else begin
-      ctrl_top_rvalid <= ctrl_top_rvalid_next;
-    end
-  end
-
-  always_ff @(posedge clk) begin
-    ctrl_top_rdata <= ctrl_top_rdata_next;
-    ctrl_top_rresp <= ctrl_top_rresp_next;
-  end
 
   // TODO: remove all of these when these get passed in
   assign m_axi_arready = 1'b0;
