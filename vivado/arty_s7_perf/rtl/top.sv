@@ -168,9 +168,7 @@ module top (
   );
 
   axi_perf #(
-      .NAME          (NAME),
       .CLOCK_FREQ    (CLOCK_FREQ),
-      .CLOCK_FREQ_STR(CLOCK_FREQ_STR),
       .BAUD_RATE     (BAUD_RATE),
       .AXI_ADDR_WIDTH(AXI_ADDR_WIDTH),
       .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
