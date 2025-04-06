@@ -758,11 +758,12 @@ module axi_perf #(
   localparam RAW = S_AW - S_ADDRLSB;
 
   typedef enum logic [RAW-1:0] {
-    REG_START    = 0,
-    REG_IDLE     = 1,
-    REG_NUM_M    = 2,
-    REG_CLK_FREQ = 3,
-    REG_CLEAR    = 4
+    REG_START      = 0,
+    REG_IDLE       = 1,
+    REG_NUM_M      = 2,
+    REG_CLK_FREQ   = 3,
+    REG_CLEAR      = 4,
+    REG_DATA_WIDTH = 5
   } reg_id_t;
 
   //
@@ -899,11 +900,12 @@ module axi_perf #(
       ctrl_top_rresp_next  = 2'b00;
 
       case (sb_araddr)
-        REG_START:    ctrl_top_rdata_next = S_DW'(ctrl_top_start);
-        REG_IDLE:     ctrl_top_rdata_next = S_DW'(state == STATE_IDLE);
-        REG_NUM_M:    ctrl_top_rdata_next = S_DW'(NUM_M);
-        REG_CLK_FREQ: ctrl_top_rdata_next = S_DW'(CLOCK_FREQ);
-        REG_CLEAR:    ctrl_top_rdata_next = S_DW'(ctrl_top_clear);
+        REG_START:      ctrl_top_rdata_next = S_DW'(ctrl_top_start);
+        REG_IDLE:       ctrl_top_rdata_next = S_DW'(state == STATE_IDLE);
+        REG_NUM_M:      ctrl_top_rdata_next = S_DW'(NUM_M);
+        REG_CLK_FREQ:   ctrl_top_rdata_next = S_DW'(CLOCK_FREQ);
+        REG_CLEAR:      ctrl_top_rdata_next = S_DW'(ctrl_top_clear);
+        REG_DATA_WIDTH: ctrl_top_rdata_next = S_DW'(AXI_DATA_WIDTH);
 
         default: begin
           ctrl_top_rdata_next = 0;
