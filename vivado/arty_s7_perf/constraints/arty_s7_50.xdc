@@ -77,7 +77,7 @@ set_property -dict { PACKAGE_PIN H15   IOSTANDARD LVCMOS33 } [get_ports { led[3]
 
 ## USB-UART Interface
 set_property -dict { PACKAGE_PIN R12   IOSTANDARD LVCMOS33 } [get_ports { UART_TX }]; #IO_25_14 Sch=uart_rxd_out
-# set_property -dict { PACKAGE_PIN V12   IOSTANDARD LVCMOS33 } [get_ports { UART_RX }]; #IO_L24N_T3_A00_D16_14 Sch=uart_txd_in
+set_property -dict { PACKAGE_PIN V12   IOSTANDARD LVCMOS33 } [get_ports { UART_RX }]; #IO_L24N_T3_A00_D16_14 Sch=uart_txd_in
 
 ## ChipKit Outer Digital Header
 #set_property -dict { PACKAGE_PIN L13   IOSTANDARD LVCMOS33 } [get_ports { ck_io0 }]; #IO_0_14 Sch=ck_io[0]
