@@ -5,7 +5,7 @@
 `include "svc_axi_arbiter.sv"
 `include "svc_axi_null_rd.sv"
 `include "svc_axi_null_rd.sv"
-`include "svc_axi_stats_wr.sv"
+`include "svc_axi_stats.sv"
 `include "svc_axil_bridge_uart.sv"
 `include "svc_axil_router.sv"
 `include "svc_uart_rx.sv"
@@ -609,14 +609,14 @@ module axi_perf #(
         .m_axi_bready (perf_axi_bready[i])
     );
 
-    svc_axi_stats_wr #(
+    svc_axi_stats #(
         .AXI_ADDR_WIDTH (AXI_ADDR_WIDTH),
         .AXI_DATA_WIDTH (AXI_DATA_WIDTH),
         .AXI_ID_WIDTH   (AIW),
         .STAT_WIDTH     (STAT_WIDTH),
         .AXIL_ADDR_WIDTH(S_AW),
         .AXIL_DATA_WIDTH(S_DW)
-    ) svc_axi_stats_wr_perf (
+    ) svc_axi_stats_perf (
         .clk  (clk),
         .rst_n(rst_n),
 
@@ -664,14 +664,14 @@ module axi_perf #(
   end
 
   // TODO: keep the top level, but also have per manager stats
-  svc_axi_stats_wr #(
+  svc_axi_stats #(
       .AXI_ADDR_WIDTH (AXI_ADDR_WIDTH),
       .AXI_DATA_WIDTH (AXI_DATA_WIDTH),
       .AXI_ID_WIDTH   (IW),
       .STAT_WIDTH     (STAT_WIDTH),
       .AXIL_ADDR_WIDTH(S_AW),
       .AXIL_DATA_WIDTH(S_DW)
-  ) svc_axi_stats_wr_top (
+  ) svc_axi_stats_top (
       .clk  (clk),
       .rst_n(rst_n),
 
