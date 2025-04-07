@@ -659,7 +659,20 @@ module axi_perf #(
         .m_axi_bvalid (perf_axi_bvalid[i]),
         .m_axi_bid    (perf_axi_bid[i]),
         .m_axi_bresp  (perf_axi_bresp[i]),
-        .m_axi_bready (perf_axi_bready[i])
+        .m_axi_bready (perf_axi_bready[i]),
+        .m_axi_arvalid(perf_axi_arvalid[i]),
+        .m_axi_arid   (perf_axi_arid[i]),
+        .m_axi_araddr (perf_axi_araddr[i]),
+        .m_axi_arlen  (perf_axi_arlen[i]),
+        .m_axi_arsize (perf_axi_arsize[i]),
+        .m_axi_arburst(perf_axi_arburst[i]),
+        .m_axi_arready(perf_axi_arready[i]),
+        .m_axi_rvalid (perf_axi_rvalid[i]),
+        .m_axi_rid    (perf_axi_rid[i]),
+        .m_axi_rdata  (perf_axi_rdata[i]),
+        .m_axi_rresp  (perf_axi_rresp[i]),
+        .m_axi_rlast  (perf_axi_rlast[i]),
+        .m_axi_rready (perf_axi_rready[i])
     );
   end
 
@@ -714,7 +727,20 @@ module axi_perf #(
       .m_axi_bvalid (m_axi_bvalid),
       .m_axi_bid    (m_axi_bid),
       .m_axi_bresp  (m_axi_bresp),
-      .m_axi_bready (m_axi_bready)
+      .m_axi_bready (m_axi_bready),
+      .m_axi_arvalid(m_axi_arvalid),
+      .m_axi_arid   (m_axi_arid),
+      .m_axi_araddr (m_axi_araddr),
+      .m_axi_arlen  (m_axi_arlen),
+      .m_axi_arsize (m_axi_arsize),
+      .m_axi_arburst(m_axi_arburst),
+      .m_axi_arready(m_axi_arready),
+      .m_axi_rvalid (m_axi_rvalid),
+      .m_axi_rid    (m_axi_rid),
+      .m_axi_rdata  (m_axi_rdata),
+      .m_axi_rresp  (m_axi_rresp),
+      .m_axi_rlast  (m_axi_rlast),
+      .m_axi_rready (m_axi_rready)
   );
 
   always @(*) begin
