@@ -2,8 +2,8 @@
 `define AXI_PERF_WR_SV
 
 `include "svc.sv"
+`include "svc_unused.sv"
 
-// verilator lint_off: UNUSEDSIGNAL
 module axi_perf_wr #(
     parameter AXI_ADDR_WIDTH = 20,
     parameter AXI_DATA_WIDTH = 16,
@@ -185,6 +185,8 @@ module axi_perf_wr #(
     m_axi_wdata  <= m_axi_wdata_next;
     m_axi_wlast  <= m_axi_wlast_next;
   end
+
+  `SVC_UNUSED({m_axi_bvalid, m_axi_bid, m_axi_bresp});
 
 endmodule
 `endif
