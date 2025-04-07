@@ -6,14 +6,14 @@
 `include "svc_axi_null_rd.sv"
 `include "svc_axi_null_rd.sv"
 `include "svc_axi_stats.sv"
+`include "svc_axi_tgen_csr.sv"
+`include "svc_axi_tgen_wr.sv"
 `include "svc_axil_bridge_uart.sv"
 `include "svc_axil_router.sv"
 `include "svc_uart_rx.sv"
 `include "svc_uart_tx.sv"
 `include "svc_unused.sv"
 
-`include "axi_perf_ctrl.sv"
-`include "axi_perf_wr.sv"
 
 // This is still a bit hacky and still in POC phase for both stats and how
 // reporting is going to work
@@ -524,35 +524,38 @@ module axi_perf #(
     STATE_RUNNING
   } state_t;
 
-  state_t                     state;
-  state_t                     state_next;
+  state_t                      state;
+  state_t                      state_next;
 
-  logic   [NUM_M-1:0]         ctrl_top_start;
-  logic                       ctrl_top_clear;
+  logic   [NUM_M-1:0]          ctrl_top_start;
+  logic                        ctrl_top_clear;
 
-  logic   [NUM_M-1:0]         wr_start;
-  logic   [NUM_M-1:0]         wr_busy;
+  logic   [NUM_M-1:0]          wr_start;
+  logic   [NUM_M-1:0]          wr_busy;
 
-  logic   [NUM_M-1:0][AW-1:0] wr_base_addr;
-  logic   [NUM_M-1:0][   7:0] wr_burst_beats;
-  logic   [NUM_M-1:0][AW-1:0] wr_burst_stride;
-  logic   [NUM_M-1:0][  15:0] wr_burst_num;
-  logic   [NUM_M-1:0][   2:0] wr_burst_awsize;
+  logic   [NUM_M-1:0][ AW-1:0] wr_base_addr;
+  logic   [NUM_M-1:0][AIW-1:0] wr_burst_id;
+  logic   [NUM_M-1:0][    7:0] wr_burst_beats;
+  logic   [NUM_M-1:0][ AW-1:0] wr_burst_stride;
+  logic   [NUM_M-1:0][   15:0] wr_burst_num;
+  logic   [NUM_M-1:0][    2:0] wr_burst_awsize;
 
   for (genvar i = 0; i < NUM_M; i++) begin : gen_perf_wr
-    axi_perf_ctrl #(
+    svc_axi_tgen_csr #(
         .AXI_ADDR_WIDTH (AXI_ADDR_WIDTH),
+        .AXI_ID_WIDTH   (AIW),
         .AXIL_ADDR_WIDTH(S_AW),
         .AXIL_DATA_WIDTH(S_DW)
-    ) axi_perf_ctrl_i (
+    ) svc_axi_tgen_csr_i (
         .clk  (clk),
         .rst_n(rst_n),
 
         .base_addr   (wr_base_addr[i]),
+        .burst_id    (wr_burst_id[i]),
         .burst_beats (wr_burst_beats[i]),
         .burst_stride(wr_burst_stride[i]),
         .burst_num   (wr_burst_num[i]),
-        .burst_awsize(wr_burst_awsize[i]),
+        .burst_axsize(wr_burst_awsize[i]),
 
         .s_axil_awaddr (ctrl_awaddr[i]),
         .s_axil_awvalid(ctrl_awvalid[i]),
@@ -574,11 +577,11 @@ module axi_perf #(
         .s_axil_rready (ctrl_rready[i])
     );
 
-    axi_perf_wr #(
+    svc_axi_tgen_wr #(
         .AXI_ADDR_WIDTH(AXI_ADDR_WIDTH),
         .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
         .AXI_ID_WIDTH  (AIW)
-    ) axi_perf_wr_i (
+    ) svc_axi_tgen_wr_i (
         .clk  (clk),
         .rst_n(rst_n),
 
@@ -586,6 +589,7 @@ module axi_perf #(
         .busy (wr_busy[i]),
 
         .base_addr   (wr_base_addr[i]),
+        .burst_id    (wr_burst_id[i]),
         .burst_beats (wr_burst_beats[i]),
         .burst_stride(wr_burst_stride[i]),
         .burst_num   (wr_burst_num[i]),
