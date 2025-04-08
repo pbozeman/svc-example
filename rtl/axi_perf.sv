@@ -87,36 +87,36 @@ module axi_perf #(
   localparam S_DW = 32;
   localparam S_SW = S_DW / 8;
 
-  logic [NUM_M-1:0]            perf_axi_awvalid;
-  logic [NUM_M-1:0][   AW-1:0] perf_axi_awaddr;
-  logic [NUM_M-1:0][  AIW-1:0] perf_axi_awid;
-  logic [NUM_M-1:0][      7:0] perf_axi_awlen;
-  logic [NUM_M-1:0][      2:0] perf_axi_awsize;
-  logic [NUM_M-1:0][      1:0] perf_axi_awburst;
-  logic [NUM_M-1:0]            perf_axi_awready;
-  logic [NUM_M-1:0]            perf_axi_wvalid;
-  logic [NUM_M-1:0][   DW-1:0] perf_axi_wdata;
-  logic [NUM_M-1:0][STRBW-1:0] perf_axi_wstrb;
-  logic [NUM_M-1:0]            perf_axi_wlast;
-  logic [NUM_M-1:0]            perf_axi_wready;
-  logic [NUM_M-1:0]            perf_axi_bvalid;
-  logic [NUM_M-1:0][  AIW-1:0] perf_axi_bid;
-  logic [NUM_M-1:0][      1:0] perf_axi_bresp;
-  logic [NUM_M-1:0]            perf_axi_bready;
+  logic [NUM_M-1:0]            tgen_awvalid;
+  logic [NUM_M-1:0][   AW-1:0] tgen_awaddr;
+  logic [NUM_M-1:0][  AIW-1:0] tgen_awid;
+  logic [NUM_M-1:0][      7:0] tgen_awlen;
+  logic [NUM_M-1:0][      2:0] tgen_awsize;
+  logic [NUM_M-1:0][      1:0] tgen_awburst;
+  logic [NUM_M-1:0]            tgen_awready;
+  logic [NUM_M-1:0]            tgen_wvalid;
+  logic [NUM_M-1:0][   DW-1:0] tgen_wdata;
+  logic [NUM_M-1:0][STRBW-1:0] tgen_wstrb;
+  logic [NUM_M-1:0]            tgen_wlast;
+  logic [NUM_M-1:0]            tgen_wready;
+  logic [NUM_M-1:0]            tgen_bvalid;
+  logic [NUM_M-1:0][  AIW-1:0] tgen_bid;
+  logic [NUM_M-1:0][      1:0] tgen_bresp;
+  logic [NUM_M-1:0]            tgen_bready;
 
-  logic [NUM_M-1:0]            perf_axi_arvalid;
-  logic [NUM_M-1:0][  AIW-1:0] perf_axi_arid;
-  logic [NUM_M-1:0][   AW-1:0] perf_axi_araddr;
-  logic [NUM_M-1:0][      7:0] perf_axi_arlen;
-  logic [NUM_M-1:0][      2:0] perf_axi_arsize;
-  logic [NUM_M-1:0][      1:0] perf_axi_arburst;
-  logic [NUM_M-1:0]            perf_axi_arready;
-  logic [NUM_M-1:0]            perf_axi_rvalid;
-  logic [NUM_M-1:0][  AIW-1:0] perf_axi_rid;
-  logic [NUM_M-1:0][   DW-1:0] perf_axi_rdata;
-  logic [NUM_M-1:0][      1:0] perf_axi_rresp;
-  logic [NUM_M-1:0]            perf_axi_rlast;
-  logic [NUM_M-1:0]            perf_axi_rready;
+  logic [NUM_M-1:0]            tgen_arvalid;
+  logic [NUM_M-1:0][  AIW-1:0] tgen_arid;
+  logic [NUM_M-1:0][   AW-1:0] tgen_araddr;
+  logic [NUM_M-1:0][      7:0] tgen_arlen;
+  logic [NUM_M-1:0][      2:0] tgen_arsize;
+  logic [NUM_M-1:0][      1:0] tgen_arburst;
+  logic [NUM_M-1:0]            tgen_arready;
+  logic [NUM_M-1:0]            tgen_rvalid;
+  logic [NUM_M-1:0][  AIW-1:0] tgen_rid;
+  logic [NUM_M-1:0][   DW-1:0] tgen_rdata;
+  logic [NUM_M-1:0][      1:0] tgen_rresp;
+  logic [NUM_M-1:0]            tgen_rlast;
+  logic [NUM_M-1:0]            tgen_rready;
 
   // TODO: pass these signals in, since ultimately we'll be doing both
   // for now, we need to null the arbiter inputs
@@ -219,24 +219,24 @@ module axi_perf #(
   logic [      1:0]            stats_top_rresp;
   logic                        stats_top_rready;
 
-  logic [NUM_M-1:0]            stats_perf_awvalid;
-  logic [NUM_M-1:0][ S_AW-1:0] stats_perf_awaddr;
-  logic [NUM_M-1:0]            stats_perf_awready;
-  logic [NUM_M-1:0][ S_DW-1:0] stats_perf_wdata;
-  logic [NUM_M-1:0][ S_SW-1:0] stats_perf_wstrb;
-  logic [NUM_M-1:0]            stats_perf_wvalid;
-  logic [NUM_M-1:0]            stats_perf_wready;
-  logic [NUM_M-1:0]            stats_perf_bvalid;
-  logic [NUM_M-1:0][      1:0] stats_perf_bresp;
-  logic [NUM_M-1:0]            stats_perf_bready;
+  logic [NUM_M-1:0]            stats_tgen_awvalid;
+  logic [NUM_M-1:0][ S_AW-1:0] stats_tgen_awaddr;
+  logic [NUM_M-1:0]            stats_tgen_awready;
+  logic [NUM_M-1:0][ S_DW-1:0] stats_tgen_wdata;
+  logic [NUM_M-1:0][ S_SW-1:0] stats_tgen_wstrb;
+  logic [NUM_M-1:0]            stats_tgen_wvalid;
+  logic [NUM_M-1:0]            stats_tgen_wready;
+  logic [NUM_M-1:0]            stats_tgen_bvalid;
+  logic [NUM_M-1:0][      1:0] stats_tgen_bresp;
+  logic [NUM_M-1:0]            stats_tgen_bready;
 
-  logic [NUM_M-1:0]            stats_perf_arvalid;
-  logic [NUM_M-1:0][ S_AW-1:0] stats_perf_araddr;
-  logic [NUM_M-1:0]            stats_perf_arready;
-  logic [NUM_M-1:0]            stats_perf_rvalid;
-  logic [NUM_M-1:0][ S_DW-1:0] stats_perf_rdata;
-  logic [NUM_M-1:0][      1:0] stats_perf_rresp;
-  logic [NUM_M-1:0]            stats_perf_rready;
+  logic [NUM_M-1:0]            stats_tgen_arvalid;
+  logic [NUM_M-1:0][ S_AW-1:0] stats_tgen_araddr;
+  logic [NUM_M-1:0]            stats_tgen_arready;
+  logic [NUM_M-1:0]            stats_tgen_rvalid;
+  logic [NUM_M-1:0][ S_DW-1:0] stats_tgen_rdata;
+  logic [NUM_M-1:0][      1:0] stats_tgen_rresp;
+  logic [NUM_M-1:0]            stats_tgen_rready;
 
   // arb from the perf signals to the m_ output signals going to the memory
   // device
@@ -249,35 +249,35 @@ module axi_perf #(
     ) svc_axi_arbiter_i (
         .clk          (clk),
         .rst_n        (rst_n),
-        .s_axi_awvalid(perf_axi_awvalid),
-        .s_axi_awaddr (perf_axi_awaddr),
-        .s_axi_awid   (perf_axi_awid),
-        .s_axi_awlen  (perf_axi_awlen),
-        .s_axi_awsize (perf_axi_awsize),
-        .s_axi_awburst(perf_axi_awburst),
-        .s_axi_awready(perf_axi_awready),
-        .s_axi_wdata  (perf_axi_wdata),
-        .s_axi_wstrb  (perf_axi_wstrb),
-        .s_axi_wlast  (perf_axi_wlast),
-        .s_axi_wvalid (perf_axi_wvalid),
-        .s_axi_wready (perf_axi_wready),
-        .s_axi_bresp  (perf_axi_bresp),
-        .s_axi_bid    (perf_axi_bid),
-        .s_axi_bvalid (perf_axi_bvalid),
-        .s_axi_bready (perf_axi_bready),
-        .s_axi_arvalid(perf_axi_arvalid),
-        .s_axi_araddr (perf_axi_araddr),
-        .s_axi_arid   (perf_axi_arid),
-        .s_axi_arready(perf_axi_arready),
-        .s_axi_arlen  (perf_axi_arlen),
-        .s_axi_arsize (perf_axi_arsize),
-        .s_axi_arburst(perf_axi_arburst),
-        .s_axi_rvalid (perf_axi_rvalid),
-        .s_axi_rid    (perf_axi_rid),
-        .s_axi_rresp  (perf_axi_rresp),
-        .s_axi_rlast  (perf_axi_rlast),
-        .s_axi_rdata  (perf_axi_rdata),
-        .s_axi_rready (perf_axi_rready),
+        .s_axi_awvalid(tgen_awvalid),
+        .s_axi_awaddr (tgen_awaddr),
+        .s_axi_awid   (tgen_awid),
+        .s_axi_awlen  (tgen_awlen),
+        .s_axi_awsize (tgen_awsize),
+        .s_axi_awburst(tgen_awburst),
+        .s_axi_awready(tgen_awready),
+        .s_axi_wdata  (tgen_wdata),
+        .s_axi_wstrb  (tgen_wstrb),
+        .s_axi_wlast  (tgen_wlast),
+        .s_axi_wvalid (tgen_wvalid),
+        .s_axi_wready (tgen_wready),
+        .s_axi_bresp  (tgen_bresp),
+        .s_axi_bid    (tgen_bid),
+        .s_axi_bvalid (tgen_bvalid),
+        .s_axi_bready (tgen_bready),
+        .s_axi_arvalid(tgen_arvalid),
+        .s_axi_araddr (tgen_araddr),
+        .s_axi_arid   (tgen_arid),
+        .s_axi_arready(tgen_arready),
+        .s_axi_arlen  (tgen_arlen),
+        .s_axi_arsize (tgen_arsize),
+        .s_axi_arburst(tgen_arburst),
+        .s_axi_rvalid (tgen_rvalid),
+        .s_axi_rid    (tgen_rid),
+        .s_axi_rresp  (tgen_rresp),
+        .s_axi_rlast  (tgen_rlast),
+        .s_axi_rdata  (tgen_rdata),
+        .s_axi_rready (tgen_rready),
 
         .m_axi_awvalid(m_axi_awvalid),
         .m_axi_awaddr (m_axi_awaddr),
@@ -310,36 +310,36 @@ module axi_perf #(
         .m_axi_rready (m_axi_rready)
     );
   end else begin : gen_m_eq_one
-    assign m_axi_arvalid    = perf_axi_arvalid;
-    assign m_axi_arid       = perf_axi_arid;
-    assign m_axi_araddr     = perf_axi_araddr;
-    assign m_axi_arlen      = perf_axi_arlen;
-    assign m_axi_arsize     = perf_axi_arsize;
-    assign m_axi_arburst    = perf_axi_arburst;
-    assign perf_axi_arready = m_axi_arready;
-    assign perf_axi_rvalid  = m_axi_rvalid;
-    assign perf_axi_rid     = m_axi_rid;
-    assign perf_axi_rdata   = m_axi_rdata;
-    assign perf_axi_rresp   = m_axi_rresp;
-    assign perf_axi_rlast   = m_axi_rlast;
-    assign m_axi_rready     = perf_axi_rready;
+    assign m_axi_arvalid = tgen_arvalid;
+    assign m_axi_arid    = tgen_arid;
+    assign m_axi_araddr  = tgen_araddr;
+    assign m_axi_arlen   = tgen_arlen;
+    assign m_axi_arsize  = tgen_arsize;
+    assign m_axi_arburst = tgen_arburst;
+    assign tgen_arready  = m_axi_arready;
+    assign tgen_rvalid   = m_axi_rvalid;
+    assign tgen_rid      = m_axi_rid;
+    assign tgen_rdata    = m_axi_rdata;
+    assign tgen_rresp    = m_axi_rresp;
+    assign tgen_rlast    = m_axi_rlast;
+    assign m_axi_rready  = tgen_rready;
 
-    assign m_axi_awvalid    = perf_axi_awvalid;
-    assign m_axi_awaddr     = perf_axi_awaddr;
-    assign m_axi_awid       = perf_axi_awid;
-    assign m_axi_awlen      = perf_axi_awlen;
-    assign m_axi_awsize     = perf_axi_awsize;
-    assign m_axi_awburst    = perf_axi_awburst;
-    assign perf_axi_awready = m_axi_awready;
-    assign m_axi_wvalid     = perf_axi_wvalid;
-    assign m_axi_wdata      = perf_axi_wdata;
-    assign m_axi_wstrb      = perf_axi_wstrb;
-    assign m_axi_wlast      = perf_axi_wlast;
-    assign perf_axi_wready  = m_axi_wready;
-    assign perf_axi_bvalid  = m_axi_bvalid;
-    assign perf_axi_bid     = m_axi_bid;
-    assign perf_axi_bresp   = m_axi_bresp;
-    assign m_axi_bready     = perf_axi_bready;
+    assign m_axi_awvalid = tgen_awvalid;
+    assign m_axi_awaddr  = tgen_awaddr;
+    assign m_axi_awid    = tgen_awid;
+    assign m_axi_awlen   = tgen_awlen;
+    assign m_axi_awsize  = tgen_awsize;
+    assign m_axi_awburst = tgen_awburst;
+    assign tgen_awready  = m_axi_awready;
+    assign m_axi_wvalid  = tgen_wvalid;
+    assign m_axi_wdata   = tgen_wdata;
+    assign m_axi_wstrb   = tgen_wstrb;
+    assign m_axi_wlast   = tgen_wlast;
+    assign tgen_wready   = m_axi_wready;
+    assign tgen_bvalid   = m_axi_bvalid;
+    assign tgen_bid      = m_axi_bid;
+    assign tgen_bresp    = m_axi_bresp;
+    assign m_axi_bready  = tgen_bready;
   end
 
   //-------------------------------------------------------------------------
@@ -440,56 +440,56 @@ module axi_perf #(
       .s_axil_rready (ab_rready),
 
       .m_axil_awvalid({
-        stats_perf_awvalid, ctrl_awvalid, stats_top_awvalid, ctrl_top_awvalid
+        stats_tgen_awvalid, ctrl_awvalid, stats_top_awvalid, ctrl_top_awvalid
       }),
       .m_axil_awaddr({
-        stats_perf_awaddr, ctrl_awaddr, stats_top_awaddr, ctrl_top_awaddr
+        stats_tgen_awaddr, ctrl_awaddr, stats_top_awaddr, ctrl_top_awaddr
       }),
       .m_axil_awready({
-        stats_perf_awready, ctrl_awready, stats_top_awready, ctrl_top_awready
+        stats_tgen_awready, ctrl_awready, stats_top_awready, ctrl_top_awready
       }),
       .m_axil_wvalid({
-        stats_perf_wvalid, ctrl_wvalid, stats_top_wvalid, ctrl_top_wvalid
+        stats_tgen_wvalid, ctrl_wvalid, stats_top_wvalid, ctrl_top_wvalid
       }),
       .m_axil_wdata({
-        stats_perf_wdata, ctrl_wdata, stats_top_wdata, ctrl_top_wdata
+        stats_tgen_wdata, ctrl_wdata, stats_top_wdata, ctrl_top_wdata
       }),
       .m_axil_wstrb({
-        stats_perf_wstrb, ctrl_wstrb, stats_top_wstrb, ctrl_top_wstrb
+        stats_tgen_wstrb, ctrl_wstrb, stats_top_wstrb, ctrl_top_wstrb
       }),
       .m_axil_wready({
-        stats_perf_wready, ctrl_wready, stats_top_wready, ctrl_top_wready
+        stats_tgen_wready, ctrl_wready, stats_top_wready, ctrl_top_wready
       }),
       .m_axil_bvalid({
-        stats_perf_bvalid, ctrl_bvalid, stats_top_bvalid, ctrl_top_bvalid
+        stats_tgen_bvalid, ctrl_bvalid, stats_top_bvalid, ctrl_top_bvalid
       }),
       .m_axil_bresp({
-        stats_perf_bresp, ctrl_bresp, stats_top_bresp, ctrl_top_bresp
+        stats_tgen_bresp, ctrl_bresp, stats_top_bresp, ctrl_top_bresp
       }),
       .m_axil_bready({
-        stats_perf_bready, ctrl_bready, stats_top_bready, ctrl_top_bready
+        stats_tgen_bready, ctrl_bready, stats_top_bready, ctrl_top_bready
       }),
 
       .m_axil_arvalid({
-        stats_perf_arvalid, ctrl_arvalid, stats_top_arvalid, ctrl_top_arvalid
+        stats_tgen_arvalid, ctrl_arvalid, stats_top_arvalid, ctrl_top_arvalid
       }),
       .m_axil_araddr({
-        stats_perf_araddr, ctrl_araddr, stats_top_araddr, ctrl_top_araddr
+        stats_tgen_araddr, ctrl_araddr, stats_top_araddr, ctrl_top_araddr
       }),
       .m_axil_arready({
-        stats_perf_arready, ctrl_arready, stats_top_arready, ctrl_top_arready
+        stats_tgen_arready, ctrl_arready, stats_top_arready, ctrl_top_arready
       }),
       .m_axil_rdata({
-        stats_perf_rdata, ctrl_rdata, stats_top_rdata, ctrl_top_rdata
+        stats_tgen_rdata, ctrl_rdata, stats_top_rdata, ctrl_top_rdata
       }),
       .m_axil_rresp({
-        stats_perf_rresp, ctrl_rresp, stats_top_rresp, ctrl_top_rresp
+        stats_tgen_rresp, ctrl_rresp, stats_top_rresp, ctrl_top_rresp
       }),
       .m_axil_rvalid({
-        stats_perf_rvalid, ctrl_rvalid, stats_top_rvalid, ctrl_top_rvalid
+        stats_tgen_rvalid, ctrl_rvalid, stats_top_rvalid, ctrl_top_rvalid
       }),
       .m_axil_rready({
-        stats_perf_rready, ctrl_rready, stats_top_rready, ctrl_top_rready
+        stats_tgen_rready, ctrl_rready, stats_top_rready, ctrl_top_rready
       })
   );
 
@@ -498,32 +498,32 @@ module axi_perf #(
     STATE_RUNNING
   } state_t;
 
-  state_t                      state;
-  state_t                      state_next;
+  state_t                            state;
+  state_t                            state_next;
 
-  logic   [NUM_M-1:0]          ctrl_top_start;
-  logic                        ctrl_top_clear;
+  logic   [(NUM_M * 2)-1:0]          ctrl_top_start;
+  logic                              ctrl_top_clear;
 
-  logic   [NUM_M-1:0]          wr_start;
-  logic   [NUM_M-1:0]          rd_start;
+  logic   [      NUM_M-1:0]          wr_start;
+  logic   [      NUM_M-1:0]          rd_start;
 
-  logic   [NUM_M-1:0]          busy;
+  logic   [      NUM_M-1:0]          busy;
 
-  logic   [NUM_M-1:0][ AW-1:0] wr_base_addr;
-  logic   [NUM_M-1:0][AIW-1:0] wr_burst_id;
-  logic   [NUM_M-1:0][    7:0] wr_burst_beats;
-  logic   [NUM_M-1:0][ AW-1:0] wr_burst_stride;
-  logic   [NUM_M-1:0][   15:0] wr_burst_num;
-  logic   [NUM_M-1:0][    2:0] wr_burst_awsize;
+  logic   [      NUM_M-1:0][ AW-1:0] wr_base_addr;
+  logic   [      NUM_M-1:0][AIW-1:0] wr_burst_id;
+  logic   [      NUM_M-1:0][    7:0] wr_burst_beats;
+  logic   [      NUM_M-1:0][ AW-1:0] wr_burst_stride;
+  logic   [      NUM_M-1:0][   15:0] wr_burst_num;
+  logic   [      NUM_M-1:0][    2:0] wr_burst_awsize;
 
-  logic   [NUM_M-1:0][ AW-1:0] rd_base_addr;
-  logic   [NUM_M-1:0][AIW-1:0] rd_burst_id;
-  logic   [NUM_M-1:0][    7:0] rd_burst_beats;
-  logic   [NUM_M-1:0][ AW-1:0] rd_burst_stride;
-  logic   [NUM_M-1:0][   15:0] rd_burst_num;
-  logic   [NUM_M-1:0][    2:0] rd_burst_arsize;
+  logic   [      NUM_M-1:0][ AW-1:0] rd_base_addr;
+  logic   [      NUM_M-1:0][AIW-1:0] rd_burst_id;
+  logic   [      NUM_M-1:0][    7:0] rd_burst_beats;
+  logic   [      NUM_M-1:0][ AW-1:0] rd_burst_stride;
+  logic   [      NUM_M-1:0][   15:0] rd_burst_num;
+  logic   [      NUM_M-1:0][    2:0] rd_burst_arsize;
 
-  for (genvar i = 0; i < NUM_M; i++) begin : gen_perf_wr
+  for (genvar i = 0; i < NUM_M; i++) begin : gen_tgen
     svc_axi_tgen_csr #(
         .AXI_ADDR_WIDTH (AXI_ADDR_WIDTH),
         .AXI_ID_WIDTH   (AIW),
@@ -571,7 +571,7 @@ module axi_perf #(
         .AXI_ADDR_WIDTH(AXI_ADDR_WIDTH),
         .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
         .AXI_ID_WIDTH  (AIW)
-    ) svc_axi_tgen_wr_i (
+    ) svc_axi_tgen_i (
         .clk  (clk),
         .rst_n(rst_n),
 
@@ -594,36 +594,36 @@ module axi_perf #(
         .r_burst_num   (rd_burst_num[i]),
         .r_burst_arsize(rd_burst_arsize[i]),
 
-        .m_axi_awvalid(perf_axi_awvalid[i]),
-        .m_axi_awaddr (perf_axi_awaddr[i]),
-        .m_axi_awid   (perf_axi_awid[i]),
-        .m_axi_awlen  (perf_axi_awlen[i]),
-        .m_axi_awsize (perf_axi_awsize[i]),
-        .m_axi_awburst(perf_axi_awburst[i]),
-        .m_axi_awready(perf_axi_awready[i]),
-        .m_axi_wvalid (perf_axi_wvalid[i]),
-        .m_axi_wdata  (perf_axi_wdata[i]),
-        .m_axi_wstrb  (perf_axi_wstrb[i]),
-        .m_axi_wlast  (perf_axi_wlast[i]),
-        .m_axi_wready (perf_axi_wready[i]),
-        .m_axi_bvalid (perf_axi_bvalid[i]),
-        .m_axi_bid    (perf_axi_bid[i]),
-        .m_axi_bresp  (perf_axi_bresp[i]),
-        .m_axi_bready (perf_axi_bready[i]),
+        .m_axi_awvalid(tgen_awvalid[i]),
+        .m_axi_awaddr (tgen_awaddr[i]),
+        .m_axi_awid   (tgen_awid[i]),
+        .m_axi_awlen  (tgen_awlen[i]),
+        .m_axi_awsize (tgen_awsize[i]),
+        .m_axi_awburst(tgen_awburst[i]),
+        .m_axi_awready(tgen_awready[i]),
+        .m_axi_wvalid (tgen_wvalid[i]),
+        .m_axi_wdata  (tgen_wdata[i]),
+        .m_axi_wstrb  (tgen_wstrb[i]),
+        .m_axi_wlast  (tgen_wlast[i]),
+        .m_axi_wready (tgen_wready[i]),
+        .m_axi_bvalid (tgen_bvalid[i]),
+        .m_axi_bid    (tgen_bid[i]),
+        .m_axi_bresp  (tgen_bresp[i]),
+        .m_axi_bready (tgen_bready[i]),
 
-        .m_axi_arvalid(perf_axi_arvalid[i]),
-        .m_axi_araddr (perf_axi_araddr[i]),
-        .m_axi_arid   (perf_axi_arid[i]),
-        .m_axi_arlen  (perf_axi_arlen[i]),
-        .m_axi_arsize (perf_axi_arsize[i]),
-        .m_axi_arburst(perf_axi_arburst[i]),
-        .m_axi_arready(perf_axi_arready[i]),
-        .m_axi_rvalid (perf_axi_rvalid[i]),
-        .m_axi_rdata  (perf_axi_rdata[i]),
-        .m_axi_rlast  (perf_axi_rlast[i]),
-        .m_axi_rid    (perf_axi_rid[i]),
-        .m_axi_rresp  (perf_axi_rresp[i]),
-        .m_axi_rready (perf_axi_rready[i])
+        .m_axi_arvalid(tgen_arvalid[i]),
+        .m_axi_araddr (tgen_araddr[i]),
+        .m_axi_arid   (tgen_arid[i]),
+        .m_axi_arlen  (tgen_arlen[i]),
+        .m_axi_arsize (tgen_arsize[i]),
+        .m_axi_arburst(tgen_arburst[i]),
+        .m_axi_arready(tgen_arready[i]),
+        .m_axi_rvalid (tgen_rvalid[i]),
+        .m_axi_rdata  (tgen_rdata[i]),
+        .m_axi_rlast  (tgen_rlast[i]),
+        .m_axi_rid    (tgen_rid[i]),
+        .m_axi_rresp  (tgen_rresp[i]),
+        .m_axi_rready (tgen_rready[i])
     );
 
     svc_axi_stats #(
@@ -641,55 +641,55 @@ module axi_perf #(
         .stat_err  (),
 
         // control interface
-        .s_axil_awaddr (stats_perf_awaddr[i]),
-        .s_axil_awvalid(stats_perf_awvalid[i]),
-        .s_axil_awready(stats_perf_awready[i]),
-        .s_axil_wdata  (stats_perf_wdata[i]),
-        .s_axil_wstrb  (stats_perf_wstrb[i]),
-        .s_axil_wvalid (stats_perf_wvalid[i]),
-        .s_axil_wready (stats_perf_wready[i]),
-        .s_axil_bvalid (stats_perf_bvalid[i]),
-        .s_axil_bresp  (stats_perf_bresp[i]),
-        .s_axil_bready (stats_perf_bready[i]),
+        .s_axil_awaddr (stats_tgen_awaddr[i]),
+        .s_axil_awvalid(stats_tgen_awvalid[i]),
+        .s_axil_awready(stats_tgen_awready[i]),
+        .s_axil_wdata  (stats_tgen_wdata[i]),
+        .s_axil_wstrb  (stats_tgen_wstrb[i]),
+        .s_axil_wvalid (stats_tgen_wvalid[i]),
+        .s_axil_wready (stats_tgen_wready[i]),
+        .s_axil_bvalid (stats_tgen_bvalid[i]),
+        .s_axil_bresp  (stats_tgen_bresp[i]),
+        .s_axil_bready (stats_tgen_bready[i]),
 
-        .s_axil_arvalid(stats_perf_arvalid[i]),
-        .s_axil_araddr (stats_perf_araddr[i]),
-        .s_axil_arready(stats_perf_arready[i]),
-        .s_axil_rvalid (stats_perf_rvalid[i]),
-        .s_axil_rdata  (stats_perf_rdata[i]),
-        .s_axil_rresp  (stats_perf_rresp[i]),
-        .s_axil_rready (stats_perf_rready[i]),
+        .s_axil_arvalid(stats_tgen_arvalid[i]),
+        .s_axil_araddr (stats_tgen_araddr[i]),
+        .s_axil_arready(stats_tgen_arready[i]),
+        .s_axil_rvalid (stats_tgen_rvalid[i]),
+        .s_axil_rdata  (stats_tgen_rdata[i]),
+        .s_axil_rresp  (stats_tgen_rresp[i]),
+        .s_axil_rready (stats_tgen_rready[i]),
 
         // interface for stats
-        .m_axi_awvalid(perf_axi_awvalid[i]),
-        .m_axi_awaddr (perf_axi_awaddr[i]),
-        .m_axi_awid   (perf_axi_awid[i]),
-        .m_axi_awlen  (perf_axi_awlen[i]),
-        .m_axi_awsize (perf_axi_awsize[i]),
-        .m_axi_awburst(perf_axi_awburst[i]),
-        .m_axi_awready(perf_axi_awready[i]),
-        .m_axi_wvalid (perf_axi_wvalid[i]),
-        .m_axi_wdata  (perf_axi_wdata[i]),
-        .m_axi_wstrb  (perf_axi_wstrb[i]),
-        .m_axi_wlast  (perf_axi_wlast[i]),
-        .m_axi_wready (perf_axi_wready[i]),
-        .m_axi_bvalid (perf_axi_bvalid[i]),
-        .m_axi_bid    (perf_axi_bid[i]),
-        .m_axi_bresp  (perf_axi_bresp[i]),
-        .m_axi_bready (perf_axi_bready[i]),
-        .m_axi_arvalid(perf_axi_arvalid[i]),
-        .m_axi_arid   (perf_axi_arid[i]),
-        .m_axi_araddr (perf_axi_araddr[i]),
-        .m_axi_arlen  (perf_axi_arlen[i]),
-        .m_axi_arsize (perf_axi_arsize[i]),
-        .m_axi_arburst(perf_axi_arburst[i]),
-        .m_axi_arready(perf_axi_arready[i]),
-        .m_axi_rvalid (perf_axi_rvalid[i]),
-        .m_axi_rid    (perf_axi_rid[i]),
-        .m_axi_rdata  (perf_axi_rdata[i]),
-        .m_axi_rresp  (perf_axi_rresp[i]),
-        .m_axi_rlast  (perf_axi_rlast[i]),
-        .m_axi_rready (perf_axi_rready[i])
+        .m_axi_awvalid(tgen_awvalid[i]),
+        .m_axi_awaddr (tgen_awaddr[i]),
+        .m_axi_awid   (tgen_awid[i]),
+        .m_axi_awlen  (tgen_awlen[i]),
+        .m_axi_awsize (tgen_awsize[i]),
+        .m_axi_awburst(tgen_awburst[i]),
+        .m_axi_awready(tgen_awready[i]),
+        .m_axi_wvalid (tgen_wvalid[i]),
+        .m_axi_wdata  (tgen_wdata[i]),
+        .m_axi_wstrb  (tgen_wstrb[i]),
+        .m_axi_wlast  (tgen_wlast[i]),
+        .m_axi_wready (tgen_wready[i]),
+        .m_axi_bvalid (tgen_bvalid[i]),
+        .m_axi_bid    (tgen_bid[i]),
+        .m_axi_bresp  (tgen_bresp[i]),
+        .m_axi_bready (tgen_bready[i]),
+        .m_axi_arvalid(tgen_arvalid[i]),
+        .m_axi_arid   (tgen_arid[i]),
+        .m_axi_araddr (tgen_araddr[i]),
+        .m_axi_arlen  (tgen_arlen[i]),
+        .m_axi_arsize (tgen_arsize[i]),
+        .m_axi_arburst(tgen_arburst[i]),
+        .m_axi_arready(tgen_arready[i]),
+        .m_axi_rvalid (tgen_rvalid[i]),
+        .m_axi_rid    (tgen_rid[i]),
+        .m_axi_rdata  (tgen_rdata[i]),
+        .m_axi_rresp  (tgen_rresp[i]),
+        .m_axi_rlast  (tgen_rlast[i]),
+        .m_axi_rready (tgen_rready[i])
     );
   end
 
@@ -768,8 +768,8 @@ module axi_perf #(
     case (state)
       STATE_IDLE: begin
         if (|ctrl_top_start) begin
-          wr_start   = ctrl_top_start;
-          state_next = STATE_RUNNING;
+          {rd_start, wr_start} = (NUM_M * 2)'(ctrl_top_start);
+          state_next           = STATE_RUNNING;
         end
       end
 
@@ -820,7 +820,7 @@ module axi_perf #(
       r_val <= r_val_next;
 
       if (state == STATE_IDLE) begin
-        ctrl_top_start <= NUM_M'(r_val_next[REG_START]);
+        ctrl_top_start <= (NUM_M * 2)'(r_val_next[REG_START]);
         ctrl_top_clear <= r_val_next[REG_CLEAR][0];
       end else begin
         ctrl_top_start <= 0;
