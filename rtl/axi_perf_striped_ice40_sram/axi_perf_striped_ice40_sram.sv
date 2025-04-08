@@ -82,7 +82,6 @@ module axi_perf_striped_ice40_sram #(
   logic [                      1:0]                     m_axi_bresp;
   logic                                                 m_axi_bready;
 
-  // verilator lint_off: UNUSEDSIGNAL
   logic                                                 m_axi_arvalid;
   logic [         AXI_ID_WIDTH-1:0]                     m_axi_arid;
   logic [STRIPE_AXI_ADDR_WIDTH-1:0]                     m_axi_araddr;
@@ -96,7 +95,6 @@ module axi_perf_striped_ice40_sram #(
   logic [                      1:0]                     m_axi_rresp;
   logic                                                 m_axi_rlast;
   logic                                                 m_axi_rready;
-  // verilator lint_on: UNUSEDSIGNAL
 
   for (genvar i = 0; i < NUM_S; i++) begin : gen_sram
     svc_ice40_axi_sram #(
@@ -215,14 +213,6 @@ module axi_perf_striped_ice40_sram #(
       .m_axi_rready (sram_axi_rready)
   );
 
-  assign m_axi_arvalid = 1'b0;
-  assign m_axi_arid    = 0;
-  assign m_axi_araddr  = 0;
-  assign m_axi_arlen   = 0;
-  assign m_axi_arsize  = 0;
-  assign m_axi_arburst = 0;
-  assign m_axi_rready  = 1'b0;
-
   axi_perf #(
       .CLOCK_FREQ    (CLOCK_FREQ),
       .BAUD_RATE     (BAUD_RATE),
@@ -251,7 +241,20 @@ module axi_perf_striped_ice40_sram #(
       .m_axi_bvalid (m_axi_bvalid),
       .m_axi_bid    (m_axi_bid),
       .m_axi_bresp  (m_axi_bresp),
-      .m_axi_bready (m_axi_bready)
+      .m_axi_bready (m_axi_bready),
+      .m_axi_arvalid(m_axi_arvalid),
+      .m_axi_arid   (m_axi_arid),
+      .m_axi_araddr (m_axi_araddr),
+      .m_axi_arlen  (m_axi_arlen),
+      .m_axi_arsize (m_axi_arsize),
+      .m_axi_arburst(m_axi_arburst),
+      .m_axi_arready(m_axi_arready),
+      .m_axi_rvalid (m_axi_rvalid),
+      .m_axi_rid    (m_axi_rid),
+      .m_axi_rdata  (m_axi_rdata),
+      .m_axi_rresp  (m_axi_rresp),
+      .m_axi_rlast  (m_axi_rlast),
+      .m_axi_rready (m_axi_rready)
   );
 
 endmodule
