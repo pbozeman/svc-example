@@ -92,14 +92,6 @@ module top (
   assign ddr_axi_arprot  = 3'd0;
   assign ddr_axi_arqos   = 4'd0;
 
-  assign ddr_axi_arvalid = 1'b0;
-  assign ddr_axi_araddr  = 0;
-  assign ddr_axi_arid    = 0;
-  assign ddr_axi_arburst = 0;
-  assign ddr_axi_arlen   = 0;
-  assign ddr_axi_arsize  = 0;
-  assign ddr_axi_rready  = 1'b0;
-
   assign ddr_axi_awcache = 4'b1111;
   assign ddr_axi_awlock  = 1'b0;
   assign ddr_axi_awprot  = 3'd0;
@@ -195,7 +187,21 @@ module top (
       .m_axi_bvalid (ddr_axi_bvalid),
       .m_axi_bid    (ddr_axi_bid),
       .m_axi_bresp  (ddr_axi_bresp),
-      .m_axi_bready (ddr_axi_bready)
+      .m_axi_bready (ddr_axi_bready),
+
+      .m_axi_arvalid(ddr_axi_arvalid),
+      .m_axi_arid   (ddr_axi_arid),
+      .m_axi_araddr (ddr_axi_araddr),
+      .m_axi_arlen  (ddr_axi_arlen),
+      .m_axi_arsize (ddr_axi_arsize),
+      .m_axi_arburst(ddr_axi_arburst),
+      .m_axi_arready(ddr_axi_arready),
+      .m_axi_rvalid (ddr_axi_rvalid),
+      .m_axi_rid    (ddr_axi_rid),
+      .m_axi_rdata  (ddr_axi_rdata),
+      .m_axi_rresp  (ddr_axi_rresp),
+      .m_axi_rlast  (ddr_axi_rlast),
+      .m_axi_rready (ddr_axi_rready)
   );
 
 endmodule

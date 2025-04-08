@@ -3,11 +3,9 @@
 
 `include "svc.sv"
 `include "svc_axi_arbiter.sv"
-`include "svc_axi_null_rd.sv"
-`include "svc_axi_null_rd.sv"
 `include "svc_axi_stats.sv"
+`include "svc_axi_tgen.sv"
 `include "svc_axi_tgen_csr.sv"
-`include "svc_axi_tgen_wr.sv"
 `include "svc_axil_bridge_uart.sv"
 `include "svc_axil_router.sv"
 `include "svc_uart_rx.sv"
@@ -50,7 +48,21 @@ module axi_perf #(
     input  logic                      m_axi_bvalid,
     input  logic [  AXI_ID_WIDTH-1:0] m_axi_bid,
     input  logic [               1:0] m_axi_bresp,
-    output logic                      m_axi_bready
+    output logic                      m_axi_bready,
+
+    output logic                      m_axi_arvalid,
+    output logic [  AXI_ID_WIDTH-1:0] m_axi_arid,
+    output logic [AXI_ADDR_WIDTH-1:0] m_axi_araddr,
+    output logic [               7:0] m_axi_arlen,
+    output logic [               2:0] m_axi_arsize,
+    output logic [               1:0] m_axi_arburst,
+    input  logic                      m_axi_arready,
+    input  logic                      m_axi_rvalid,
+    input  logic [  AXI_ID_WIDTH-1:0] m_axi_rid,
+    input  logic [AXI_DATA_WIDTH-1:0] m_axi_rdata,
+    input  logic [               1:0] m_axi_rresp,
+    input  logic                      m_axi_rlast,
+    output logic                      m_axi_rready
 );
   // TODO: pass NUM_M in as a top param to make it easier to test a bunch
   // of configs
@@ -108,19 +120,6 @@ module axi_perf #(
 
   // TODO: pass these signals in, since ultimately we'll be doing both
   // for now, we need to null the arbiter inputs
-  logic                        m_axi_arvalid;
-  logic [   IW-1:0]            m_axi_arid;
-  logic [   AW-1:0]            m_axi_araddr;
-  logic [      7:0]            m_axi_arlen;
-  logic [      2:0]            m_axi_arsize;
-  logic [      1:0]            m_axi_arburst;
-  logic                        m_axi_arready;
-  logic                        m_axi_rvalid;
-  logic [   IW-1:0]            m_axi_rid;
-  logic [   DW-1:0]            m_axi_rdata;
-  logic [      1:0]            m_axi_rresp;
-  logic                        m_axi_rlast;
-  logic                        m_axi_rready;
 
   //
   // external control interface
@@ -343,31 +342,6 @@ module axi_perf #(
     assign m_axi_bready     = perf_axi_bready;
   end
 
-  // null out all the reads
-  for (genvar i = 0; i < NUM_M; i++) begin : gen_null_rd
-    svc_axi_null_rd #(
-        .AXI_ADDR_WIDTH(AXI_ADDR_WIDTH),
-        .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
-        .AXI_ID_WIDTH  (AIW)
-    ) svc_axi_null_rd_i (
-        .clk          (clk),
-        .rst_n        (rst_n),
-        .m_axi_arvalid(perf_axi_arvalid[i]),
-        .m_axi_arid   (perf_axi_arid[i]),
-        .m_axi_araddr (perf_axi_araddr[i]),
-        .m_axi_arlen  (perf_axi_arlen[i]),
-        .m_axi_arsize (perf_axi_arsize[i]),
-        .m_axi_arburst(perf_axi_arburst[i]),
-        .m_axi_arready(perf_axi_arready[i]),
-        .m_axi_rvalid (perf_axi_rvalid[i]),
-        .m_axi_rid    (perf_axi_rid[i]),
-        .m_axi_rdata  (perf_axi_rdata[i]),
-        .m_axi_rresp  (perf_axi_rresp[i]),
-        .m_axi_rlast  (perf_axi_rlast[i]),
-        .m_axi_rready (perf_axi_rready[i])
-    );
-  end
-
   //-------------------------------------------------------------------------
   //
   // control interface
@@ -531,7 +505,9 @@ module axi_perf #(
   logic                        ctrl_top_clear;
 
   logic   [NUM_M-1:0]          wr_start;
-  logic   [NUM_M-1:0]          wr_busy;
+  logic   [NUM_M-1:0]          rd_start;
+
+  logic   [NUM_M-1:0]          busy;
 
   logic   [NUM_M-1:0][ AW-1:0] wr_base_addr;
   logic   [NUM_M-1:0][AIW-1:0] wr_burst_id;
@@ -539,6 +515,13 @@ module axi_perf #(
   logic   [NUM_M-1:0][ AW-1:0] wr_burst_stride;
   logic   [NUM_M-1:0][   15:0] wr_burst_num;
   logic   [NUM_M-1:0][    2:0] wr_burst_awsize;
+
+  logic   [NUM_M-1:0][ AW-1:0] rd_base_addr;
+  logic   [NUM_M-1:0][AIW-1:0] rd_burst_id;
+  logic   [NUM_M-1:0][    7:0] rd_burst_beats;
+  logic   [NUM_M-1:0][ AW-1:0] rd_burst_stride;
+  logic   [NUM_M-1:0][   15:0] rd_burst_num;
+  logic   [NUM_M-1:0][    2:0] rd_burst_arsize;
 
   for (genvar i = 0; i < NUM_M; i++) begin : gen_perf_wr
     svc_axi_tgen_csr #(
@@ -550,12 +533,19 @@ module axi_perf #(
         .clk  (clk),
         .rst_n(rst_n),
 
-        .base_addr   (wr_base_addr[i]),
-        .burst_id    (wr_burst_id[i]),
-        .burst_beats (wr_burst_beats[i]),
-        .burst_stride(wr_burst_stride[i]),
-        .burst_num   (wr_burst_num[i]),
-        .burst_axsize(wr_burst_awsize[i]),
+        .w_base_addr   (wr_base_addr[i]),
+        .w_burst_id    (wr_burst_id[i]),
+        .w_burst_beats (wr_burst_beats[i]),
+        .w_burst_stride(wr_burst_stride[i]),
+        .w_burst_num   (wr_burst_num[i]),
+        .w_burst_awsize(wr_burst_awsize[i]),
+
+        .r_base_addr   (rd_base_addr[i]),
+        .r_burst_id    (rd_burst_id[i]),
+        .r_burst_beats (rd_burst_beats[i]),
+        .r_burst_stride(rd_burst_stride[i]),
+        .r_burst_num   (rd_burst_num[i]),
+        .r_burst_arsize(rd_burst_arsize[i]),
 
         .s_axil_awaddr (ctrl_awaddr[i]),
         .s_axil_awvalid(ctrl_awvalid[i]),
@@ -577,7 +567,7 @@ module axi_perf #(
         .s_axil_rready (ctrl_rready[i])
     );
 
-    svc_axi_tgen_wr #(
+    svc_axi_tgen #(
         .AXI_ADDR_WIDTH(AXI_ADDR_WIDTH),
         .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
         .AXI_ID_WIDTH  (AIW)
@@ -585,15 +575,24 @@ module axi_perf #(
         .clk  (clk),
         .rst_n(rst_n),
 
-        .start(wr_start[i]),
-        .busy (wr_busy[i]),
+        .w_start(wr_start[i]),
+        .r_start(rd_start[i]),
 
-        .base_addr   (wr_base_addr[i]),
-        .burst_id    (wr_burst_id[i]),
-        .burst_beats (wr_burst_beats[i]),
-        .burst_stride(wr_burst_stride[i]),
-        .burst_num   (wr_burst_num[i]),
-        .burst_awsize(wr_burst_awsize[i]),
+        .busy(busy[i]),
+
+        .w_base_addr   (wr_base_addr[i]),
+        .w_burst_id    (wr_burst_id[i]),
+        .w_burst_beats (wr_burst_beats[i]),
+        .w_burst_stride(wr_burst_stride[i]),
+        .w_burst_num   (wr_burst_num[i]),
+        .w_burst_awsize(wr_burst_awsize[i]),
+
+        .r_base_addr   (rd_base_addr[i]),
+        .r_burst_id    (rd_burst_id[i]),
+        .r_burst_beats (rd_burst_beats[i]),
+        .r_burst_stride(rd_burst_stride[i]),
+        .r_burst_num   (rd_burst_num[i]),
+        .r_burst_arsize(rd_burst_arsize[i]),
 
         .m_axi_awvalid(perf_axi_awvalid[i]),
         .m_axi_awaddr (perf_axi_awaddr[i]),
@@ -610,7 +609,21 @@ module axi_perf #(
         .m_axi_bvalid (perf_axi_bvalid[i]),
         .m_axi_bid    (perf_axi_bid[i]),
         .m_axi_bresp  (perf_axi_bresp[i]),
-        .m_axi_bready (perf_axi_bready[i])
+        .m_axi_bready (perf_axi_bready[i]),
+
+        .m_axi_arvalid(perf_axi_arvalid[i]),
+        .m_axi_araddr (perf_axi_araddr[i]),
+        .m_axi_arid   (perf_axi_arid[i]),
+        .m_axi_arlen  (perf_axi_arlen[i]),
+        .m_axi_arsize (perf_axi_arsize[i]),
+        .m_axi_arburst(perf_axi_arburst[i]),
+        .m_axi_arready(perf_axi_arready[i]),
+        .m_axi_rvalid (perf_axi_rvalid[i]),
+        .m_axi_rdata  (perf_axi_rdata[i]),
+        .m_axi_rlast  (perf_axi_rlast[i]),
+        .m_axi_rid    (perf_axi_rid[i]),
+        .m_axi_rresp  (perf_axi_rresp[i]),
+        .m_axi_rready (perf_axi_rready[i])
     );
 
     svc_axi_stats #(
@@ -750,6 +763,7 @@ module axi_perf #(
   always @(*) begin
     state_next = state;
     wr_start   = '0;
+    rd_start   = '0;
 
     case (state)
       STATE_IDLE: begin
@@ -760,7 +774,7 @@ module axi_perf #(
       end
 
       STATE_RUNNING: begin
-        if (!(|wr_busy)) begin
+        if (!(|busy)) begin
           state_next = STATE_IDLE;
         end
       end
@@ -862,16 +876,8 @@ module axi_perf #(
       .s_axil_rready (ctrl_top_rready)
   );
 
-  // TODO: remove all of these when these get passed in
-  assign m_axi_arready = 1'b0;
-  assign m_axi_rvalid  = 1'b0;
-  assign m_axi_rid     = 0;
-  assign m_axi_rlast   = 1'b0;
-  assign m_axi_rdata   = 0;
-  assign m_axi_rresp   = 2'b11;
-
-  `SVC_UNUSED({m_axi_arvalid, m_axi_araddr, m_axi_arid, m_axi_arlen,
-               m_axi_arsize, m_axi_arburst, m_axi_rready});
+  // `SVC_UNUSED({m_axi_arvalid, m_axi_araddr, m_axi_arid, m_axi_arlen,
+  //              m_axi_arsize, m_axi_arburst, m_axi_rready});
 
 
 endmodule

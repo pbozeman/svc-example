@@ -38,7 +38,6 @@ module axi_perf_mem #(
   logic [               1:0] mem_axi_bresp;
   logic                      mem_axi_bready;
 
-  // verilator lint_off: UNUSEDSIGNAL
   logic                      mem_axi_arvalid;
   logic [  AXI_ID_WIDTH-1:0] mem_axi_arid;
   logic [AXI_ADDR_WIDTH-1:0] mem_axi_araddr;
@@ -52,15 +51,6 @@ module axi_perf_mem #(
   logic [               1:0] mem_axi_rresp;
   logic                      mem_axi_rlast;
   logic                      mem_axi_rready;
-  // verilator lint_on: UNUSEDSIGNAL
-
-  assign mem_axi_arvalid = 1'b0;
-  assign mem_axi_arid    = 0;
-  assign mem_axi_araddr  = 0;
-  assign mem_axi_arlen   = 0;
-  assign mem_axi_arsize  = 0;
-  assign mem_axi_arburst = 0;
-  assign mem_axi_rready  = 1'b0;
 
   svc_axi_mem #(
       .AXI_ADDR_WIDTH(AXI_ADDR_WIDTH),
@@ -129,7 +119,20 @@ module axi_perf_mem #(
       .m_axi_bvalid (mem_axi_bvalid),
       .m_axi_bid    (mem_axi_bid),
       .m_axi_bresp  (mem_axi_bresp),
-      .m_axi_bready (mem_axi_bready)
+      .m_axi_bready (mem_axi_bready),
+      .m_axi_arvalid(mem_axi_arvalid),
+      .m_axi_araddr (mem_axi_araddr),
+      .m_axi_arid   (mem_axi_arid),
+      .m_axi_arready(mem_axi_arready),
+      .m_axi_arlen  (mem_axi_arlen),
+      .m_axi_arsize (mem_axi_arsize),
+      .m_axi_arburst(mem_axi_arburst),
+      .m_axi_rvalid (mem_axi_rvalid),
+      .m_axi_rid    (mem_axi_rid),
+      .m_axi_rresp  (mem_axi_rresp),
+      .m_axi_rlast  (mem_axi_rlast),
+      .m_axi_rdata  (mem_axi_rdata),
+      .m_axi_rready (mem_axi_rready)
   );
 
 endmodule
