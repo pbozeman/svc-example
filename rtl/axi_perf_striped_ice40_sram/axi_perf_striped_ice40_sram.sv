@@ -12,7 +12,8 @@ module axi_perf_striped_ice40_sram #(
     parameter CLOCK_FREQ      = 100_000_000,
     parameter BAUD_RATE       = 115_200,
     parameter SRAM_ADDR_WIDTH = 20,
-    parameter SRAM_DATA_WIDTH = 16
+    parameter SRAM_DATA_WIDTH = 16,
+    parameter STAT_WIDTH      = 32
 ) (
     input logic clk,
     input logic rst_n,
@@ -218,7 +219,8 @@ module axi_perf_striped_ice40_sram #(
       .BAUD_RATE     (BAUD_RATE),
       .AXI_ADDR_WIDTH(STRIPE_AXI_ADDR_WIDTH),
       .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
-      .AXI_ID_WIDTH  (AXI_ID_WIDTH)
+      .AXI_ID_WIDTH  (AXI_ID_WIDTH),
+      .STAT_WIDTH    (STAT_WIDTH)
   ) axi_perf_i (
       .clk  (clk),
       .rst_n(rst_n),
