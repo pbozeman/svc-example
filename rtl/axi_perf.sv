@@ -116,9 +116,6 @@ module axi_perf #(
   logic [NUM_M-1:0]            tgen_rlast;
   logic [NUM_M-1:0]            tgen_rready;
 
-  // TODO: pass these signals in, since ultimately we'll be doing both
-  // for now, we need to null the arbiter inputs
-
   //
   // external control interface
   //
@@ -691,7 +688,6 @@ module axi_perf #(
     );
   end
 
-  // TODO: keep the top level, but also have per manager stats
   svc_axi_stats #(
       .AXI_ADDR_WIDTH (AXI_ADDR_WIDTH),
       .AXI_DATA_WIDTH (AXI_DATA_WIDTH),
@@ -873,10 +869,6 @@ module axi_perf #(
       .s_axil_rresp  (ctrl_top_rresp),
       .s_axil_rready (ctrl_top_rready)
   );
-
-  // `SVC_UNUSED({m_axi_arvalid, m_axi_araddr, m_axi_arid, m_axi_arlen,
-  //              m_axi_arsize, m_axi_arburst, m_axi_rready});
-
 
 endmodule
 `endif
