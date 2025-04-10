@@ -78,12 +78,11 @@ module blinky_reg #(
   svc_accumulator #(
       .WIDTH(32)
   ) svc_accumulator_i (
-      .clk  (clk),
-      .rst_n(rst_n),
-      .clr  (cnt_clr),
-      .en   (1'b1),
-      .val  (1),
-      .acc  (cnt)
+      .clk(clk),
+      .clr(cnt_clr),
+      .en (1'b1),
+      .val(1),
+      .acc(cnt)
   );
 
   always_ff @(posedge clk) begin
