@@ -1,14 +1,12 @@
 #--  Synopsys, Inc.
 #--  Version L-2016.09L+ice40
-#--  Written on Fri Mar 14 13:11:53 2025
 
 
 #project files
+add_file -verilog -vlog_std sysv "../../rtl/axi_perf_ice40_sram/axi_perf_ice40_sram_top.sv"
+add_file -constraint "../../constraints/vanilla-ice40-clock.sdc"
 
 
-
-add_file -verilog -lib work "../../rtl/axi_perf_ice40_sram/axi_perf_ice40_sram_top.sv" 
-add_file -constraint -lib work "../../constraints/vanilla-ice40-clock.sdc"
 #implementation: "axi_perf_ice40_sram_Implmnt"
 impl -add axi_perf_ice40_sram_Implmnt -type fpga
 
@@ -17,13 +15,14 @@ impl -add axi_perf_ice40_sram_Implmnt -type fpga
 
 set_option -vlog_std sysv
 set_option -project_relative_includes 1
+set_option -hdl_define -set ICE40=1
 set_option -include_path {../../rtl/;../../svc/rtl/}
 
 #device options
 set_option -technology SBTiCE40
 set_option -part iCE40HX8K
 set_option -package CT256
-set_option -speed_grade 
+set_option -speed_grade ""
 set_option -part_companion ""
 
 #compilation/mapping options
@@ -67,5 +66,4 @@ set_option -write_apr_constraint 1
 
 #set result format/file last
 project -result_file "axi_perf_ice40_sram_Implmnt/axi_perf_ice40_sram.edf"
-impl -active axi_perf_ice40_sram_Implmnt
-project -run synthesis -clean
+impl -active "axi_perf_ice40_sram_Implmnt"
