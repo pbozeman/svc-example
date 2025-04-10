@@ -25,7 +25,8 @@ module axi_perf #(
     parameter AXI_DATA_WIDTH = 16,
     parameter AXI_ID_WIDTH   = 4,
     parameter AXI_STRB_WIDTH = AXI_DATA_WIDTH / 8,
-    parameter STAT_WIDTH     = 32
+    parameter STAT_WIDTH     = 32,
+    parameter NUM_M          = 1
 ) (
     input logic clk,
     input logic rst_n,
@@ -64,9 +65,6 @@ module axi_perf #(
     input  logic                      m_axi_rlast,
     output logic                      m_axi_rready
 );
-  // TODO: pass NUM_M in as a top param to make it easier to test a bunch
-  // of configs
-  localparam NUM_M = 2;
   localparam AW = AXI_ADDR_WIDTH;
   localparam DW = AXI_DATA_WIDTH;
   localparam IW = AXI_ID_WIDTH;
@@ -79,12 +77,12 @@ module axi_perf #(
 
   // AXI Bridge widths
   localparam AB_AW = 32;
-  localparam AB_DW = 32;
+  localparam AB_DW = STAT_WIDTH;
   localparam AB_SW = AB_DW / 8;
 
   // Stat widths
   localparam S_AW = 8;
-  localparam S_DW = 32;
+  localparam S_DW = STAT_WIDTH;
   localparam S_SW = S_DW / 8;
 
   logic [NUM_M-1:0]            tgen_awvalid;
