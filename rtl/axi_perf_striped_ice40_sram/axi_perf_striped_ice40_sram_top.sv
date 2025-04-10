@@ -28,10 +28,20 @@ module axi_perf_striped_ice40_sram_top #(
     output logic [SRAM_ADDR_WIDTH-1:0] R_SRAM_ADDR_BUS,
     inout  wire  [SRAM_DATA_WIDTH-1:0] R_SRAM_DATA_BUS
 );
+  localparam CLOCK_FREQ = 75_000_000;
+  localparam BAUD_RATE = 115_200;
+  localparam STAT_WIDTH = 16;
+
+  logic clk;
   logic rst_n;
 
+  svc_ice40_pll_75 svc_ice40_pll_75_i (
+      .clk_i(CLK),
+      .clk_o(clk)
+  );
+
   svc_init svc_init_i (
-      .clk  (CLK),
+      .clk  (clk),
       .en   (1'b1),
       .rst_n(rst_n)
   );
@@ -39,7 +49,10 @@ module axi_perf_striped_ice40_sram_top #(
   axi_perf_striped_ice40_sram #(
       .NUM_S          (NUM_S),
       .SRAM_ADDR_WIDTH(SRAM_ADDR_WIDTH),
-      .SRAM_DATA_WIDTH(SRAM_DATA_WIDTH)
+      .SRAM_DATA_WIDTH(SRAM_DATA_WIDTH),
+      .CLOCK_FREQ     (CLOCK_FREQ),
+      .BAUD_RATE      (BAUD_RATE),
+      .STAT_WIDTH     (STAT_WIDTH)
   ) axi_perf_striped_ice40_sram_i (
       .clk  (CLK),
       .rst_n(rst_n),
