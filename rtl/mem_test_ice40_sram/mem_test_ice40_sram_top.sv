@@ -9,7 +9,7 @@
 
 module mem_test_ice40_sram_top #(
     parameter SRAM_ADDR_WIDTH = 18,
-    parameter SRAM_DATA_WIDTH = 8,
+    parameter SRAM_DATA_WIDTH = 16,
     parameter NUM_BURSTS      = 255,
     parameter NUM_BEATS       = 128
 ) (
@@ -18,24 +18,23 @@ module mem_test_ice40_sram_top #(
     output logic LED1,
     output logic LED2,
 
+    // output logic [7:0] PMOD_A,
+    // output logic [7:0] PMOD_B,
+
     // Buses
-    output logic [SRAM_ADDR_WIDTH-1:0] L_SRAM_256_B_ADDR_BUS,
-    inout  wire  [SRAM_DATA_WIDTH-1:0] L_SRAM_256_B_DATA_BUS,
+    output logic [SRAM_ADDR_WIDTH-1:0] SRAM_256_B_ADDR_BUS,
+    inout  wire  [SRAM_DATA_WIDTH-1:0] SRAM_256_B_DATA_BUS,
 
     // Control signals
-    output logic L_SRAM_256_B_OE_N,
-    output logic L_SRAM_256_B_WE_N,
-
-    output logic [7:0] R_E,
-    output logic [7:0] R_F,
-    output logic [7:0] R_I
+    output logic SRAM_256_B_OE_N,
+    output logic SRAM_256_B_WE_N
 );
 
-  logic       rst_n;
-  logic       test_done;
-  logic       test_pass;
+  logic        rst_n;
+  logic        test_done;
+  logic        test_pass;
 
-  logic [7:0] done_cnt;
+  logic [24:0] done_cnt;
 
   svc_init #(
       .RST_CYCLES(255)
@@ -57,15 +56,15 @@ module mem_test_ice40_sram_top #(
       .test_done(test_done),
       .test_pass(test_pass),
 
-      .debug0(R_E),
-      .debug1(R_F),
-      .debug2(R_I),
+      .debug0(),
+      .debug1(),
+      .debug2(),
 
-      .sram_io_addr(L_SRAM_256_B_ADDR_BUS),
-      .sram_io_data(L_SRAM_256_B_DATA_BUS),
+      .sram_io_addr(SRAM_256_B_ADDR_BUS),
+      .sram_io_data(SRAM_256_B_DATA_BUS),
       .sram_io_ce_n(),
-      .sram_io_we_n(L_SRAM_256_B_WE_N),
-      .sram_io_oe_n(L_SRAM_256_B_OE_N)
+      .sram_io_we_n(SRAM_256_B_WE_N),
+      .sram_io_oe_n(SRAM_256_B_OE_N)
   );
 
   always_ff @(posedge CLK) begin
