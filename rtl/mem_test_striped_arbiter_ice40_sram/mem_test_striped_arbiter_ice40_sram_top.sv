@@ -7,15 +7,12 @@
 // sram tester. Fully testing and stressing the actual chip as part of hw
 // acceptance testing is TBD.
 
-// FIXME: for now only use 12 bits, because bit 12 on R_SRAM_B_ADDR_BUS
-// doesn't work on the my main dev board. Fix this once repaired.
 module mem_test_striped_arbiter_ice40_sram_top #(
-    parameter NUM_S            = 4,
-    parameter SRAM_ADDR_WIDTH  = 11,
-    parameter SRAM_DATA_WIDTH  = 16,
-    parameter SRAM_RDATA_WIDTH = 12,
-    parameter NUM_BURSTS       = 255,
-    parameter NUM_BEATS        = 128
+    parameter NUM_S           = 4,
+    parameter SRAM_ADDR_WIDTH = 18,
+    parameter SRAM_DATA_WIDTH = 16,
+    parameter NUM_BURSTS      = 255,
+    parameter NUM_BEATS       = 128
 ) (
     // board signals
     input  logic CLK,
@@ -23,33 +20,28 @@ module mem_test_striped_arbiter_ice40_sram_top #(
     output logic LED2,
 
     // SRAM A
-    output logic                        L_SRAM_256_A_OE_N,
-    output logic                        L_SRAM_256_A_WE_N,
-    output logic [ SRAM_ADDR_WIDTH-1:0] L_SRAM_256_A_ADDR_BUS,
-    inout  wire  [SRAM_RDATA_WIDTH-1:0] L_SRAM_256_A_DATA_BUS,
+    output logic                       SRAM_256_A_OE_N,
+    output logic                       SRAM_256_A_WE_N,
+    output logic [SRAM_ADDR_WIDTH-1:0] SRAM_256_A_ADDR_BUS,
+    inout  wire  [SRAM_DATA_WIDTH-1:0] SRAM_256_A_DATA_BUS,
 
     // SRAM B
-    output logic                        L_SRAM_256_B_OE_N,
-    output logic                        L_SRAM_256_B_WE_N,
-    output logic [ SRAM_ADDR_WIDTH-1:0] L_SRAM_256_B_ADDR_BUS,
-    inout  wire  [SRAM_RDATA_WIDTH-1:0] L_SRAM_256_B_DATA_BUS,
+    output logic                       SRAM_256_B_OE_N,
+    output logic                       SRAM_256_B_WE_N,
+    output logic [SRAM_ADDR_WIDTH-1:0] SRAM_256_B_ADDR_BUS,
+    inout  wire  [SRAM_DATA_WIDTH-1:0] SRAM_256_B_DATA_BUS,
 
     // SRAM C
-    output logic                        R_SRAM_256_A_OE_N,
-    output logic                        R_SRAM_256_A_WE_N,
-    output logic [ SRAM_ADDR_WIDTH-1:0] R_SRAM_256_A_ADDR_BUS,
-    inout  wire  [SRAM_RDATA_WIDTH-1:0] R_SRAM_256_A_DATA_BUS,
+    output logic                       SRAM_256_C_OE_N,
+    output logic                       SRAM_256_C_WE_N,
+    output logic [SRAM_ADDR_WIDTH-1:0] SRAM_256_C_ADDR_BUS,
+    inout  wire  [SRAM_DATA_WIDTH-1:0] SRAM_256_C_DATA_BUS,
 
     // SRAM D
-    output logic                        R_SRAM_256_B_OE_N,
-    output logic                        R_SRAM_256_B_WE_N,
-    output logic [ SRAM_ADDR_WIDTH-1:0] R_SRAM_256_B_ADDR_BUS,
-    inout  wire  [SRAM_RDATA_WIDTH-1:0] R_SRAM_256_B_DATA_BUS,
-
-    // debug signals
-    output logic [7:0] R_E,
-    output logic [7:0] R_F,
-    output logic [7:0] R_I
+    output logic                       SRAM_256_D_OE_N,
+    output logic                       SRAM_256_D_WE_N,
+    output logic [SRAM_ADDR_WIDTH-1:0] SRAM_256_D_ADDR_BUS,
+    inout  wire  [SRAM_DATA_WIDTH-1:0] SRAM_256_D_DATA_BUS
 );
 
   logic       rst_n;
@@ -67,12 +59,11 @@ module mem_test_striped_arbiter_ice40_sram_top #(
   );
 
   mem_test_striped_arbiter_ice40_sram #(
-      .NUM_S           (NUM_S),
-      .SRAM_ADDR_WIDTH (SRAM_ADDR_WIDTH),
-      .SRAM_DATA_WIDTH (SRAM_DATA_WIDTH),
-      .SRAM_RDATA_WIDTH(SRAM_RDATA_WIDTH),
-      .NUM_BURSTS      (NUM_BURSTS),
-      .NUM_BEATS       (NUM_BEATS)
+      .NUM_S          (NUM_S),
+      .SRAM_ADDR_WIDTH(SRAM_ADDR_WIDTH),
+      .SRAM_DATA_WIDTH(SRAM_DATA_WIDTH),
+      .NUM_BURSTS     (NUM_BURSTS),
+      .NUM_BEATS      (NUM_BEATS)
   ) mem_test_new_i (
       .clk  (CLK),
       .rst_n(rst_n),
@@ -80,34 +71,28 @@ module mem_test_striped_arbiter_ice40_sram_top #(
       .test_done(test_done),
       .test_pass(test_pass),
 
-      .debug0(R_E),
-      .debug1(R_F),
-      .debug2(R_I),
+      .debug0(),
+      .debug1(),
+      .debug2(),
 
       .sram_io_addr({
-        R_SRAM_256_B_ADDR_BUS,
-        R_SRAM_256_A_ADDR_BUS,
-        L_SRAM_256_B_ADDR_BUS,
-        L_SRAM_256_A_ADDR_BUS
+        SRAM_256_D_ADDR_BUS,
+        SRAM_256_C_ADDR_BUS,
+        SRAM_256_B_ADDR_BUS,
+        SRAM_256_A_ADDR_BUS
       }),
       .sram_io_data({
-        R_SRAM_256_B_DATA_BUS,
-        R_SRAM_256_A_DATA_BUS,
-        L_SRAM_256_B_DATA_BUS,
-        L_SRAM_256_A_DATA_BUS
+        SRAM_256_D_DATA_BUS,
+        SRAM_256_C_DATA_BUS,
+        SRAM_256_B_DATA_BUS,
+        SRAM_256_A_DATA_BUS
       }),
       .sram_io_ce_n(),
       .sram_io_we_n({
-        R_SRAM_256_B_WE_N,
-        R_SRAM_256_A_WE_N,
-        L_SRAM_256_B_WE_N,
-        L_SRAM_256_A_WE_N
+        SRAM_256_D_WE_N, SRAM_256_C_WE_N, SRAM_256_B_WE_N, SRAM_256_A_WE_N
       }),
       .sram_io_oe_n({
-        R_SRAM_256_B_OE_N,
-        R_SRAM_256_A_OE_N,
-        L_SRAM_256_B_OE_N,
-        L_SRAM_256_A_OE_N
+        SRAM_256_D_OE_N, SRAM_256_C_OE_N, SRAM_256_B_OE_N, SRAM_256_A_OE_N
       })
   );
 
