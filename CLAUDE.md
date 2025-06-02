@@ -22,7 +22,7 @@
 
 - ALWAYS run `make format` after making any code changes
 - Run `make lint` to check for linting issues before committing
-- Add \[🤖\] emoji to commit message tags when commits are Claude-generated
+- Add [🤖] emoji to commit message tags when commits are Claude-generated
 
 ## Code Style Guidelines
 
