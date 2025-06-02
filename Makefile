@@ -6,6 +6,7 @@ default: quick
 
 TOP_MODULES := \
 	rtl/blinky/blinky_top.sv \
+	rtl/mem_test_arbiter_ice40_sram/mem_test_arbiter_ice40_sram_top.sv \
 	rtl/mem_test_ice40_sram/mem_test_ice40_sram_top.sv \
 	rtl/uart_demo/uart_demo_top.sv \
 	rtl/vga_pattern/vga_pattern_top.sv
