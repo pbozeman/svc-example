@@ -220,7 +220,8 @@ module axi_perf_striped_ice40_sram #(
       .AXI_ADDR_WIDTH(STRIPE_AXI_ADDR_WIDTH),
       .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
       .AXI_ID_WIDTH  (AXI_ID_WIDTH),
-      .STAT_WIDTH    (STAT_WIDTH)
+      .STAT_WIDTH    (STAT_WIDTH),
+      .GEN_M_STATS   (0)
   ) axi_perf_i (
       .clk  (clk),
       .rst_n(rst_n),
