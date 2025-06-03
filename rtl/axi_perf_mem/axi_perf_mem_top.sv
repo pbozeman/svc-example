@@ -14,7 +14,6 @@ module axi_perf_mem_top (
   localparam BAUD_RATE = 115_200;
   localparam STAT_WIDTH = 16;
 
-  logic clk;
   logic rst_n;
 
   svc_init svc_init_i (

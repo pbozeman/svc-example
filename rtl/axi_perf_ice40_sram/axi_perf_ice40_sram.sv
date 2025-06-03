@@ -9,7 +9,7 @@
 module axi_perf_ice40_sram #(
     parameter CLOCK_FREQ      = 100_000_000,
     parameter BAUD_RATE       = 115_200,
-    parameter SRAM_ADDR_WIDTH = 20,
+    parameter SRAM_ADDR_WIDTH = 18,
     parameter SRAM_DATA_WIDTH = 16,
     parameter STAT_WIDTH      = 32
 ) (
