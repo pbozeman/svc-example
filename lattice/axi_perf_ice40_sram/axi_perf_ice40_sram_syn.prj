@@ -1,8 +1,10 @@
 #--  Synopsys, Inc.
 #--  Version L-2016.09L+ice40
+#--  Written on Fri Mar 14 13:11:53 2025
 
 
 #project files
+
 
 
 add_file -verilog -lib work "../../rtl/axi_perf_ice40_sram/axi_perf_ice40_sram_top.sv" 
@@ -15,7 +17,6 @@ impl -add axi_perf_ice40_sram_Implmnt -type fpga
 
 set_option -vlog_std sysv
 set_option -project_relative_includes 1
-set_option -hdl_define -set ICE40=1
 set_option -include_path {../../rtl/;../../svc/rtl/}
 
 #device options
