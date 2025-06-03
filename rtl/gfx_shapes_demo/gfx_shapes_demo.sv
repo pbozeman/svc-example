@@ -7,12 +7,11 @@
 
 // verilator lint_off: UNUSEDSIGNAL
 module gfx_shapes_demo #(
-    parameter COLOR_WIDTH      = 4,
-    parameter H_WIDTH          = 12,
-    parameter V_WIDTH          = 12,
-    parameter SRAM_ADDR_WIDTH  = 20,
-    parameter SRAM_DATA_WIDTH  = 16,
-    parameter SRAM_RDATA_WIDTH = SRAM_DATA_WIDTH
+    parameter COLOR_WIDTH     = 4,
+    parameter H_WIDTH         = 12,
+    parameter V_WIDTH         = 12,
+    parameter SRAM_ADDR_WIDTH = 20,
+    parameter SRAM_DATA_WIDTH = 16
 ) (
     input logic clk,
     input logic rst_n,
@@ -29,11 +28,11 @@ module gfx_shapes_demo #(
     output logic                   vga_vsync,
     output logic                   vga_error,
 
-    output logic [ SRAM_ADDR_WIDTH-1:0] sram_io_addr,
-    inout  wire  [SRAM_RDATA_WIDTH-1:0] sram_io_data,
-    output logic                        sram_io_we_n,
-    output logic                        sram_io_oe_n,
-    output logic                        sram_io_ce_n
+    output logic [SRAM_ADDR_WIDTH-1:0] sram_io_addr,
+    inout  wire  [SRAM_DATA_WIDTH-1:0] sram_io_data,
+    output logic                       sram_io_we_n,
+    output logic                       sram_io_oe_n,
+    output logic                       sram_io_ce_n
 );
   localparam NUM_M = 3;
   localparam AXI_ADDR_WIDTH = SRAM_ADDR_WIDTH + $clog2(SRAM_DATA_WIDTH / 8);
@@ -76,7 +75,6 @@ module gfx_shapes_demo #(
       .AXI_ADDR_WIDTH      (AXI_ADDR_WIDTH),
       .AXI_DATA_WIDTH      (AXI_DATA_WIDTH),
       .AXI_ID_WIDTH        (AXI_ID_WIDTH),
-      .SRAM_RDATA_WIDTH    (SRAM_RDATA_WIDTH),
       .OUTSTANDING_IO_WIDTH(3)
   ) svc_ice40_axi_sram_i (
       .clk          (clk),
