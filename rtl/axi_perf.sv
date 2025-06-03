@@ -26,7 +26,8 @@ module axi_perf #(
     parameter AXI_ID_WIDTH   = 4,
     parameter AXI_STRB_WIDTH = AXI_DATA_WIDTH / 8,
     parameter STAT_WIDTH     = 32,
-    parameter NUM_M          = 1
+    parameter NUM_M          = 1,
+    parameter GEN_M_STATS    = 1
 ) (
     input logic clk,
     input logic rst_n,
@@ -214,6 +215,7 @@ module axi_perf #(
   logic [      1:0]            stats_top_rresp;
   logic                        stats_top_rready;
 
+  // verilator lint_off: UNUSEDSIGNAL
   logic [NUM_M-1:0]            stats_tgen_awvalid;
   logic [NUM_M-1:0][ S_AW-1:0] stats_tgen_awaddr;
   logic [NUM_M-1:0]            stats_tgen_awready;
@@ -232,6 +234,7 @@ module axi_perf #(
   logic [NUM_M-1:0][ S_DW-1:0] stats_tgen_rdata;
   logic [NUM_M-1:0][      1:0] stats_tgen_rresp;
   logic [NUM_M-1:0]            stats_tgen_rready;
+  // verilator lint_on: UNUSEDSIGNAL
 
   // arb from the perf signals to the m_ output signals going to the memory
   // device
@@ -405,88 +408,139 @@ module axi_perf #(
       .m_axil_rready (ab_rready)
   );
 
-  svc_axil_router #(
-      .S_AXIL_ADDR_WIDTH(AB_AW),
-      .S_AXIL_DATA_WIDTH(AB_DW),
-      .M_AXIL_ADDR_WIDTH(S_AW),
-      .M_AXIL_DATA_WIDTH(S_DW),
-      .NUM_S            (2 * NUM_M + 2)
-  ) svc_axil_router_i (
-      .clk  (clk),
-      .rst_n(rst_n),
+  if (GEN_M_STATS == 1) begin : gen_router_m_stats
+    svc_axil_router #(
+        .S_AXIL_ADDR_WIDTH(AB_AW),
+        .S_AXIL_DATA_WIDTH(AB_DW),
+        .M_AXIL_ADDR_WIDTH(S_AW),
+        .M_AXIL_DATA_WIDTH(S_DW),
+        .NUM_S            (2 * NUM_M + 2)
+    ) svc_axil_router_i (
+        .clk  (clk),
+        .rst_n(rst_n),
 
-      .s_axil_awaddr (ab_awaddr),
-      .s_axil_awvalid(ab_awvalid),
-      .s_axil_awready(ab_awready),
-      .s_axil_wdata  (ab_wdata),
-      .s_axil_wstrb  (ab_wstrb),
-      .s_axil_wvalid (ab_wvalid),
-      .s_axil_wready (ab_wready),
-      .s_axil_bresp  (ab_bresp),
-      .s_axil_bvalid (ab_bvalid),
-      .s_axil_bready (ab_bready),
+        .s_axil_awaddr (ab_awaddr),
+        .s_axil_awvalid(ab_awvalid),
+        .s_axil_awready(ab_awready),
+        .s_axil_wdata  (ab_wdata),
+        .s_axil_wstrb  (ab_wstrb),
+        .s_axil_wvalid (ab_wvalid),
+        .s_axil_wready (ab_wready),
+        .s_axil_bresp  (ab_bresp),
+        .s_axil_bvalid (ab_bvalid),
+        .s_axil_bready (ab_bready),
 
-      .s_axil_arvalid(ab_arvalid),
-      .s_axil_araddr (ab_araddr),
-      .s_axil_arready(ab_arready),
-      .s_axil_rdata  (ab_rdata),
-      .s_axil_rresp  (ab_rresp),
-      .s_axil_rvalid (ab_rvalid),
-      .s_axil_rready (ab_rready),
+        .s_axil_arvalid(ab_arvalid),
+        .s_axil_araddr (ab_araddr),
+        .s_axil_arready(ab_arready),
+        .s_axil_rdata  (ab_rdata),
+        .s_axil_rresp  (ab_rresp),
+        .s_axil_rvalid (ab_rvalid),
+        .s_axil_rready (ab_rready),
 
-      .m_axil_awvalid({
-        stats_tgen_awvalid, ctrl_awvalid, stats_top_awvalid, ctrl_top_awvalid
-      }),
-      .m_axil_awaddr({
-        stats_tgen_awaddr, ctrl_awaddr, stats_top_awaddr, ctrl_top_awaddr
-      }),
-      .m_axil_awready({
-        stats_tgen_awready, ctrl_awready, stats_top_awready, ctrl_top_awready
-      }),
-      .m_axil_wvalid({
-        stats_tgen_wvalid, ctrl_wvalid, stats_top_wvalid, ctrl_top_wvalid
-      }),
-      .m_axil_wdata({
-        stats_tgen_wdata, ctrl_wdata, stats_top_wdata, ctrl_top_wdata
-      }),
-      .m_axil_wstrb({
-        stats_tgen_wstrb, ctrl_wstrb, stats_top_wstrb, ctrl_top_wstrb
-      }),
-      .m_axil_wready({
-        stats_tgen_wready, ctrl_wready, stats_top_wready, ctrl_top_wready
-      }),
-      .m_axil_bvalid({
-        stats_tgen_bvalid, ctrl_bvalid, stats_top_bvalid, ctrl_top_bvalid
-      }),
-      .m_axil_bresp({
-        stats_tgen_bresp, ctrl_bresp, stats_top_bresp, ctrl_top_bresp
-      }),
-      .m_axil_bready({
-        stats_tgen_bready, ctrl_bready, stats_top_bready, ctrl_top_bready
-      }),
+        .m_axil_awvalid({
+          stats_tgen_awvalid, ctrl_awvalid, stats_top_awvalid, ctrl_top_awvalid
+        }),
+        .m_axil_awaddr({
+          stats_tgen_awaddr, ctrl_awaddr, stats_top_awaddr, ctrl_top_awaddr
+        }),
+        .m_axil_awready({
+          stats_tgen_awready, ctrl_awready, stats_top_awready, ctrl_top_awready
+        }),
+        .m_axil_wvalid({
+          stats_tgen_wvalid, ctrl_wvalid, stats_top_wvalid, ctrl_top_wvalid
+        }),
+        .m_axil_wdata({
+          stats_tgen_wdata, ctrl_wdata, stats_top_wdata, ctrl_top_wdata
+        }),
+        .m_axil_wstrb({
+          stats_tgen_wstrb, ctrl_wstrb, stats_top_wstrb, ctrl_top_wstrb
+        }),
+        .m_axil_wready({
+          stats_tgen_wready, ctrl_wready, stats_top_wready, ctrl_top_wready
+        }),
+        .m_axil_bvalid({
+          stats_tgen_bvalid, ctrl_bvalid, stats_top_bvalid, ctrl_top_bvalid
+        }),
+        .m_axil_bresp({
+          stats_tgen_bresp, ctrl_bresp, stats_top_bresp, ctrl_top_bresp
+        }),
+        .m_axil_bready({
+          stats_tgen_bready, ctrl_bready, stats_top_bready, ctrl_top_bready
+        }),
 
-      .m_axil_arvalid({
-        stats_tgen_arvalid, ctrl_arvalid, stats_top_arvalid, ctrl_top_arvalid
-      }),
-      .m_axil_araddr({
-        stats_tgen_araddr, ctrl_araddr, stats_top_araddr, ctrl_top_araddr
-      }),
-      .m_axil_arready({
-        stats_tgen_arready, ctrl_arready, stats_top_arready, ctrl_top_arready
-      }),
-      .m_axil_rdata({
-        stats_tgen_rdata, ctrl_rdata, stats_top_rdata, ctrl_top_rdata
-      }),
-      .m_axil_rresp({
-        stats_tgen_rresp, ctrl_rresp, stats_top_rresp, ctrl_top_rresp
-      }),
-      .m_axil_rvalid({
-        stats_tgen_rvalid, ctrl_rvalid, stats_top_rvalid, ctrl_top_rvalid
-      }),
-      .m_axil_rready({
-        stats_tgen_rready, ctrl_rready, stats_top_rready, ctrl_top_rready
-      })
-  );
+        .m_axil_arvalid({
+          stats_tgen_arvalid, ctrl_arvalid, stats_top_arvalid, ctrl_top_arvalid
+        }),
+        .m_axil_araddr({
+          stats_tgen_araddr, ctrl_araddr, stats_top_araddr, ctrl_top_araddr
+        }),
+        .m_axil_arready({
+          stats_tgen_arready, ctrl_arready, stats_top_arready, ctrl_top_arready
+        }),
+        .m_axil_rdata({
+          stats_tgen_rdata, ctrl_rdata, stats_top_rdata, ctrl_top_rdata
+        }),
+        .m_axil_rresp({
+          stats_tgen_rresp, ctrl_rresp, stats_top_rresp, ctrl_top_rresp
+        }),
+        .m_axil_rvalid({
+          stats_tgen_rvalid, ctrl_rvalid, stats_top_rvalid, ctrl_top_rvalid
+        }),
+        .m_axil_rready({
+          stats_tgen_rready, ctrl_rready, stats_top_rready, ctrl_top_rready
+        })
+    );
+  end else begin : gen_router_no_m_stats
+    svc_axil_router #(
+        .S_AXIL_ADDR_WIDTH(AB_AW),
+        .S_AXIL_DATA_WIDTH(AB_DW),
+        .M_AXIL_ADDR_WIDTH(S_AW),
+        .M_AXIL_DATA_WIDTH(S_DW),
+        .NUM_S            (NUM_M + 2)
+    ) svc_axil_router_i (
+        .clk  (clk),
+        .rst_n(rst_n),
+
+        .s_axil_awaddr (ab_awaddr),
+        .s_axil_awvalid(ab_awvalid),
+        .s_axil_awready(ab_awready),
+        .s_axil_wdata  (ab_wdata),
+        .s_axil_wstrb  (ab_wstrb),
+        .s_axil_wvalid (ab_wvalid),
+        .s_axil_wready (ab_wready),
+        .s_axil_bresp  (ab_bresp),
+        .s_axil_bvalid (ab_bvalid),
+        .s_axil_bready (ab_bready),
+
+        .s_axil_arvalid(ab_arvalid),
+        .s_axil_araddr (ab_araddr),
+        .s_axil_arready(ab_arready),
+        .s_axil_rdata  (ab_rdata),
+        .s_axil_rresp  (ab_rresp),
+        .s_axil_rvalid (ab_rvalid),
+        .s_axil_rready (ab_rready),
+
+        .m_axil_awvalid({ctrl_awvalid, stats_top_awvalid, ctrl_top_awvalid}),
+        .m_axil_awaddr ({ctrl_awaddr, stats_top_awaddr, ctrl_top_awaddr}),
+        .m_axil_awready({ctrl_awready, stats_top_awready, ctrl_top_awready}),
+        .m_axil_wvalid ({ctrl_wvalid, stats_top_wvalid, ctrl_top_wvalid}),
+        .m_axil_wdata  ({ctrl_wdata, stats_top_wdata, ctrl_top_wdata}),
+        .m_axil_wstrb  ({ctrl_wstrb, stats_top_wstrb, ctrl_top_wstrb}),
+        .m_axil_wready ({ctrl_wready, stats_top_wready, ctrl_top_wready}),
+        .m_axil_bvalid ({ctrl_bvalid, stats_top_bvalid, ctrl_top_bvalid}),
+        .m_axil_bresp  ({ctrl_bresp, stats_top_bresp, ctrl_top_bresp}),
+        .m_axil_bready ({ctrl_bready, stats_top_bready, ctrl_top_bready}),
+
+        .m_axil_arvalid({ctrl_arvalid, stats_top_arvalid, ctrl_top_arvalid}),
+        .m_axil_araddr ({ctrl_araddr, stats_top_araddr, ctrl_top_araddr}),
+        .m_axil_arready({ctrl_arready, stats_top_arready, ctrl_top_arready}),
+        .m_axil_rdata  ({ctrl_rdata, stats_top_rdata, ctrl_top_rdata}),
+        .m_axil_rresp  ({ctrl_rresp, stats_top_rresp, ctrl_top_rresp}),
+        .m_axil_rvalid ({ctrl_rvalid, stats_top_rvalid, ctrl_top_rvalid}),
+        .m_axil_rready ({ctrl_rready, stats_top_rready, ctrl_top_rready})
+    );
+  end
 
   typedef enum {
     STATE_IDLE,
@@ -621,71 +675,73 @@ module axi_perf #(
         .m_axi_rready (tgen_rready[i])
     );
 
-    svc_axi_stats #(
-        .AXI_ADDR_WIDTH (AXI_ADDR_WIDTH),
-        .AXI_DATA_WIDTH (AXI_DATA_WIDTH),
-        .AXI_ID_WIDTH   (AIW),
-        .STAT_WIDTH     (STAT_WIDTH),
-        .AXIL_ADDR_WIDTH(S_AW),
-        .AXIL_DATA_WIDTH(S_DW)
-    ) svc_axi_stats_perf (
-        .clk  (clk),
-        .rst_n(rst_n),
+    if (GEN_M_STATS == 1) begin : gen_m_stats
+      svc_axi_stats #(
+          .AXI_ADDR_WIDTH (AXI_ADDR_WIDTH),
+          .AXI_DATA_WIDTH (AXI_DATA_WIDTH),
+          .AXI_ID_WIDTH   (AIW),
+          .STAT_WIDTH     (STAT_WIDTH),
+          .AXIL_ADDR_WIDTH(S_AW),
+          .AXIL_DATA_WIDTH(S_DW)
+      ) svc_axi_stats_perf (
+          .clk  (clk),
+          .rst_n(rst_n),
 
-        .stat_clear(ctrl_top_clear),
-        .stat_err  (),
+          .stat_clear(ctrl_top_clear),
+          .stat_err  (),
 
-        // control interface
-        .s_axil_awaddr (stats_tgen_awaddr[i]),
-        .s_axil_awvalid(stats_tgen_awvalid[i]),
-        .s_axil_awready(stats_tgen_awready[i]),
-        .s_axil_wdata  (stats_tgen_wdata[i]),
-        .s_axil_wstrb  (stats_tgen_wstrb[i]),
-        .s_axil_wvalid (stats_tgen_wvalid[i]),
-        .s_axil_wready (stats_tgen_wready[i]),
-        .s_axil_bvalid (stats_tgen_bvalid[i]),
-        .s_axil_bresp  (stats_tgen_bresp[i]),
-        .s_axil_bready (stats_tgen_bready[i]),
+          // control interface
+          .s_axil_awaddr (stats_tgen_awaddr[i]),
+          .s_axil_awvalid(stats_tgen_awvalid[i]),
+          .s_axil_awready(stats_tgen_awready[i]),
+          .s_axil_wdata  (stats_tgen_wdata[i]),
+          .s_axil_wstrb  (stats_tgen_wstrb[i]),
+          .s_axil_wvalid (stats_tgen_wvalid[i]),
+          .s_axil_wready (stats_tgen_wready[i]),
+          .s_axil_bvalid (stats_tgen_bvalid[i]),
+          .s_axil_bresp  (stats_tgen_bresp[i]),
+          .s_axil_bready (stats_tgen_bready[i]),
 
-        .s_axil_arvalid(stats_tgen_arvalid[i]),
-        .s_axil_araddr (stats_tgen_araddr[i]),
-        .s_axil_arready(stats_tgen_arready[i]),
-        .s_axil_rvalid (stats_tgen_rvalid[i]),
-        .s_axil_rdata  (stats_tgen_rdata[i]),
-        .s_axil_rresp  (stats_tgen_rresp[i]),
-        .s_axil_rready (stats_tgen_rready[i]),
+          .s_axil_arvalid(stats_tgen_arvalid[i]),
+          .s_axil_araddr (stats_tgen_araddr[i]),
+          .s_axil_arready(stats_tgen_arready[i]),
+          .s_axil_rvalid (stats_tgen_rvalid[i]),
+          .s_axil_rdata  (stats_tgen_rdata[i]),
+          .s_axil_rresp  (stats_tgen_rresp[i]),
+          .s_axil_rready (stats_tgen_rready[i]),
 
-        // interface for stats
-        .m_axi_awvalid(tgen_awvalid[i]),
-        .m_axi_awaddr (tgen_awaddr[i]),
-        .m_axi_awid   (tgen_awid[i]),
-        .m_axi_awlen  (tgen_awlen[i]),
-        .m_axi_awsize (tgen_awsize[i]),
-        .m_axi_awburst(tgen_awburst[i]),
-        .m_axi_awready(tgen_awready[i]),
-        .m_axi_wvalid (tgen_wvalid[i]),
-        .m_axi_wdata  (tgen_wdata[i]),
-        .m_axi_wstrb  (tgen_wstrb[i]),
-        .m_axi_wlast  (tgen_wlast[i]),
-        .m_axi_wready (tgen_wready[i]),
-        .m_axi_bvalid (tgen_bvalid[i]),
-        .m_axi_bid    (tgen_bid[i]),
-        .m_axi_bresp  (tgen_bresp[i]),
-        .m_axi_bready (tgen_bready[i]),
-        .m_axi_arvalid(tgen_arvalid[i]),
-        .m_axi_arid   (tgen_arid[i]),
-        .m_axi_araddr (tgen_araddr[i]),
-        .m_axi_arlen  (tgen_arlen[i]),
-        .m_axi_arsize (tgen_arsize[i]),
-        .m_axi_arburst(tgen_arburst[i]),
-        .m_axi_arready(tgen_arready[i]),
-        .m_axi_rvalid (tgen_rvalid[i]),
-        .m_axi_rid    (tgen_rid[i]),
-        .m_axi_rdata  (tgen_rdata[i]),
-        .m_axi_rresp  (tgen_rresp[i]),
-        .m_axi_rlast  (tgen_rlast[i]),
-        .m_axi_rready (tgen_rready[i])
-    );
+          // interface for stats
+          .m_axi_awvalid(tgen_awvalid[i]),
+          .m_axi_awaddr (tgen_awaddr[i]),
+          .m_axi_awid   (tgen_awid[i]),
+          .m_axi_awlen  (tgen_awlen[i]),
+          .m_axi_awsize (tgen_awsize[i]),
+          .m_axi_awburst(tgen_awburst[i]),
+          .m_axi_awready(tgen_awready[i]),
+          .m_axi_wvalid (tgen_wvalid[i]),
+          .m_axi_wdata  (tgen_wdata[i]),
+          .m_axi_wstrb  (tgen_wstrb[i]),
+          .m_axi_wlast  (tgen_wlast[i]),
+          .m_axi_wready (tgen_wready[i]),
+          .m_axi_bvalid (tgen_bvalid[i]),
+          .m_axi_bid    (tgen_bid[i]),
+          .m_axi_bresp  (tgen_bresp[i]),
+          .m_axi_bready (tgen_bready[i]),
+          .m_axi_arvalid(tgen_arvalid[i]),
+          .m_axi_arid   (tgen_arid[i]),
+          .m_axi_araddr (tgen_araddr[i]),
+          .m_axi_arlen  (tgen_arlen[i]),
+          .m_axi_arsize (tgen_arsize[i]),
+          .m_axi_arburst(tgen_arburst[i]),
+          .m_axi_arready(tgen_arready[i]),
+          .m_axi_rvalid (tgen_rvalid[i]),
+          .m_axi_rid    (tgen_rid[i]),
+          .m_axi_rdata  (tgen_rdata[i]),
+          .m_axi_rresp  (tgen_rresp[i]),
+          .m_axi_rlast  (tgen_rlast[i]),
+          .m_axi_rready (tgen_rready[i])
+      );
+    end
   end
 
   svc_axi_stats #(
