@@ -1,11 +1,12 @@
 `include "svc.sv"
+`include "svc_ice40_pll_75.sv"
 `include "svc_init.sv"
 
 `include "axi_perf_striped_ice40_sram.sv"
 
 module axi_perf_striped_ice40_sram_top #(
     parameter NUM_S           = 2,
-    parameter SRAM_ADDR_WIDTH = 20,
+    parameter SRAM_ADDR_WIDTH = 18,
     parameter SRAM_DATA_WIDTH = 16
 ) (
     input logic CLK,
@@ -16,17 +17,16 @@ module axi_perf_striped_ice40_sram_top #(
     input  logic UART_RX,
     output logic UART_TX,
 
-    output logic [SRAM_ADDR_WIDTH-1:0] L_SRAM_ADDR_BUS,
-    inout  wire  [SRAM_DATA_WIDTH-1:0] L_SRAM_DATA_BUS,
-    output logic                       L_SRAM_CS_N,
-    output logic                       L_SRAM_OE_N,
-    output logic                       L_SRAM_WE_N,
+    output logic [SRAM_ADDR_WIDTH-1:0] SRAM_256_A_ADDR_BUS,
+    inout  wire  [SRAM_DATA_WIDTH-1:0] SRAM_256_A_DATA_BUS,
+    output logic                       SRAM_256_A_OE_N,
+    output logic                       SRAM_256_A_WE_N,
 
-    output logic                       R_SRAM_CS_N,
-    output logic                       R_SRAM_OE_N,
-    output logic                       R_SRAM_WE_N,
-    output logic [SRAM_ADDR_WIDTH-1:0] R_SRAM_ADDR_BUS,
-    inout  wire  [SRAM_DATA_WIDTH-1:0] R_SRAM_DATA_BUS
+    output logic                       SRAM_256_B_OE_N,
+    output logic                       SRAM_256_B_WE_N,
+    output logic [SRAM_ADDR_WIDTH-1:0] SRAM_256_B_ADDR_BUS,
+    inout  wire  [SRAM_DATA_WIDTH-1:0] SRAM_256_B_DATA_BUS
+
 );
   localparam CLOCK_FREQ = 75_000_000;
   localparam BAUD_RATE = 115_200;
@@ -54,17 +54,17 @@ module axi_perf_striped_ice40_sram_top #(
       .BAUD_RATE      (BAUD_RATE),
       .STAT_WIDTH     (STAT_WIDTH)
   ) axi_perf_striped_ice40_sram_i (
-      .clk  (CLK),
+      .clk  (clk),
       .rst_n(rst_n),
 
       .urx_pin(UART_RX),
       .utx_pin(UART_TX),
 
-      .sram_io_addr({L_SRAM_ADDR_BUS, R_SRAM_ADDR_BUS}),
-      .sram_io_data({L_SRAM_DATA_BUS, R_SRAM_DATA_BUS}),
-      .sram_io_ce_n({L_SRAM_CS_N, R_SRAM_CS_N}),
-      .sram_io_we_n({L_SRAM_WE_N, R_SRAM_WE_N}),
-      .sram_io_oe_n({L_SRAM_OE_N, R_SRAM_OE_N})
+      .sram_io_addr({SRAM_256_A_ADDR_BUS, SRAM_256_B_ADDR_BUS}),
+      .sram_io_data({SRAM_256_A_DATA_BUS, SRAM_256_B_DATA_BUS}),
+      .sram_io_ce_n(),
+      .sram_io_we_n({SRAM_256_A_WE_N, SRAM_256_B_WE_N}),
+      .sram_io_oe_n({SRAM_256_A_OE_N, SRAM_256_B_OE_N})
   );
 
   assign LED1 = 1'b0;
