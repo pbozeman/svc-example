@@ -9,28 +9,23 @@
 `include "gfx_shapes_demo.sv"
 
 module gfx_shapes_demo_top #(
-    localparam COLOR_WIDTH      = 4,
-    parameter  SRAM_ADDR_WIDTH  = 20,
-    parameter  SRAM_DATA_WIDTH  = 16,
-    parameter  SRAM_RDATA_WIDTH = 16
+    localparam COLOR_WIDTH     = 4,
+    parameter  SRAM_ADDR_WIDTH = 18,
+    parameter  SRAM_DATA_WIDTH = 16
 ) (
     input  logic CLK,
     output logic LED1,
     output logic LED2,
 
     // sram
-    output logic [ SRAM_ADDR_WIDTH-1:0] L_SRAM_ADDR_BUS,
-    inout  wire  [SRAM_RDATA_WIDTH-1:0] L_SRAM_DATA_BUS,
-    output logic                        L_SRAM_CS_N,
-    output logic                        L_SRAM_OE_N,
-    output logic                        L_SRAM_WE_N,
+    output logic [SRAM_ADDR_WIDTH-1:0] SRAM_256_A_ADDR_BUS,
+    inout  wire  [SRAM_DATA_WIDTH-1:0] SRAM_256_A_DATA_BUS,
+    output logic                       SRAM_256_A_OE_N,
+    output logic                       SRAM_256_A_WE_N,
 
-    // output vga to pmod e/f
-    output logic [7:0] R_E,
-    output logic [7:0] R_F,
-
-    output logic [7:0] R_H,
-    output logic [7:0] R_I
+    // output vga to pmod
+    output logic [7:0] PMOD_A,
+    output logic [7:0] PMOD_B
 );
   logic                   pixel_clk;
   logic                   rst_n;
@@ -54,10 +49,9 @@ module gfx_shapes_demo_top #(
   );
 
   gfx_shapes_demo #(
-      .COLOR_WIDTH     (COLOR_WIDTH),
-      .SRAM_ADDR_WIDTH (SRAM_ADDR_WIDTH),
-      .SRAM_DATA_WIDTH (SRAM_DATA_WIDTH),
-      .SRAM_RDATA_WIDTH(SRAM_RDATA_WIDTH)
+      .COLOR_WIDTH    (COLOR_WIDTH),
+      .SRAM_ADDR_WIDTH(SRAM_ADDR_WIDTH),
+      .SRAM_DATA_WIDTH(SRAM_DATA_WIDTH)
   ) gfx_shapes_demo_i (
       .clk  (CLK),
       .rst_n(rst_n),
@@ -67,11 +61,11 @@ module gfx_shapes_demo_top #(
 
       .continious_write(1'b0),
 
-      .sram_io_addr(L_SRAM_ADDR_BUS),
-      .sram_io_data(L_SRAM_DATA_BUS),
-      .sram_io_ce_n(L_SRAM_CS_N),
-      .sram_io_we_n(L_SRAM_WE_N),
-      .sram_io_oe_n(L_SRAM_OE_N),
+      .sram_io_addr(SRAM_256_A_ADDR_BUS),
+      .sram_io_data(SRAM_256_A_DATA_BUS),
+      .sram_io_ce_n(),
+      .sram_io_we_n(SRAM_256_A_WE_N),
+      .sram_io_oe_n(SRAM_256_A_OE_N),
 
       .vga_red  (vga_red),
       .vga_grn  (vga_grn),
@@ -80,15 +74,6 @@ module gfx_shapes_demo_top #(
       .vga_vsync(vga_vsync),
       .vga_error(vga_error)
   );
-
-  // digilent vga pmod pinout
-  assign R_E[3:0] = vga_red;
-  assign R_F[3:0] = vga_grn;
-  assign R_E[7:4] = vga_blu;
-  assign R_F[4]   = vga_hsync;
-  assign R_F[5]   = vga_vsync;
-  assign R_F[6]   = 1'b0;
-  assign R_F[7]   = 1'b0;
 
   logic [15:0] error_cnt;
   always_ff @(posedge pixel_clk) begin
@@ -101,10 +86,16 @@ module gfx_shapes_demo_top #(
     end
   end
 
-  assign LED1 = 1'b0;
-  assign LED2 = 1'b0;
+  // digilent vga pmod pinout
+  assign PMOD_A[3:0] = vga_red;
+  assign PMOD_B[3:0] = vga_grn;
+  assign PMOD_A[7:4] = vga_blu;
+  assign PMOD_B[4]   = vga_hsync;
+  assign PMOD_B[5]   = vga_vsync;
+  assign PMOD_B[6]   = 1'b0;
+  assign PMOD_B[7]   = 1'b0;
 
-  assign R_I  = error_cnt[15:8];
-  assign R_H  = error_cnt[7:0];
+  assign LED1        = 1'b0;
+  assign LED2        = 1'b0;
 
 endmodule
