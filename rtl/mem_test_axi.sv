@@ -10,8 +10,7 @@ module mem_test_axi #(
     parameter AXI_ID_WIDTH   = 4,
     parameter AXI_STRB_WIDTH = AXI_DATA_WIDTH / 8,
     parameter NUM_BURSTS     = 8,
-    parameter NUM_BEATS      = 3,
-    parameter RDATA_WIDTH    = AXI_DATA_WIDTH
+    parameter NUM_BEATS      = 3
 ) (
     input logic clk,
     input logic rst_n,
@@ -56,8 +55,10 @@ module mem_test_axi #(
     input  logic                      m_axi_rlast,
     output logic                      m_axi_rready
 );
+  localparam DATA_WIDTH = AXI_DATA_WIDTH;
+
   localparam BURST_ADDR_BASE = AXI_ADDR_WIDTH'(8'h00);
-  localparam BEAT_DATA_BASE = RDATA_WIDTH'(8'hD0);
+  localparam BEAT_DATA_BASE = DATA_WIDTH'(8'hD0);
 
   localparam BYTES_PER_BEAT = AXI_DATA_WIDTH / 8;
   localparam BYTES_PER_BURST = BYTES_PER_BEAT * NUM_BEATS;
@@ -85,7 +86,7 @@ module mem_test_axi #(
   logic   [               7:0] w_data_cnt;
   logic   [               7:0] w_data_cnt_next;
 
-  logic   [   RDATA_WIDTH-1:0] w_data_calc;
+  logic   [    DATA_WIDTH-1:0] w_data_calc;
 
   logic                        m_axi_awvalid_next;
   logic   [AXI_ADDR_WIDTH-1:0] m_axi_awaddr_next;
@@ -110,13 +111,13 @@ module mem_test_axi #(
   logic   [               7:0] r_data_cnt;
   logic   [               7:0] r_data_cnt_next;
 
-  logic   [   RDATA_WIDTH-1:0] r_data_calc;
+  logic   [    DATA_WIDTH-1:0] r_data_calc;
 
-  logic   [   RDATA_WIDTH-1:0] r_data_actual;
-  logic   [   RDATA_WIDTH-1:0] r_data_actual_next;
+  logic   [    DATA_WIDTH-1:0] r_data_actual;
+  logic   [    DATA_WIDTH-1:0] r_data_actual_next;
 
-  logic   [   RDATA_WIDTH-1:0] r_data_expected_save;
-  logic   [   RDATA_WIDTH-1:0] r_data_expected_save_next;
+  logic   [    DATA_WIDTH-1:0] r_data_expected_save;
+  logic   [    DATA_WIDTH-1:0] r_data_expected_save_next;
 
   logic                        m_axi_arvalid_next;
   logic   [AXI_ADDR_WIDTH-1:0] m_axi_araddr_next;
@@ -138,7 +139,7 @@ module mem_test_axi #(
   assign m_axi_wstrb   = '1;
   assign m_axi_bready  = 1'b1;
 
-  assign w_data_calc   = BEAT_DATA_BASE + RDATA_WIDTH'(w_data_cnt);
+  assign w_data_calc   = BEAT_DATA_BASE + DATA_WIDTH'(w_data_cnt);
 
   always_comb begin
     w_state_next       = w_state;
@@ -259,7 +260,7 @@ module mem_test_axi #(
   //
   assign m_axi_rready = 1'b1;
 
-  assign r_data_calc  = BEAT_DATA_BASE + RDATA_WIDTH'(r_data_cnt);
+  assign r_data_calc  = BEAT_DATA_BASE + DATA_WIDTH'(r_data_cnt);
 
   always_comb begin
     r_state_next              = r_state;
@@ -304,9 +305,9 @@ module mem_test_axi #(
       STATE_BURST: begin
         if (m_axi_rvalid && m_axi_rready) begin
           r_data_cnt_next           = r_data_cnt + 1;
-          r_data_actual_next        = RDATA_WIDTH'(m_axi_rdata);
+          r_data_actual_next        = DATA_WIDTH'(m_axi_rdata);
           r_data_expected_save_next = r_data_calc;
-          if (RDATA_WIDTH'(m_axi_rdata) != r_data_calc) begin
+          if (DATA_WIDTH'(m_axi_rdata) != r_data_calc) begin
             r_state_next = STATE_FAIL;
           end else begin
             if (m_axi_rlast) begin

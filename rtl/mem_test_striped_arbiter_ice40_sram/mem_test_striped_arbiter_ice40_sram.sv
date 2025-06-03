@@ -9,12 +9,11 @@
 `include "mem_test_axi.sv"
 
 module mem_test_striped_arbiter_ice40_sram #(
-    parameter NUM_S            = 2,
-    parameter SRAM_ADDR_WIDTH  = 20,
-    parameter SRAM_DATA_WIDTH  = 16,
-    parameter SRAM_RDATA_WIDTH = SRAM_DATA_WIDTH,
-    parameter NUM_BURSTS       = 8,
-    parameter NUM_BEATS        = 8
+    parameter NUM_S           = 2,
+    parameter SRAM_ADDR_WIDTH = 20,
+    parameter SRAM_DATA_WIDTH = 16,
+    parameter NUM_BURSTS      = 8,
+    parameter NUM_BEATS       = 8
 ) (
     // tester signals
     input logic clk,
@@ -29,11 +28,11 @@ module mem_test_striped_arbiter_ice40_sram #(
     output logic [7:0] debug2,
 
     // sram controller to io pins
-    output logic [NUM_S-1:0][ SRAM_ADDR_WIDTH-1:0] sram_io_addr,
-    inout  wire  [NUM_S-1:0][SRAM_RDATA_WIDTH-1:0] sram_io_data,
-    output logic [NUM_S-1:0]                       sram_io_we_n,
-    output logic [NUM_S-1:0]                       sram_io_oe_n,
-    output logic [NUM_S-1:0]                       sram_io_ce_n
+    output logic [NUM_S-1:0][SRAM_ADDR_WIDTH-1:0] sram_io_addr,
+    inout  wire  [NUM_S-1:0][SRAM_DATA_WIDTH-1:0] sram_io_data,
+    output logic [NUM_S-1:0]                      sram_io_we_n,
+    output logic [NUM_S-1:0]                      sram_io_oe_n,
+    output logic [NUM_S-1:0]                      sram_io_ce_n
 );
 
   localparam AW = SRAM_ADDR_WIDTH + $clog2(SRAM_DATA_WIDTH / 8);
@@ -181,10 +180,9 @@ module mem_test_striped_arbiter_ice40_sram #(
     // the sram
     //
     svc_ice40_axi_sram #(
-        .AXI_ADDR_WIDTH  (AW),
-        .AXI_DATA_WIDTH  (DW),
-        .AXI_ID_WIDTH    (AIW),
-        .SRAM_RDATA_WIDTH(SRAM_RDATA_WIDTH)
+        .AXI_ADDR_WIDTH(AW),
+        .AXI_DATA_WIDTH(DW),
+        .AXI_ID_WIDTH  (AIW)
     ) svc_ice40_axi_sram_i (
         .clk          (clk),
         .rst_n        (rst_n),
@@ -418,8 +416,7 @@ module mem_test_striped_arbiter_ice40_sram #(
       .AXI_DATA_WIDTH(DW),
       .AXI_ID_WIDTH  (IW),
       .NUM_BURSTS    (NUM_BURSTS),
-      .NUM_BEATS     (NUM_BEATS),
-      .RDATA_WIDTH   (SRAM_RDATA_WIDTH)
+      .NUM_BEATS     (NUM_BEATS)
   ) mem_test_axi_i (
       .clk  (clk),
       .rst_n(rst_n),

@@ -9,19 +9,18 @@
 
 // verilator lint_off: UNUSEDSIGNAL
 module adc_demo_striped #(
-    parameter NUM_S            = 2,
-    parameter COLOR_WIDTH      = 4,
-    parameter H_WIDTH          = 12,
-    parameter V_WIDTH          = 12,
-    parameter SRAM_ADDR_WIDTH  = 20,
-    parameter SRAM_DATA_WIDTH  = 16,
-    parameter SRAM_RDATA_WIDTH = SRAM_DATA_WIDTH,
-    parameter ADC_DATA_WIDTH   = 10,
-    parameter ADC_SCALE_NUM_X  = 5,
-    parameter ADC_SCALE_DEN_X  = 8,
-    parameter ADC_SCALE_NUM_Y  = 15,
-    parameter ADC_SCALE_DEN_Y  = 32,
-    parameter ADC_DELAY        = 7
+    parameter NUM_S           = 2,
+    parameter COLOR_WIDTH     = 4,
+    parameter H_WIDTH         = 12,
+    parameter V_WIDTH         = 12,
+    parameter SRAM_ADDR_WIDTH = 20,
+    parameter SRAM_DATA_WIDTH = 16,
+    parameter ADC_DATA_WIDTH  = 10,
+    parameter ADC_SCALE_NUM_X = 5,
+    parameter ADC_SCALE_DEN_X = 8,
+    parameter ADC_SCALE_NUM_Y = 15,
+    parameter ADC_SCALE_DEN_Y = 32,
+    parameter ADC_DELAY       = 7
 ) (
     input logic clk,
     input logic rst_n,
@@ -45,11 +44,11 @@ module adc_demo_striped #(
     output logic                   vga_vsync,
     output logic                   vga_error,
 
-    output logic [NUM_S-1:0][ SRAM_ADDR_WIDTH-1:0] sram_io_addr,
-    inout  wire  [NUM_S-1:0][SRAM_RDATA_WIDTH-1:0] sram_io_data,
-    output logic [NUM_S-1:0]                       sram_io_we_n,
-    output logic [NUM_S-1:0]                       sram_io_oe_n,
-    output logic [NUM_S-1:0]                       sram_io_ce_n
+    output logic [NUM_S-1:0][SRAM_ADDR_WIDTH-1:0] sram_io_addr,
+    inout  wire  [NUM_S-1:0][SRAM_DATA_WIDTH-1:0] sram_io_data,
+    output logic [NUM_S-1:0]                      sram_io_we_n,
+    output logic [NUM_S-1:0]                      sram_io_oe_n,
+    output logic [NUM_S-1:0]                      sram_io_ce_n
 );
   localparam NUM_M = 3;
   localparam AXI_ADDR_WIDTH = SRAM_ADDR_WIDTH + $clog2(SRAM_DATA_WIDTH / 8);
@@ -126,7 +125,6 @@ module adc_demo_striped #(
         .AXI_ADDR_WIDTH      (AXI_ADDR_WIDTH),
         .AXI_DATA_WIDTH      (AXI_DATA_WIDTH),
         .AXI_ID_WIDTH        (AXI_ID_WIDTH),
-        .SRAM_RDATA_WIDTH    (SRAM_RDATA_WIDTH),
         .OUTSTANDING_IO_WIDTH(3)
     ) svc_ice40_axi_sram_i (
         .clk          (clk),

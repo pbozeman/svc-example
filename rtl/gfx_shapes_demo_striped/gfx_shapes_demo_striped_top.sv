@@ -9,27 +9,26 @@
 `include "gfx_shapes_demo_striped.sv"
 
 module gfx_shapes_demo_striped_top #(
-    parameter  NUM_S            = 2,
-    localparam COLOR_WIDTH      = 4,
-    parameter  SRAM_ADDR_WIDTH  = 20,
-    parameter  SRAM_DATA_WIDTH  = 16,
-    parameter  SRAM_RDATA_WIDTH = 16
+    parameter  NUM_S           = 2,
+    localparam COLOR_WIDTH     = 4,
+    parameter  SRAM_ADDR_WIDTH = 20,
+    parameter  SRAM_DATA_WIDTH = 16
 ) (
     input  logic CLK,
     output logic LED1,
     output logic LED2,
 
-    output logic                        R_SRAM_CS_N,
-    output logic                        R_SRAM_OE_N,
-    output logic                        R_SRAM_WE_N,
-    output logic [ SRAM_ADDR_WIDTH-1:0] R_SRAM_ADDR_BUS,
-    inout  wire  [SRAM_RDATA_WIDTH-1:0] R_SRAM_DATA_BUS,
+    output logic                       R_SRAM_CS_N,
+    output logic                       R_SRAM_OE_N,
+    output logic                       R_SRAM_WE_N,
+    output logic [SRAM_ADDR_WIDTH-1:0] R_SRAM_ADDR_BUS,
+    inout  wire  [SRAM_DATA_WIDTH-1:0] R_SRAM_DATA_BUS,
 
-    output logic                        L_SRAM_CS_N,
-    output logic                        L_SRAM_OE_N,
-    output logic                        L_SRAM_WE_N,
-    output logic [ SRAM_ADDR_WIDTH-1:0] L_SRAM_ADDR_BUS,
-    inout  wire  [SRAM_RDATA_WIDTH-1:0] L_SRAM_DATA_BUS,
+    output logic                       L_SRAM_CS_N,
+    output logic                       L_SRAM_OE_N,
+    output logic                       L_SRAM_WE_N,
+    output logic [SRAM_ADDR_WIDTH-1:0] L_SRAM_ADDR_BUS,
+    inout  wire  [SRAM_DATA_WIDTH-1:0] L_SRAM_DATA_BUS,
 
     // output vga to pmod e/f
     output logic [7:0] R_E,
@@ -60,11 +59,10 @@ module gfx_shapes_demo_striped_top #(
   );
 
   gfx_shapes_demo_striped #(
-      .NUM_S           (NUM_S),
-      .COLOR_WIDTH     (COLOR_WIDTH),
-      .SRAM_ADDR_WIDTH (SRAM_ADDR_WIDTH),
-      .SRAM_DATA_WIDTH (SRAM_DATA_WIDTH),
-      .SRAM_RDATA_WIDTH(SRAM_RDATA_WIDTH)
+      .NUM_S          (NUM_S),
+      .COLOR_WIDTH    (COLOR_WIDTH),
+      .SRAM_ADDR_WIDTH(SRAM_ADDR_WIDTH),
+      .SRAM_DATA_WIDTH(SRAM_DATA_WIDTH)
   ) gfx_shapes_demo_striped_i (
       .clk  (CLK),
       .rst_n(rst_n),
