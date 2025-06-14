@@ -77,8 +77,8 @@ module mem_test_axi #(
   logic   [AXI_ADDR_WIDTH-1:0] w_burst_addr;
   logic   [AXI_ADDR_WIDTH-1:0] w_burst_addr_next;
 
-  logic   [               7:0] w_burst_cnt;
-  logic   [               7:0] w_burst_cnt_next;
+  logic   [              15:0] w_burst_cnt;
+  logic   [              15:0] w_burst_cnt_next;
 
   logic   [               7:0] w_beat_cnt;
   logic   [               7:0] w_beat_cnt_next;
@@ -105,8 +105,8 @@ module mem_test_axi #(
   logic   [AXI_ADDR_WIDTH-1:0] r_burst_addr;
   logic   [AXI_ADDR_WIDTH-1:0] r_burst_addr_next;
 
-  logic   [               7:0] r_burst_cnt;
-  logic   [               7:0] r_burst_cnt_next;
+  logic   [              15:0] r_burst_cnt;
+  logic   [              15:0] r_burst_cnt_next;
 
   logic   [               7:0] r_data_cnt;
   logic   [               7:0] r_data_cnt_next;
