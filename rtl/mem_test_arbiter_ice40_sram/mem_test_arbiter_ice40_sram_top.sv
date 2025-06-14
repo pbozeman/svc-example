@@ -14,7 +14,6 @@ module mem_test_arbiter_ice40_sram_top #(
     // board signals
     input  logic CLK,
     output logic LED1,
-    output logic LED2,
 
     // Buses
     output logic [SRAM_ADDR_WIDTH-1:0] SRAM_256_A_ADDR_BUS,
@@ -22,14 +21,18 @@ module mem_test_arbiter_ice40_sram_top #(
 
     // Control signals
     output logic SRAM_256_A_OE_N,
-    output logic SRAM_256_A_WE_N
+    output logic SRAM_256_A_WE_N,
+    output logic SRAM_256_A_UB_N,
+    output logic SRAM_256_A_LB_N
 );
   localparam NUM_BURSTS = 255;
   localparam NUM_BEATS = 255;
 
   logic       rst_n;
+  // verilator lint_off: UNUSEDSIGNAL
   logic       test_done;
   logic       test_pass;
+  // verilator lint_on: UNUSEDSIGNAL
 
   logic [7:0] done_cnt;
 
@@ -72,7 +75,10 @@ module mem_test_arbiter_ice40_sram_top #(
     end
   end
 
-  assign LED1 = done_cnt[7];
-  assign LED2 = !test_pass;
+  assign LED1            = done_cnt[7];
+  // assign LED1 = !test_pass;
+
+  assign SRAM_256_A_UB_N = 1'b0;
+  assign SRAM_256_A_LB_N = 1'b0;
 
 endmodule

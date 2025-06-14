@@ -13,11 +13,10 @@ module vga_pattern_top #(
 ) (
     input  logic CLK,
     output logic LED1,
-    output logic LED2,
 
     // output vga to pmod e/f
     output logic [7:0] PMOD_A,
-    output logic [7:0] PMOD_B
+    output logic [5:0] PMOD_B
 );
   logic                   pixel_clk;
   logic                   rst_n;
@@ -56,7 +55,6 @@ module vga_pattern_top #(
   );
 
   assign LED1        = 1'b0;
-  assign LED2        = 1'b0;
 
   // digilent vga pmod pinout
   assign PMOD_A[3:0] = vga_red;
@@ -64,7 +62,7 @@ module vga_pattern_top #(
   assign PMOD_A[7:4] = vga_blu;
   assign PMOD_B[4]   = vga_hsync;
   assign PMOD_B[5]   = vga_vsync;
-  assign PMOD_B[6]   = 1'b0;
-  assign PMOD_B[7]   = 1'b0;
+  // assign PMOD_B[6]   = 1'b0;
+  // assign PMOD_B[7]   = 1'b0;
 
 endmodule

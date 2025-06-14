@@ -1,43 +1,15 @@
 [Project]
 ProjectVersion=2.0
 Version=Lattice Semiconductor Corporation iCEcube - Release: 2020.12.27943 - Build Date: Dec 10 2020 18:03:29
-ProjectName=axi_perf_mem
+ProjectName=vga_pattern
 Vendor=SiliconBlue
 Synthesis=synplify
-ProjectVFiles=../../rtl/axi_perf_mem/axi_perf_mem_top.sv=work
+ProjectVFiles=../../rtl/vga_pattern/vga_pattern_top.sv=work
 ProjectCFiles=../../constraints/vanilla-ice40-clock.sdc
-CurImplementation=axi_perf_mem_Implmnt
-Implementations=axi_perf_mem_Implmnt
+CurImplementation=vga_pattern_Implmnt
+Implementations=vga_pattern_Implmnt
 StartFromSynthesis=yes
 IPGeneration=false
-
-[axi_perf_mem_Implmnt]
-DeviceFamily=iCE40
-Device=HX8K
-DevicePackage=CT256
-DevicePower=
-NetlistFile=axi_perf_mem_Implmnt/axi_perf_mem.edf
-AdditionalEDIFFile=
-IPEDIFFile=
-DesignLib=axi_perf_mem_Implmnt/sbt/netlist/oadb-axi_perf_mem_top
-DesignView=_rt
-DesignCell=axi_perf_mem_top
-SynthesisSDCFile=axi_perf_mem_Implmnt/axi_perf_mem.scf
-UserPinConstraintFile=
-UserSDCFile=../../constraints/vanilla-ice40-clock.sdc
-PhysicalConstraintFile=axi_perf_mem_Implmnt/sbt/constraint/axi_perf_mem_top_pcf_sbt.pcf
-BackendImplPathName=
-Devicevoltage=1.14
-DevicevoltagePerformance=+/-5%(datasheet default)
-DeviceTemperature=85
-TimingAnalysisBasedOn=Worst
-OperationRange=Commercial
-TypicalCustomTemperature=25
-WorstCustomTemperature=85
-BestCustomTemperature=0
-IOBankVoltages=topBank,3.3 bottomBank,3.3 leftBank,3.3 rightBank,3.3
-derValue=0.701346
-TimingPathNumberStick=0
 
 [lse options]
 CarryChain=True
@@ -85,4 +57,32 @@ BitmapSetNoUsedIONoPullup=no
 FloorPlannerShowFanInNets=yes
 FloorPlannerShowFanOutNets=yes
 HookTo3rdPartyTextEditor=no
+
+[vga_pattern_Implmnt]
+DeviceFamily=iCE40
+Device=HX8K
+DevicePackage=CT256
+DevicePower=
+NetlistFile=vga_pattern_Implmnt/vga_pattern.edf
+AdditionalEDIFFile=
+IPEDIFFile=
+DesignLib=vga_pattern_Implmnt/sbt/netlist/oadb-vga_pattern_top
+DesignView=_rt
+DesignCell=vga_pattern_top
+SynthesisSDCFile=vga_pattern_Implmnt/vga_pattern.scf
+UserPinConstraintFile=
+UserSDCFile=../../constraints/vanilla-ice40-clock.sdc
+PhysicalConstraintFile=../../constraints/vanilla-ice40-hx8k-ct256.pcf
+BackendImplPathName=
+Devicevoltage=1.14
+DevicevoltagePerformance=+/-5%(datasheet default)
+DeviceTemperature=85
+TimingAnalysisBasedOn=Worst
+OperationRange=Commercial
+TypicalCustomTemperature=25
+WorstCustomTemperature=85
+BestCustomTemperature=0
+IOBankVoltages=topBank,3.3 bottomBank,3.3 leftBank,3.3 rightBank,3.3
+derValue=0.701346
+TimingPathNumberStick=0
 

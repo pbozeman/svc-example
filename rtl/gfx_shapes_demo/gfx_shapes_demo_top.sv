@@ -1,4 +1,9 @@
 // TODO: move the mode config into the makefile
+//
+// WARNING: this is actually too little memory for a single 256K
+// sram. When used with a single sram, it needs at least 680*480 words.
+// It sort of works because of the simplicity of the demo, but the line
+// is at the wrong location.
 `define VGA_MODE_640_480_60
 
 `include "svc.sv"
@@ -15,17 +20,18 @@ module gfx_shapes_demo_top #(
 ) (
     input  logic CLK,
     output logic LED1,
-    output logic LED2,
 
     // sram
     output logic [SRAM_ADDR_WIDTH-1:0] SRAM_256_A_ADDR_BUS,
     inout  wire  [SRAM_DATA_WIDTH-1:0] SRAM_256_A_DATA_BUS,
     output logic                       SRAM_256_A_OE_N,
     output logic                       SRAM_256_A_WE_N,
+    output logic                       SRAM_256_A_UB_N,
+    output logic                       SRAM_256_A_LB_N,
 
     // output vga to pmod
     output logic [7:0] PMOD_A,
-    output logic [7:0] PMOD_B
+    output logic [5:0] PMOD_B
 );
   logic                   pixel_clk;
   logic                   rst_n;
@@ -87,15 +93,16 @@ module gfx_shapes_demo_top #(
   end
 
   // digilent vga pmod pinout
-  assign PMOD_A[3:0] = vga_red;
-  assign PMOD_B[3:0] = vga_grn;
-  assign PMOD_A[7:4] = vga_blu;
-  assign PMOD_B[4]   = vga_hsync;
-  assign PMOD_B[5]   = vga_vsync;
-  assign PMOD_B[6]   = 1'b0;
-  assign PMOD_B[7]   = 1'b0;
+  assign PMOD_A[3:0]     = vga_red;
+  assign PMOD_B[3:0]     = vga_grn;
+  assign PMOD_A[7:4]     = vga_blu;
+  assign PMOD_B[4]       = vga_hsync;
+  assign PMOD_B[5]       = vga_vsync;
+  // assign PMOD_B[6]       = 1'b0;
+  // assign PMOD_B[7]       = 1'b0;
 
-  assign LED1        = 1'b0;
-  assign LED2        = 1'b0;
+  assign LED1            = 1'b0;
+  assign SRAM_256_A_UB_N = 1'b0;
+  assign SRAM_256_A_LB_N = 1'b0;
 
 endmodule
