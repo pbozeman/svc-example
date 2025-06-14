@@ -1,31 +1,31 @@
 [Project]
 ProjectVersion=2.0
 Version=Lattice Semiconductor Corporation iCEcube - Release: 2020.12.27943 - Build Date: Dec 10 2020 18:03:29
-ProjectName=axi_perf_mem
+ProjectName=gfx_pattern_demo_striped
 Vendor=SiliconBlue
 Synthesis=synplify
-ProjectVFiles=../../rtl/axi_perf_mem/axi_perf_mem_top.sv=work
+ProjectVFiles=../../rtl/gfx_pattern_demo_striped/gfx_pattern_demo_striped_top.sv=work
 ProjectCFiles=../../constraints/vanilla-ice40-clock.sdc
-CurImplementation=axi_perf_mem_Implmnt
-Implementations=axi_perf_mem_Implmnt
+CurImplementation=gfx_pattern_demo_striped_Implmnt
+Implementations=gfx_pattern_demo_striped_Implmnt
 StartFromSynthesis=yes
 IPGeneration=false
 
-[axi_perf_mem_Implmnt]
+[gfx_pattern_demo_striped_Implmnt]
 DeviceFamily=iCE40
 Device=HX8K
 DevicePackage=CT256
 DevicePower=
-NetlistFile=axi_perf_mem_Implmnt/axi_perf_mem.edf
+NetlistFile=gfx_pattern_demo_striped_Implmnt/gfx_pattern_demo_striped.edf
 AdditionalEDIFFile=
 IPEDIFFile=
-DesignLib=axi_perf_mem_Implmnt/sbt/netlist/oadb-axi_perf_mem_top
-DesignView=_rt
-DesignCell=axi_perf_mem_top
-SynthesisSDCFile=axi_perf_mem_Implmnt/axi_perf_mem.scf
+DesignLib=gfx_pattern_demo_striped_Implmnt/sbt/netlist/oadb-gfx_pattern_demo_striped_top
+DesignView=_pk
+DesignCell=gfx_pattern_demo_striped_top
+SynthesisSDCFile=gfx_pattern_demo_striped_Implmnt/gfx_pattern_demo_striped.scf
 UserPinConstraintFile=
 UserSDCFile=../../constraints/vanilla-ice40-clock.sdc
-PhysicalConstraintFile=axi_perf_mem_Implmnt/sbt/constraint/axi_perf_mem_top_pcf_sbt.pcf
+PhysicalConstraintFile=../../constraints/vanilla-ice40-hx8k-ct256.pcf
 BackendImplPathName=
 Devicevoltage=1.14
 DevicevoltagePerformance=+/-5%(datasheet default)
@@ -73,7 +73,7 @@ PlacerAutoRamCascade=yes
 PlacerPowerDriven=no
 PlacerAreaDriven=no
 RouteWithTimingDriven=yes
-RouteWithPinPermutation=yes
+RouteWithPinPermutation=no
 BitmapSPIFlashMode=yes
 BitmapRAM4KInit=yes
 BitmapInitRamBank=1111

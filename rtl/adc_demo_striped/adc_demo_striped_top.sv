@@ -18,7 +18,6 @@ module adc_demo_striped_top #(
 ) (
     input  logic CLK,
     output logic LED1,
-    output logic LED2,
 
     // sram L
     output logic                       L_SRAM_CS_N,
@@ -142,7 +141,6 @@ module adc_demo_striped_top #(
   end
 
   assign LED1 = 1'b0;
-  assign LED2 = 1'b0;
 
   assign R_I  = error_cnt[15:8];
   assign R_H  = error_cnt[7:0];

@@ -1,43 +1,15 @@
 [Project]
 ProjectVersion=2.0
 Version=Lattice Semiconductor Corporation iCEcube - Release: 2020.12.27943 - Build Date: Dec 10 2020 18:03:29
-ProjectName=axi_perf_mem
+ProjectName=mem_test_ice40_sram
 Vendor=SiliconBlue
 Synthesis=synplify
-ProjectVFiles=../../rtl/axi_perf_mem/axi_perf_mem_top.sv=work
+ProjectVFiles=../../rtl/mem_test_ice40_sram/mem_test_ice40_sram_top.sv=work
 ProjectCFiles=../../constraints/vanilla-ice40-clock.sdc
-CurImplementation=axi_perf_mem_Implmnt
-Implementations=axi_perf_mem_Implmnt
+CurImplementation=mem_test_ice40_sram_Implmnt
+Implementations=mem_test_ice40_sram_Implmnt
 StartFromSynthesis=yes
 IPGeneration=false
-
-[axi_perf_mem_Implmnt]
-DeviceFamily=iCE40
-Device=HX8K
-DevicePackage=CT256
-DevicePower=
-NetlistFile=axi_perf_mem_Implmnt/axi_perf_mem.edf
-AdditionalEDIFFile=
-IPEDIFFile=
-DesignLib=axi_perf_mem_Implmnt/sbt/netlist/oadb-axi_perf_mem_top
-DesignView=_rt
-DesignCell=axi_perf_mem_top
-SynthesisSDCFile=axi_perf_mem_Implmnt/axi_perf_mem.scf
-UserPinConstraintFile=
-UserSDCFile=../../constraints/vanilla-ice40-clock.sdc
-PhysicalConstraintFile=axi_perf_mem_Implmnt/sbt/constraint/axi_perf_mem_top_pcf_sbt.pcf
-BackendImplPathName=
-Devicevoltage=1.14
-DevicevoltagePerformance=+/-5%(datasheet default)
-DeviceTemperature=85
-TimingAnalysisBasedOn=Worst
-OperationRange=Commercial
-TypicalCustomTemperature=25
-WorstCustomTemperature=85
-BestCustomTemperature=0
-IOBankVoltages=topBank,3.3 bottomBank,3.3 leftBank,3.3 rightBank,3.3
-derValue=0.701346
-TimingPathNumberStick=0
 
 [lse options]
 CarryChain=True
@@ -65,6 +37,34 @@ TopLevelUnit=
 UseIORegister=Auto
 VHDL2008=False
 VerilogIncludeSearchPath=
+
+[mem_test_ice40_sram_Implmnt]
+DeviceFamily=iCE40
+Device=HX8K
+DevicePackage=CT256
+DevicePower=
+NetlistFile=mem_test_ice40_sram_Implmnt/mem_test_ice40_sram.edf
+AdditionalEDIFFile=
+IPEDIFFile=
+DesignLib=mem_test_ice40_sram_Implmnt/sbt/netlist/oadb-mem_test_ice40_sram_top
+DesignView=_rt
+DesignCell=mem_test_ice40_sram_top
+SynthesisSDCFile=mem_test_ice40_sram_Implmnt/mem_test_ice40_sram.scf
+UserPinConstraintFile=
+UserSDCFile=../../constraints/vanilla-ice40-clock.sdc
+PhysicalConstraintFile=mem_test_ice40_sram_Implmnt/sbt/constraint/mem_test_ice40_sram_top_pcf_sbt.pcf
+BackendImplPathName=
+Devicevoltage=1.14
+DevicevoltagePerformance=+/-5%(datasheet default)
+DeviceTemperature=85
+TimingAnalysisBasedOn=Worst
+OperationRange=Commercial
+TypicalCustomTemperature=25
+WorstCustomTemperature=85
+BestCustomTemperature=0
+IOBankVoltages=topBank,3.3 bottomBank,3.3 leftBank,3.3 rightBank,3.3
+derValue=0.701346
+TimingPathNumberStick=0
 
 [tool options]
 PlacerEffortLevel=std

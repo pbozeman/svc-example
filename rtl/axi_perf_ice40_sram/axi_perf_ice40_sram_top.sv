@@ -5,13 +5,12 @@
 `include "axi_perf_ice40_sram.sv"
 
 module axi_perf_ice40_sram_top #(
-    parameter SRAM_ADDR_WIDTH = 20,
+    parameter SRAM_ADDR_WIDTH = 18,
     parameter SRAM_DATA_WIDTH = 16
 ) (
     input logic CLK,
 
     output logic LED1,
-    output logic LED2,
 
     input  logic UART_RX,
     output logic UART_TX,
@@ -19,7 +18,9 @@ module axi_perf_ice40_sram_top #(
     output logic [SRAM_ADDR_WIDTH-1:0] SRAM_256_A_ADDR_BUS,
     inout  wire  [SRAM_DATA_WIDTH-1:0] SRAM_256_A_DATA_BUS,
     output logic                       SRAM_256_A_OE_N,
-    output logic                       SRAM_256_A_WE_N
+    output logic                       SRAM_256_A_WE_N,
+    output logic                       SRAM_256_A_UB_N,
+    output logic                       SRAM_256_A_LB_N
 );
   localparam CLOCK_FREQ = 75_000_000;
   localparam BAUD_RATE = 115_200;
@@ -57,7 +58,8 @@ module axi_perf_ice40_sram_top #(
       .sram_io_oe_n(SRAM_256_A_OE_N)
   );
 
-  assign LED1 = 1'b0;
-  assign LED2 = 1'b0;
+  assign LED1            = 1'b0;
+  assign SRAM_256_A_UB_N = 1'b0;
+  assign SRAM_256_A_LB_N = 1'b0;
 
 endmodule

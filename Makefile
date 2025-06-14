@@ -10,6 +10,7 @@ TOP_MODULES := \
 	rtl/gfx_pattern_demo/gfx_pattern_demo_top.sv \
 	rtl/gfx_pattern_demo_striped/gfx_pattern_demo_striped_top.sv \
 	rtl/gfx_shapes_demo/gfx_shapes_demo_top.sv \
+	rtl/gfx_shapes_demo_striped/gfx_shapes_demo_striped_top.sv \
 	rtl/mem_test_arbiter_ice40_sram/mem_test_arbiter_ice40_sram_top.sv \
 	rtl/mem_test_ice40_sram/mem_test_ice40_sram_top.sv \
 	rtl/mem_test_striped_arbiter_ice40_sram/mem_test_striped_arbiter_ice40_sram_top.sv \
