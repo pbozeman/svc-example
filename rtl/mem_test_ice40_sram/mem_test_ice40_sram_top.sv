@@ -10,8 +10,7 @@
 module mem_test_ice40_sram_top #(
     parameter SRAM_ADDR_WIDTH = 18,
     parameter SRAM_DATA_WIDTH = 16,
-    // parameter NUM_BURSTS      = 2047,
-    parameter NUM_BURSTS      = 1024,
+    parameter NUM_BURSTS      = 2047,
     parameter NUM_BEATS       = 128
 ) (
     // board signals
