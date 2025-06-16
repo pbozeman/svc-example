@@ -382,3 +382,30 @@ set_io PMOD_B[2] R2
 set_io PMOD_B[3] T7
 set_io PMOD_B[4] T9
 set_io PMOD_B[5] R3
+
+set_io ADC_CLK_TO_ADC F2
+set_io ADC_RED B11
+set_io ADC_GRN C14
+set_io ADC_BLU F1
+
+set_io ADC_X[0] M2
+set_io ADC_X[1] L1
+set_io ADC_X[2] K1
+set_io ADC_X[3] J2
+set_io ADC_X[4] J1
+set_io ADC_X[5] E2
+set_io ADC_X[6] H2
+set_io ADC_X[7] H1
+set_io ADC_X[8] G2
+set_io ADC_X[9] G1
+
+set_io ADC_Y[0] B6
+set_io ADC_Y[1] A6
+set_io ADC_Y[2] B7
+set_io ADC_Y[3] A7
+set_io ADC_Y[4] B8
+set_io ADC_Y[5] B9
+set_io ADC_Y[6] A15
+set_io ADC_Y[7] A9
+set_io ADC_Y[8] B10
+set_io ADC_Y[9] A10
