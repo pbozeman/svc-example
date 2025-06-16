@@ -377,7 +377,7 @@ set_io PMOD_A[6] L16
 set_io PMOD_A[7] M16
 
 set_io PMOD_B[0] P9
-set_io PMOD_B[1] M8
+set_io PMOD_B[1] T8
 set_io PMOD_B[2] R2
 set_io PMOD_B[3] T7
 set_io PMOD_B[4] T9
