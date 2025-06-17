@@ -10,7 +10,7 @@ module gfx_pattern_demo #(
     parameter COLOR_WIDTH     = 4,
     parameter H_WIDTH         = 12,
     parameter V_WIDTH         = 12,
-    parameter SRAM_ADDR_WIDTH = 18,
+    parameter SRAM_ADDR_WIDTH = 20,
     parameter SRAM_DATA_WIDTH = 16
 ) (
     input logic clk,

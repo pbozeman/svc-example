@@ -9,7 +9,8 @@ module debug_bridge_demo_top (
     input  logic UART_RX,
     output logic UART_TX,
 
-    output logic LED1
+    output logic LED1,
+    output logic LED2
 );
   localparam CLOCK_FREQ = 100_000_000;
   localparam BAUD_RATE = 115_200;
@@ -34,5 +35,7 @@ module debug_bridge_demo_top (
 
       .led(LED1)
   );
+
+  assign LED2 = 1'b0;
 
 endmodule

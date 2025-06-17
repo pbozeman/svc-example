@@ -6,6 +6,7 @@
 module axi_perf_mem_top (
     input  logic CLK,
     output logic LED1,
+    output logic LED2,
     output logic UART_TX,
     input  logic UART_RX
 );
@@ -13,6 +14,7 @@ module axi_perf_mem_top (
   localparam BAUD_RATE = 115_200;
   localparam STAT_WIDTH = 16;
 
+  logic clk;
   logic rst_n;
 
   svc_init svc_init_i (
@@ -33,5 +35,6 @@ module axi_perf_mem_top (
   );
 
   assign LED1 = 1'b0;
+  assign LED2 = 1'b0;
 
 endmodule
