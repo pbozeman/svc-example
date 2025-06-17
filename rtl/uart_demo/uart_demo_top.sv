@@ -6,6 +6,7 @@
 module uart_demo_top (
     input  logic CLK,
     output logic LED1,
+    output logic LED2,
     input  logic UART_RX,
     output logic UART_TX
 );
@@ -25,5 +26,6 @@ module uart_demo_top (
   );
 
   assign LED1 = 1'b0;
+  assign LED2 = 1'b0;
 
 endmodule

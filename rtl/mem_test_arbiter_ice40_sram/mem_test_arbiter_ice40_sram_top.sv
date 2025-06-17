@@ -8,31 +8,33 @@
 // acceptance testing is TBD.
 
 module mem_test_arbiter_ice40_sram_top #(
-    parameter integer SRAM_ADDR_WIDTH = 18,
+    parameter integer SRAM_ADDR_WIDTH = 20,
     parameter integer SRAM_DATA_WIDTH = 16
 ) (
     // board signals
     input  logic CLK,
     output logic LED1,
+    output logic LED2,
 
     // Buses
-    output logic [SRAM_ADDR_WIDTH-1:0] SRAM_256_A_ADDR_BUS,
-    inout  wire  [SRAM_DATA_WIDTH-1:0] SRAM_256_A_DATA_BUS,
+    output logic [SRAM_ADDR_WIDTH-1:0] R_SRAM_ADDR_BUS,
+    inout  wire  [SRAM_DATA_WIDTH-1:0] R_SRAM_DATA_BUS,
 
     // Control signals
-    output logic SRAM_256_A_OE_N,
-    output logic SRAM_256_A_WE_N,
-    output logic SRAM_256_A_UB_N,
-    output logic SRAM_256_A_LB_N
+    output logic R_SRAM_CS_N,
+    output logic R_SRAM_OE_N,
+    output logic R_SRAM_WE_N,
+
+    output logic [7:0] R_E,
+    output logic [7:0] R_F,
+    output logic [7:0] R_H
 );
   localparam NUM_BURSTS = 255;
   localparam NUM_BEATS = 255;
 
   logic       rst_n;
-  // verilator lint_off: UNUSEDSIGNAL
   logic       test_done;
   logic       test_pass;
-  // verilator lint_on: UNUSEDSIGNAL
 
   logic [7:0] done_cnt;
 
@@ -54,15 +56,15 @@ module mem_test_arbiter_ice40_sram_top #(
       .test_done(test_done),
       .test_pass(test_pass),
 
-      .debug0(),
-      .debug1(),
-      .debug2(),
+      .debug0(R_E),
+      .debug1(R_F),
+      .debug2(R_H),
 
-      .sram_io_addr(SRAM_256_A_ADDR_BUS),
-      .sram_io_data(SRAM_256_A_DATA_BUS),
-      .sram_io_ce_n(),
-      .sram_io_we_n(SRAM_256_A_WE_N),
-      .sram_io_oe_n(SRAM_256_A_OE_N)
+      .sram_io_addr(R_SRAM_ADDR_BUS),
+      .sram_io_data(R_SRAM_DATA_BUS),
+      .sram_io_ce_n(R_SRAM_CS_N),
+      .sram_io_we_n(R_SRAM_WE_N),
+      .sram_io_oe_n(R_SRAM_OE_N)
   );
 
   always_ff @(posedge CLK) begin
@@ -75,10 +77,7 @@ module mem_test_arbiter_ice40_sram_top #(
     end
   end
 
-  assign LED1            = done_cnt[7];
-  // assign LED1 = !test_pass;
-
-  assign SRAM_256_A_UB_N = 1'b0;
-  assign SRAM_256_A_LB_N = 1'b0;
+  assign LED1 = done_cnt[7];
+  assign LED2 = !test_pass;
 
 endmodule

@@ -1,8 +1,4 @@
 // TODO: move the mode config into the makefile
-//
-// NOTE: not all stripe combos meet timing :/
-// A and C do.
-//
 `define VGA_MODE_640_480_60
 
 `include "svc.sv"
@@ -15,30 +11,28 @@
 module gfx_pattern_demo_striped_top #(
     parameter  NUM_S           = 2,
     localparam COLOR_WIDTH     = 4,
-    parameter  SRAM_ADDR_WIDTH = 18,
+    parameter  SRAM_ADDR_WIDTH = 20,
     parameter  SRAM_DATA_WIDTH = 16
 ) (
     input  logic CLK,
     output logic LED1,
+    output logic LED2,
 
-    output logic                       SRAM_256_A_OE_N,
-    output logic                       SRAM_256_A_WE_N,
-    output logic                       SRAM_256_A_UB_N,
-    output logic                       SRAM_256_A_LB_N,
-    output logic [SRAM_ADDR_WIDTH-1:0] SRAM_256_A_ADDR_BUS,
-    inout  wire  [SRAM_DATA_WIDTH-1:0] SRAM_256_A_DATA_BUS,
+    output logic                       R_SRAM_CS_N,
+    output logic                       R_SRAM_OE_N,
+    output logic                       R_SRAM_WE_N,
+    output logic [SRAM_ADDR_WIDTH-1:0] R_SRAM_ADDR_BUS,
+    inout  wire  [SRAM_DATA_WIDTH-1:0] R_SRAM_DATA_BUS,
 
-    output logic                       SRAM_256_C_OE_N,
-    output logic                       SRAM_256_C_WE_N,
-    output logic                       SRAM_256_C_UB_N,
-    output logic                       SRAM_256_C_LB_N,
-    output logic [SRAM_ADDR_WIDTH-1:0] SRAM_256_C_ADDR_BUS,
-    inout  wire  [SRAM_DATA_WIDTH-1:0] SRAM_256_C_DATA_BUS,
+    output logic                       L_SRAM_CS_N,
+    output logic                       L_SRAM_OE_N,
+    output logic                       L_SRAM_WE_N,
+    output logic [SRAM_ADDR_WIDTH-1:0] L_SRAM_ADDR_BUS,
+    inout  wire  [SRAM_DATA_WIDTH-1:0] L_SRAM_DATA_BUS,
 
-
-    // output vga to pmod
-    output logic [7:0] PMOD_A,
-    output logic [5:0] PMOD_B
+    // output vga to pmod e/f
+    output logic [7:0] R_E,
+    output logic [7:0] R_F
 
     // TODO: re-enable the vga error count. These pmods are used by the
     // R sram, so they can't be used for reporting. Either move these,
@@ -82,11 +76,11 @@ module gfx_pattern_demo_striped_top #(
 
       .continious_write(1'b1),
 
-      .sram_io_addr({SRAM_256_C_ADDR_BUS, SRAM_256_A_ADDR_BUS}),
-      .sram_io_data({SRAM_256_C_DATA_BUS, SRAM_256_A_DATA_BUS}),
-      .sram_io_ce_n(),
-      .sram_io_we_n({SRAM_256_C_WE_N, SRAM_256_A_WE_N}),
-      .sram_io_oe_n({SRAM_256_C_OE_N, SRAM_256_A_OE_N}),
+      .sram_io_addr({L_SRAM_ADDR_BUS, R_SRAM_ADDR_BUS}),
+      .sram_io_data({L_SRAM_DATA_BUS, R_SRAM_DATA_BUS}),
+      .sram_io_ce_n({L_SRAM_CS_N, R_SRAM_CS_N}),
+      .sram_io_we_n({L_SRAM_WE_N, R_SRAM_WE_N}),
+      .sram_io_oe_n({L_SRAM_OE_N, R_SRAM_OE_N}),
 
       .vga_red  (vga_red),
       .vga_grn  (vga_grn),
@@ -97,13 +91,13 @@ module gfx_pattern_demo_striped_top #(
   );
 
   // digilent vga pmod pinout
-  assign PMOD_A[3:0] = vga_red;
-  assign PMOD_B[3:0] = vga_grn;
-  assign PMOD_A[7:4] = vga_blu;
-  assign PMOD_B[4]   = vga_hsync;
-  assign PMOD_B[5]   = vga_vsync;
-  // assign PMOD_B[6]   = 1'b0;
-  // assign PMOD_B[7]   = 1'b0;
+  assign R_E[3:0] = vga_red;
+  assign R_F[3:0] = vga_grn;
+  assign R_E[7:4] = vga_blu;
+  assign R_F[4]   = vga_hsync;
+  assign R_F[5]   = vga_vsync;
+  assign R_F[6]   = 1'b0;
+  assign R_F[7]   = 1'b0;
 
   logic [15:0] error_cnt;
   always_ff @(posedge pixel_clk) begin
@@ -116,12 +110,8 @@ module gfx_pattern_demo_striped_top #(
     end
   end
 
-  assign LED1            = 1'b0;
-
-  assign SRAM_256_A_UB_N = 1'b0;
-  assign SRAM_256_A_LB_N = 1'b0;
-  assign SRAM_256_C_UB_N = 1'b0;
-  assign SRAM_256_C_LB_N = 1'b0;
+  assign LED1 = 1'b0;
+  assign LED2 = 1'b0;
 
   // assign R_I  = error_cnt[15:8];
   // assign R_H  = error_cnt[7:0];
