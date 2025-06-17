@@ -11,7 +11,7 @@
 
 module adc_demo_top #(
     localparam COLOR_WIDTH     = 4,
-    parameter  SRAM_ADDR_WIDTH = 20,
+    parameter  SRAM_ADDR_WIDTH = 18,
     parameter  SRAM_DATA_WIDTH = 16,
     parameter  ADC_DATA_WIDTH  = 10
 ) (
@@ -19,26 +19,27 @@ module adc_demo_top #(
     output logic LED1,
 
     // sram
-    output logic [SRAM_ADDR_WIDTH-1:0] L_SRAM_ADDR_BUS,
-    inout  wire  [SRAM_DATA_WIDTH-1:0] L_SRAM_DATA_BUS,
-    output logic                       L_SRAM_CS_N,
-    output logic                       L_SRAM_OE_N,
-    output logic                       L_SRAM_WE_N,
+    output logic [SRAM_ADDR_WIDTH-1:0] SRAM_256_B_ADDR_BUS,
+    inout  wire  [SRAM_DATA_WIDTH-1:0] SRAM_256_B_DATA_BUS,
+    output logic                       SRAM_256_B_OE_N,
+    output logic                       SRAM_256_B_WE_N,
+    output logic                       SRAM_256_B_UB_N,
+    output logic                       SRAM_256_B_LB_N,
 
     // ADC inputs
-    input  logic [ADC_DATA_WIDTH-1:0] L_ADC_X,
-    input  logic [ADC_DATA_WIDTH-1:0] L_ADC_Y,
-    input  logic                      L_ADC_RED,
-    input  logic                      L_ADC_GRN,
-    input  logic                      L_ADC_BLU,
-    output logic                      L_ADC_CLK_TO_ADC,
+    input  logic [ADC_DATA_WIDTH-1:0] ADC_X,
+    input  logic [ADC_DATA_WIDTH-1:0] ADC_Y,
+    input  logic                      ADC_RED,
+    input  logic                      ADC_GRN,
+    input  logic                      ADC_BLU,
+    output logic                      ADC_CLK_TO_ADC,
 
-    // output vga to pmod e/f
-    output logic [7:0] R_E,
-    output logic [7:0] R_F,
+    // output vga to pmod
+    output logic [7:0] PMOD_A,
+    output logic [5:0] PMOD_B
 
-    output logic [7:0] R_H,
-    output logic [7:0] R_I
+    // output logic [7:0] R_H,
+    // output logic [7:0] R_I
 );
   logic                   rst_n;
 
@@ -75,7 +76,7 @@ module adc_demo_top #(
       .rst_n(rst_n)
   );
 
-  assign L_ADC_CLK_TO_ADC = adc_clk;
+  assign ADC_CLK_TO_ADC = adc_clk;
 
   adc_demo #(
       .COLOR_WIDTH    (COLOR_WIDTH),
@@ -91,17 +92,17 @@ module adc_demo_top #(
 
       .adc_clk   (adc_clk),
       .adc_rst_n (adc_rst_n),
-      .adc_x_io  (L_ADC_X),
-      .adc_y_io  (L_ADC_Y),
-      .adc_red_io(L_ADC_RED),
-      .adc_grn_io(L_ADC_GRN),
-      .adc_blu_io(L_ADC_BLU),
+      .adc_x_io  (ADC_X),
+      .adc_y_io  (ADC_Y),
+      .adc_red_io(ADC_RED),
+      .adc_grn_io(ADC_GRN),
+      .adc_blu_io(ADC_BLU),
 
-      .sram_io_addr(L_SRAM_ADDR_BUS),
-      .sram_io_data(L_SRAM_DATA_BUS),
-      .sram_io_ce_n(L_SRAM_CS_N),
-      .sram_io_we_n(L_SRAM_WE_N),
-      .sram_io_oe_n(L_SRAM_OE_N),
+      .sram_io_addr(SRAM_256_B_ADDR_BUS),
+      .sram_io_data(SRAM_256_B_DATA_BUS),
+      .sram_io_ce_n(),
+      .sram_io_we_n(SRAM_256_B_WE_N),
+      .sram_io_oe_n(SRAM_256_B_OE_N),
 
       .vga_red  (vga_red),
       .vga_grn  (vga_grn),
@@ -112,13 +113,13 @@ module adc_demo_top #(
   );
 
   // digilent vga pmod pinout
-  assign R_E[3:0] = vga_red;
-  assign R_F[3:0] = vga_grn;
-  assign R_E[7:4] = vga_blu;
-  assign R_F[4]   = vga_hsync;
-  assign R_F[5]   = vga_vsync;
-  assign R_F[6]   = 1'b0;
-  assign R_F[7]   = 1'b0;
+  assign PMOD_A[3:0] = vga_red;
+  assign PMOD_B[3:0] = vga_grn;
+  assign PMOD_A[7:4] = vga_blu;
+  assign PMOD_B[4]   = vga_hsync;
+  assign PMOD_B[5]   = vga_vsync;
+  // assign PMOD_B[6]   = 1'b0;
+  // assign PMOD_B[7]   = 1'b0;
 
   logic [15:0] error_cnt;
   always_ff @(posedge pixel_clk) begin
@@ -131,9 +132,12 @@ module adc_demo_top #(
     end
   end
 
-  assign LED1 = 1'b0;
+  assign LED1            = 1'b0;
 
-  assign R_I  = error_cnt[15:8];
-  assign R_H  = error_cnt[7:0];
+  // assign R_I             = error_cnt[15:8];
+  // assign R_H             = error_cnt[7:0];
+
+  assign SRAM_256_B_UB_N = 1'b0;
+  assign SRAM_256_B_LB_N = 1'b0;
 
 endmodule
