@@ -1,28 +1,28 @@
 [Project]
 ProjectVersion=2.0
 Version=Lattice Semiconductor Corporation iCEcube - Release: 2020.12.27943 - Build Date: Dec 10 2020 18:03:29
-ProjectName=adc_demo
+ProjectName=adc_demo_striped
 Vendor=SiliconBlue
 Synthesis=synplify
-ProjectVFiles=../../rtl/adc_demo/adc_demo_top.sv=work
+ProjectVFiles=../../rtl/adc_demo_striped/adc_demo_striped_top.sv=work
 ProjectCFiles=../../constraints/vanilla-ice40-clock.sdc
-CurImplementation=adc_demo_Implmnt
-Implementations=adc_demo_Implmnt
+CurImplementation=adc_demo_striped_Implmnt
+Implementations=adc_demo_striped_Implmnt
 StartFromSynthesis=yes
 IPGeneration=false
 
-[adc_demo_Implmnt]
+[adc_demo_striped_Implmnt]
 DeviceFamily=iCE40
 Device=HX8K
 DevicePackage=CT256
 DevicePower=
-NetlistFile=adc_demo_Implmnt/adc_demo.edf
+NetlistFile=adc_demo_striped_Implmnt/adc_demo_striped.edf
 AdditionalEDIFFile=
 IPEDIFFile=
-DesignLib=adc_demo_Implmnt/sbt/netlist/oadb-adc_demo_top
+DesignLib=adc_demo_striped_Implmnt/sbt/netlist/oadb-adc_demo_striped_top
 DesignView=_rt
-DesignCell=adc_demo_top
-SynthesisSDCFile=adc_demo_Implmnt/adc_demo.scf
+DesignCell=adc_demo_striped_top
+SynthesisSDCFile=adc_demo_striped_Implmnt/adc_demo_striped.scf
 UserPinConstraintFile=
 UserSDCFile=../../constraints/vanilla-ice40-clock.sdc
 PhysicalConstraintFile=../../constraints/vanilla-ice40-hx8k-ct256.pcf
