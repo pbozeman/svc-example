@@ -6,6 +6,7 @@
 `include "svc_axi_stripe.sv"
 
 `include "adc_xy_gfx_axi.sv"
+// `include "gfx_pattern_axi.sv"
 
 // verilator lint_off: UNUSEDSIGNAL
 module adc_demo_striped #(
@@ -237,6 +238,62 @@ module adc_demo_striped #(
       .m_axi_rlast  (sram_axi_rlast),
       .m_axi_rready (sram_axi_rready)
   );
+
+  // gfx_pattern_axi #(
+  //     .AXI_ADDR_WIDTH(STRIPE_AXI_ADDR_WIDTH),
+  //     .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
+  //     .AXI_ID_WIDTH  (AXI_ID_WIDTH),
+  //     .COLOR_WIDTH   (COLOR_WIDTH),
+  //     .H_WIDTH       (H_WIDTH),
+  //     .V_WIDTH       (V_WIDTH)
+  // ) gfx_pattern_axi_i (
+  //     .clk  (clk),
+  //     .rst_n(rst_n),
+  //
+  //     .pixel_clk  (pixel_clk),
+  //     .pixel_rst_n(pixel_rst_n),
+  //
+  //     .continious_write(continious_write),
+  //
+  //     .m_axi_awvalid(fb_axi_awvalid),
+  //     .m_axi_awaddr (fb_axi_awaddr),
+  //     .m_axi_awburst(fb_axi_awburst),
+  //     .m_axi_awid   (fb_axi_awid),
+  //     .m_axi_awlen  (fb_axi_awlen),
+  //     .m_axi_awsize (fb_axi_awsize),
+  //     .m_axi_awready(fb_axi_awready),
+  //     .m_axi_wdata  (fb_axi_wdata),
+  //     .m_axi_wlast  (fb_axi_wlast),
+  //     .m_axi_wready (fb_axi_wready),
+  //     .m_axi_wstrb  (fb_axi_wstrb),
+  //     .m_axi_wvalid (fb_axi_wvalid),
+  //     .m_axi_bvalid (fb_axi_bvalid),
+  //     .m_axi_bid    (fb_axi_bid),
+  //     .m_axi_bresp  (fb_axi_bresp),
+  //     .m_axi_bready (fb_axi_bready),
+  //
+  //     .m_axi_arvalid(fb_axi_arvalid),
+  //     .m_axi_araddr (fb_axi_araddr),
+  //     .m_axi_arburst(fb_axi_arburst),
+  //     .m_axi_arid   (fb_axi_arid),
+  //     .m_axi_arlen  (fb_axi_arlen),
+  //     .m_axi_arsize (fb_axi_arsize),
+  //     .m_axi_arready(fb_axi_arready),
+  //     .m_axi_rvalid (fb_axi_rvalid),
+  //     .m_axi_rid    (fb_axi_rid),
+  //     .m_axi_rdata  (fb_axi_rdata),
+  //     .m_axi_rresp  (fb_axi_rresp),
+  //     .m_axi_rlast  (fb_axi_rlast),
+  //     .m_axi_rready (fb_axi_rready),
+  //
+  //     .vga_red  (vga_red),
+  //     .vga_grn  (vga_grn),
+  //     .vga_blu  (vga_blu),
+  //     .vga_hsync(vga_hsync),
+  //     .vga_vsync(vga_vsync),
+  //     .vga_error(vga_error)
+  // );
+  //
 
   adc_xy_gfx_axi #(
       .AXI_ADDR_WIDTH (STRIPE_AXI_ADDR_WIDTH),

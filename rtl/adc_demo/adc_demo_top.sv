@@ -19,12 +19,12 @@ module adc_demo_top #(
     output logic LED1,
 
     // sram
-    output logic [SRAM_ADDR_WIDTH-1:0] SRAM_512_A_ADDR_BUS,
-    inout  wire  [SRAM_DATA_WIDTH-1:0] SRAM_512_A_DATA_BUS,
-    output logic                       SRAM_512_A_OE_N,
-    output logic                       SRAM_512_A_WE_N,
-    output logic                       SRAM_512_A_UB_N,
-    output logic                       SRAM_512_A_LB_N,
+    output logic [SRAM_ADDR_WIDTH-1:0] SRAM_512_B_ADDR_BUS,
+    inout  wire  [SRAM_DATA_WIDTH-1:0] SRAM_512_B_DATA_BUS,
+    output logic                       SRAM_512_B_OE_N,
+    output logic                       SRAM_512_B_WE_N,
+    output logic                       SRAM_512_B_UB_N,
+    output logic                       SRAM_512_B_LB_N,
 
     // ADC inputs
     input  logic [ADC_DATA_WIDTH-1:0] ADC_X,
@@ -98,11 +98,11 @@ module adc_demo_top #(
       .adc_grn_io(1'b1),
       .adc_blu_io(1'b1),
 
-      .sram_io_addr(SRAM_512_A_ADDR_BUS),
-      .sram_io_data(SRAM_512_A_DATA_BUS),
+      .sram_io_addr(SRAM_512_B_ADDR_BUS),
+      .sram_io_data(SRAM_512_B_DATA_BUS),
       .sram_io_ce_n(),
-      .sram_io_we_n(SRAM_512_A_WE_N),
-      .sram_io_oe_n(SRAM_512_A_OE_N),
+      .sram_io_we_n(SRAM_512_B_WE_N),
+      .sram_io_oe_n(SRAM_512_B_OE_N),
 
       .vga_red  (vga_red),
       .vga_grn  (vga_grn),
@@ -137,7 +137,7 @@ module adc_demo_top #(
   // assign R_I             = error_cnt[15:8];
   // assign R_H             = error_cnt[7:0];
 
-  assign SRAM_512_A_UB_N = 1'b0;
-  assign SRAM_512_A_LB_N = 1'b0;
+  assign SRAM_512_B_UB_N = 1'b0;
+  assign SRAM_512_B_LB_N = 1'b0;
 
 endmodule
