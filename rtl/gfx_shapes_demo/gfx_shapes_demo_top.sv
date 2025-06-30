@@ -1,9 +1,4 @@
 // TODO: move the mode config into the makefile
-//
-// WARNING: this is actually too little memory for a single 256K
-// sram. When used with a single sram, it needs at least 680*480 words.
-// It sort of works because of the simplicity of the demo, but the line
-// is at the wrong location.
 `define VGA_MODE_640_480_60
 
 `include "svc.sv"
@@ -22,12 +17,12 @@ module gfx_shapes_demo_top #(
     output logic LED1,
 
     // sram
-    output logic [SRAM_ADDR_WIDTH-1:0] SRAM_256_A_ADDR_BUS,
-    inout  wire  [SRAM_DATA_WIDTH-1:0] SRAM_256_A_DATA_BUS,
-    output logic                       SRAM_256_A_OE_N,
-    output logic                       SRAM_256_A_WE_N,
-    output logic                       SRAM_256_A_UB_N,
-    output logic                       SRAM_256_A_LB_N,
+    output logic [SRAM_ADDR_WIDTH-1:0] SRAM_512_A_ADDR_BUS,
+    inout  wire  [SRAM_DATA_WIDTH-1:0] SRAM_512_A_DATA_BUS,
+    output logic                       SRAM_512_A_OE_N,
+    output logic                       SRAM_512_A_WE_N,
+    output logic                       SRAM_512_A_UB_N,
+    output logic                       SRAM_512_A_LB_N,
 
     // output vga to pmod
     output logic [7:0] PMOD_A,
@@ -67,11 +62,11 @@ module gfx_shapes_demo_top #(
 
       .continious_write(1'b0),
 
-      .sram_io_addr(SRAM_256_A_ADDR_BUS),
-      .sram_io_data(SRAM_256_A_DATA_BUS),
+      .sram_io_addr(SRAM_512_A_ADDR_BUS),
+      .sram_io_data(SRAM_512_A_DATA_BUS),
       .sram_io_ce_n(),
-      .sram_io_we_n(SRAM_256_A_WE_N),
-      .sram_io_oe_n(SRAM_256_A_OE_N),
+      .sram_io_we_n(SRAM_512_A_WE_N),
+      .sram_io_oe_n(SRAM_512_A_OE_N),
 
       .vga_red  (vga_red),
       .vga_grn  (vga_grn),
@@ -102,7 +97,7 @@ module gfx_shapes_demo_top #(
   // assign PMOD_B[7]       = 1'b0;
 
   assign LED1            = 1'b0;
-  assign SRAM_256_A_UB_N = 1'b0;
-  assign SRAM_256_A_LB_N = 1'b0;
+  assign SRAM_512_A_UB_N = 1'b0;
+  assign SRAM_512_A_LB_N = 1'b0;
 
 endmodule

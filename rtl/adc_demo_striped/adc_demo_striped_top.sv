@@ -1,5 +1,5 @@
 // TODO: move the mode config into the makefile
-`define VGA_MODE_640_480_60
+`define VGA_MODE_800_600_60
 
 `include "svc.sv"
 `include "svc_init.sv"
@@ -79,7 +79,9 @@ module adc_demo_striped_top #(
       .clk_o(adc_clk)
   );
 
-  svc_init svc_init_i (
+  svc_init #(
+      .RST_CYCLES(1023)
+  ) svc_init_i (
       .clk  (CLK),
       .en   (1'b1),
       .rst_n(rst_n)
@@ -104,15 +106,15 @@ module adc_demo_striped_top #(
       .adc_rst_n (adc_rst_n),
       .adc_x_io  (ADC_X),
       .adc_y_io  (ADC_Y),
-      .adc_red_io(ADC_RED),
-      .adc_grn_io(ADC_GRN),
-      .adc_blu_io(ADC_BLU),
+      .adc_red_io(1'b1),
+      .adc_grn_io(1'b1),
+      .adc_blu_io(1'b1),
 
-      .sram_io_addr({SRAM_512_A_ADDR_BUS, SRAM_512_B_ADDR_BUS}),
-      .sram_io_data({SRAM_512_A_DATA_BUS, SRAM_512_B_DATA_BUS}),
+      .sram_io_addr({SRAM_512_B_ADDR_BUS, SRAM_512_A_ADDR_BUS}),
+      .sram_io_data({SRAM_512_B_DATA_BUS, SRAM_512_A_DATA_BUS}),
       .sram_io_ce_n(),
-      .sram_io_we_n({SRAM_512_A_WE_N, SRAM_512_B_WE_N}),
-      .sram_io_oe_n({SRAM_512_A_OE_N, SRAM_512_B_OE_N}),
+      .sram_io_we_n({SRAM_512_B_WE_N, SRAM_512_A_WE_N}),
+      .sram_io_oe_n({SRAM_512_B_OE_N, SRAM_512_A_OE_N}),
 
       .vga_red  (vga_red),
       .vga_grn  (vga_grn),
