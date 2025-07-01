@@ -1,5 +1,12 @@
 // TODO: move the mode config into the makefile
-`define VGA_MODE_800_600_60
+`define VGA_MODE_640_480_60
+
+// WARNING: if jumping to 800x600, lower the adc clk to 20, otherwise
+// the svc_axi_stripe can deadlock. This shouldn't happen and needs to
+// be investigated. (With a 40mhz pixel clock, it's possible to have
+// a line where we are also writing the blanking at 40mhz, plus the adc
+// bw. When exceeding the 100mhz of the dual sram stripe, something
+// is stalling.)
 
 `include "svc.sv"
 `include "svc_init.sv"
