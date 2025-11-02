@@ -24,10 +24,14 @@ module svc_rv_soc_sram_demo (
   // and only uses 18 instructions (72 bytes), so IMEM_AW 5 (128 bytes)
   // is sufficient. These overrides can be removed when bram is used.
   svc_rv_soc_sram #(
-      .XLEN     (32),
-      .IMEM_AW  (5),
-      .DMEM_AW  (1),
-      .IMEM_INIT("rtl/svc_rv_soc_sram_demo/program.hex")
+      .XLEN      (32),
+      .IMEM_AW   (5),
+      .DMEM_AW   (1),
+      .IF_ID_REG (1),
+      .ID_EX_REG (1),
+      .EX_MEM_REG(1),
+      .MEM_WB_REG(1),
+      .IMEM_INIT ("rtl/svc_rv_soc_sram_demo/program.hex")
   ) soc (
       .clk   (clk),
       .rst_n (rst_n),
