@@ -47,7 +47,7 @@ ICE40_FIND_SEED_MODULES = gfx_shapes_demo_top gfx_pattern_demo_striped_top
 
 # FIXME: this isn't actually using a pll to run at this speed, so it will currently
 # break. Only testing fmax and device utilization for now.
-svc_rv_soc_sram_demo_top_ICE40_CLK_FREQ = 33
+svc_rv_soc_sram_demo_top_ICE40_CLK_FREQ = 25
 
 include svc/mk/sv.mk
 include svc/mk/icestorm.mk
