@@ -1,0 +1,205 @@
+#!/usr/bin/env python3
+"""
+RV Performance Benchmark Script
+
+Runs PNR on the 3 SVC RV demos, extracts CPI from testbenches,
+and calculates performance metrics (IPC * fmax).
+"""
+
+import subprocess
+import sys
+import re
+import os
+from pathlib import Path
+
+# Demo configurations
+DEMOS = [
+    {
+        'name': 'svc_rv_soc_bram_demo',
+        'description': 'BRAM-based (Pipelined)',
+        'top': 'svc_rv_soc_bram_demo_top',
+        'tb': 'svc_rv_soc_bram_demo_tb',
+    },
+    {
+        'name': 'svc_rv_soc_sram_demo',
+        'description': 'SRAM-based (Pipelined)',
+        'top': 'svc_rv_soc_sram_demo_top',
+        'tb': 'svc_rv_soc_sram_demo_tb',
+    },
+    {
+        'name': 'svc_rv_soc_sram_ss_demo',
+        'description': 'SRAM-based (Single-Stage)',
+        'top': 'svc_rv_soc_sram_ss_demo_top',
+        'tb': 'svc_rv_soc_sram_ss_demo_tb',
+    },
+]
+
+BUILD_DIR = Path('.build/vanilla-ice40-hx8k-ct256')
+
+
+def run_command(cmd, description, capture_output=True):
+    """Run a shell command and handle errors."""
+    print(f"  {description}...", flush=True)
+    try:
+        if capture_output:
+            result = subprocess.run(
+                cmd,
+                shell=True,
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            return result.stdout
+        else:
+            subprocess.run(cmd, shell=True, check=True)
+            return None
+    except subprocess.CalledProcessError as e:
+        print(f"    ERROR: {e}", file=sys.stderr)
+        if capture_output and e.stderr:
+            print(f"    {e.stderr}", file=sys.stderr)
+        sys.exit(1)
+
+
+def extract_cpi_from_tb(tb_name):
+    """Run testbench with SVC_TB_RPT=1 and extract CPI metrics."""
+    # First ensure testbench is compiled
+    compile_cmd = f"make .build/tb/{tb_name}"
+    run_command(compile_cmd, f"Compiling {tb_name}", capture_output=False)
+
+    # Run testbench directly with vvp to capture all output
+    tb_path = f".build/tb/{tb_name}"
+    cmd = f"{tb_path} +SVC_TB_RPT=1 2>&1"
+    output = run_command(cmd, f"Running {tb_name}")
+
+    # Parse CPI report from output
+    cycles_match = re.search(r'Cycles:\s+(\d+)', output)
+    instrs_match = re.search(r'Instructions:\s+(\d+)', output)
+
+    if not (cycles_match and instrs_match):
+        print(f"    WARNING: Could not parse CPI from {tb_name}", file=sys.stderr)
+        return None, None, None
+
+    cycles = int(cycles_match.group(1))
+    instrs = int(instrs_match.group(1))
+
+    # Calculate CPI properly with floating point (testbench uses integer division)
+    cpi = cycles / instrs if instrs > 0 else 0
+
+    return cycles, instrs, cpi
+
+
+def extract_fmax_from_pnr(top_name):
+    """Extract fmax from PNR log file."""
+    log_file = BUILD_DIR / f"{top_name}.asc.log"
+
+    if not log_file.exists():
+        print(f"    WARNING: PNR log not found: {log_file}", file=sys.stderr)
+        return None, None, False
+
+    with open(log_file, 'r') as f:
+        content = f.read()
+
+    # Parse fmax from nextpnr output
+    fmax_matches = re.findall(
+        r'Max frequency for clock\s+.*?:\s+([\d.]+)\s+MHz\s+\((PASS|FAIL) at ([\d.]+) MHz\)',
+        content
+    )
+
+    if not fmax_matches:
+        print(f"    WARNING: Could not parse fmax from {log_file}", file=sys.stderr)
+        return None, None, False
+
+    last_match = fmax_matches[-1]
+    fmax = float(last_match[0])
+    target_freq = float(last_match[2])
+    met_timing = last_match[1] == 'PASS'
+
+    return fmax, target_freq, met_timing
+
+
+def main():
+    """Main benchmark execution."""
+    print("=" * 80)
+    print("SVC RV Performance Benchmark")
+    print("=" * 80)
+    print()
+
+    results = []
+
+    for demo in DEMOS:
+        print(f"Benchmarking: {demo['name']} - {demo['description']}")
+        print("-" * 80)
+
+        # Step 1: Run PNR
+        run_command(f"make {demo['top']}_pnr", "Running PNR", capture_output=False)
+
+        # Step 2: Extract fmax from PNR
+        fmax, target_freq, met_timing = extract_fmax_from_pnr(demo['top'])
+        if fmax is None:
+            print(f"  Skipping {demo['name']} - no fmax data")
+            print()
+            continue
+
+        print(f"    Fmax: {fmax:.2f} MHz (target: {target_freq:.0f} MHz) - {'PASS' if met_timing else 'FAIL'}")
+
+        # Step 3: Run testbench with CPI reporting
+        cycles, instrs, cpi = extract_cpi_from_tb(demo['tb'])
+        if cpi is None:
+            print(f"  Skipping {demo['name']} - no CPI data")
+            print()
+            continue
+
+        print(f"    CPI: {cpi:.3f} ({instrs} instrs in {cycles} cycles)")
+
+        # Step 4: Calculate performance metrics
+        ipc = 1.0 / cpi if cpi > 0 else 0
+
+        # Performance = IPC * fmax (in MIPS - Millions of Instructions Per Second)
+        mips = ipc * fmax
+
+        # Alternative: Cycles per second / CPI = Instructions per second
+        # mips_alt = fmax / cpi
+
+        print(f"    IPC: {ipc:.3f}")
+        print(f"    Performance: {mips:.2f} MIPS")
+
+        results.append({
+            'name': demo['name'],
+            'description': demo['description'],
+            'fmax': fmax,
+            'target_freq': target_freq,
+            'met_timing': met_timing,
+            'cycles': cycles,
+            'instrs': instrs,
+            'cpi': cpi,
+            'ipc': ipc,
+            'mips': mips,
+        })
+
+        print()
+
+    # Print summary table
+    print("-" * 78)
+    print("Summary")
+    print("-" * 78)
+    print()
+
+    if not results:
+        print("No results to display")
+        return
+
+    # Markdown table (80 columns total) - sorted by MIPS descending
+    print(f"| {'Module':<40} | {'Fmax':>6} | {'CPI':>5} | {'IPC':>5} | {'MIPS':>6} |")
+    print(f"| {'':<40} | {'MHz':>6} | {'':>5} | {'':>5} | {'':>6} |")
+    print(f"|:{'-'*40}-|{'-'*7}:|{'-'*6}:|{'-'*6}:|{'-'*7}:|")
+
+    # Table rows - sorted by MIPS (best to worst)
+    sorted_results = sorted(results, key=lambda x: x['mips'], reverse=True)
+    for r in sorted_results:
+        print(f"| {r['name']:<40} | {r['fmax']:>6.2f} | {r['cpi']:>5.2f} | {r['ipc']:>5.3f} | {r['mips']:>6.2f} |")
+
+    print()
+
+
+if __name__ == '__main__':
+    main()
