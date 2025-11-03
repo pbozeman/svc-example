@@ -12,7 +12,9 @@ TOP_MODULES := \
 	rtl/mem_test_ice40_sram/mem_test_ice40_sram_top.sv \
 	rtl/mem_test_striped_arbiter_ice40_sram/mem_test_striped_arbiter_ice40_sram_top.sv \
 	rtl/mem_test_striped_ice40_sram/mem_test_striped_ice40_sram_top.sv \
+	rtl/svc_rv_soc_bram_demo/svc_rv_soc_bram_demo_top.sv \
 	rtl/svc_rv_soc_sram_demo/svc_rv_soc_sram_demo_top.sv \
+	rtl/svc_rv_soc_sram_ss_demo/svc_rv_soc_sram_ss_demo_top.sv \
 	rtl/uart_demo/uart_demo_top.sv \
 	rtl/vga_pattern/vga_pattern_top.sv
 
@@ -48,7 +50,9 @@ ICE40_FIND_SEED_MODULES = gfx_shapes_demo_top gfx_pattern_demo_striped_top
 # FIXME: this isn't actually using a pll to run at this speed, so it will currently
 # break. Only testing fmax and device utilization for now. This maybe can go
 # higher with findseed
+svc_rv_soc_bram_demo_top_ICE40_CLK_FREQ = 55
 svc_rv_soc_sram_demo_top_ICE40_CLK_FREQ = 55
+svc_rv_soc_sram_ss_demo_top_ICE40_CLK_FREQ = 33
 
 include svc/mk/sv.mk
 include svc/mk/icestorm.mk

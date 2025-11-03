@@ -1,15 +1,16 @@
-`ifndef SVC_RV_SOC_SRAM_DEMO_SV
-`define SVC_RV_SOC_SRAM_DEMO_SV
+`ifndef SVC_RV_SOC_SRAM_SS_DEMO_SV
+`define SVC_RV_SOC_SRAM_SS_DEMO_SV
 
 `include "svc.sv"
 `include "svc_rv_soc_sram.sv"
 
-module svc_rv_soc_sram_demo (
+module svc_rv_soc_sram_ss_demo (
     input  logic clk,
     input  logic rst_n,
     output logic ebreak
 );
 
+  //
   // Instantiate the RISC-V SoC with program pre-loaded in IMEM
   //
   // Program loaded from program.hex into IMEM
@@ -23,13 +24,16 @@ module svc_rv_soc_sram_demo (
   // This program only uses registers, so it doesn't need any DMEM,
   // and only uses 18 instructions (72 bytes), so IMEM_AW 5 (128 bytes)
   // is sufficient. These overrides can be removed when bram is used.
+  //
+  // Single-stage (non-pipelined) configuration for SRAM
+  //
   svc_rv_soc_sram #(
       .XLEN       (32),
       .IMEM_AW    (5),
       .DMEM_AW    (1),
-      .PIPELINED  (1),
-      .REGFILE_FWD(1),
-      .IMEM_INIT  ("rtl/svc_rv_soc_sram_demo/program.hex")
+      .PIPELINED  (0),
+      .REGFILE_FWD(0),
+      .IMEM_INIT  ("rtl/svc_rv_soc_sram_ss_demo/program.hex")
   ) soc (
       .clk   (clk),
       .rst_n (rst_n),
