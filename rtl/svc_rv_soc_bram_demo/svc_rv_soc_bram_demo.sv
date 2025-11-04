@@ -14,8 +14,8 @@ module svc_rv_soc_bram_demo (
   // Instantiate the RISC-V SoC with program pre-loaded in IMEM
   //
   // Program loaded from program.hex into IMEM
-  // Fibonacci(12) - computes 12th Fibonacci number (144) in x11
-  // Result is then shifted left by 1 (x30 = 288)
+  // Fibonacci(100) - computes 100th Fibonacci number (truncated to 32-bit) in x11
+  // Result is then shifted left by 1 in x30
   // This exercises ALU, branches, loops, and register forwarding
   //
   // Program includes performance counter reads (RDCYCLE, RDINSTRET)
@@ -30,6 +30,7 @@ module svc_rv_soc_bram_demo (
       .PIPELINED  (1),
       .FWD_REGFILE(1),
       .FWD        (0),
+      .BPRED      (1),
       .IMEM_INIT  ("rtl/svc_rv_soc_bram_demo/program.hex")
   ) soc (
       .clk   (clk),
