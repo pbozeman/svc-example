@@ -2,7 +2,7 @@
 """
 RV Performance Benchmark Script
 
-Runs PNR on the 3 SVC RV demos, extracts CPI from testbenches,
+Runs PNR on the 5 SVC RV demos, extracts CPI from testbenches,
 and calculates performance metrics (IPC * fmax).
 """
 
@@ -16,15 +16,27 @@ from pathlib import Path
 DEMOS = [
     {
         'name': 'svc_rv_soc_bram_demo',
-        'description': 'BRAM-based (Pipelined)',
+        'description': 'BRAM-based (Pipelined, FWD=0)',
         'top': 'svc_rv_soc_bram_demo_top',
         'tb': 'svc_rv_soc_bram_demo_tb',
     },
     {
+        'name': 'svc_rv_soc_bram_fwd_demo',
+        'description': 'BRAM-based (Pipelined, FWD=1)',
+        'top': 'svc_rv_soc_bram_fwd_demo_top',
+        'tb': 'svc_rv_soc_bram_fwd_demo_tb',
+    },
+    {
         'name': 'svc_rv_soc_sram_demo',
-        'description': 'SRAM-based (Pipelined)',
+        'description': 'SRAM-based (Pipelined, FWD=0)',
         'top': 'svc_rv_soc_sram_demo_top',
         'tb': 'svc_rv_soc_sram_demo_tb',
+    },
+    {
+        'name': 'svc_rv_soc_sram_fwd_demo',
+        'description': 'SRAM-based (Pipelined, FWD=1)',
+        'top': 'svc_rv_soc_sram_fwd_demo_top',
+        'tb': 'svc_rv_soc_sram_fwd_demo_tb',
     },
     {
         'name': 'svc_rv_soc_sram_ss_demo',

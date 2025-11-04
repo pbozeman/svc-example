@@ -28,7 +28,8 @@ module svc_rv_soc_bram_demo (
       .IMEM_AW    (5),
       .DMEM_AW    (1),
       .PIPELINED  (1),
-      .REGFILE_FWD(1),
+      .FWD_REGFILE(1),
+      .FWD        (0),
       .IMEM_INIT  ("rtl/svc_rv_soc_bram_demo/program.hex")
   ) soc (
       .clk   (clk),

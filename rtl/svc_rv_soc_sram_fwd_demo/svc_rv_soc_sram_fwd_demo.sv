@@ -1,10 +1,10 @@
-`ifndef SVC_RV_SOC_SRAM_SS_DEMO_SV
-`define SVC_RV_SOC_SRAM_SS_DEMO_SV
+`ifndef SVC_RV_SOC_SRAM_FWD_DEMO_SV
+`define SVC_RV_SOC_SRAM_FWD_DEMO_SV
 
 `include "svc.sv"
 `include "svc_rv_soc_sram.sv"
 
-module svc_rv_soc_sram_ss_demo (
+module svc_rv_soc_sram_fwd_demo (
     input  logic clk,
     input  logic rst_n,
     output logic ebreak
@@ -25,16 +25,16 @@ module svc_rv_soc_sram_ss_demo (
   // and only uses 18 instructions (72 bytes), so IMEM_AW 5 (128 bytes)
   // is sufficient. These overrides can be removed when bram is used.
   //
-  // Single-stage (non-pipelined) configuration for SRAM
+  // FWD=1 enables MEM->EX data forwarding to reduce pipeline stalls
   //
   svc_rv_soc_sram #(
       .XLEN       (32),
       .IMEM_AW    (5),
       .DMEM_AW    (1),
-      .PIPELINED  (0),
-      .FWD_REGFILE(0),
-      .FWD        (0),
-      .IMEM_INIT  ("rtl/svc_rv_soc_sram_ss_demo/program.hex")
+      .PIPELINED  (1),
+      .FWD_REGFILE(1),
+      .FWD        (1),
+      .IMEM_INIT  ("rtl/svc_rv_soc_sram_fwd_demo/program.hex")
   ) soc (
       .clk   (clk),
       .rst_n (rst_n),
