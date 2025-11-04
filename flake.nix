@@ -26,6 +26,7 @@
           icestorm
           nextpnr
           nodePackages.prettier
+          pkgs.pkgsCross.riscv64-embedded.buildPackages.gcc
           pythonEnv
           sby
           socat
