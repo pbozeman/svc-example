@@ -1,5 +1,6 @@
 SVC_DIR = svc
 PRJ_DIR = .
+SW_DIR  = sw
 
 .PHONY: default
 default: quick
@@ -62,3 +63,18 @@ svc_rv_soc_sram_ss_demo_top_ICE40_CLK_FREQ = 25
 
 include svc/mk/sv.mk
 include svc/mk/icestorm.mk
+
+#
+# RISC-V software targets
+#
+.PHONY: sw
+sw:
+	$(MAKE) -C $(SW_DIR)
+
+.PHONY: sw_clean
+sw_clean:
+	$(MAKE) -C $(SW_DIR) clean
+
+.PHONY: sw_list
+sw_list:
+	$(MAKE) -C $(SW_DIR) list
