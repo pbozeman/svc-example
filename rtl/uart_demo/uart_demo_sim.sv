@@ -6,7 +6,6 @@
 
 // Standalone interactive simulation for uart_demo
 //
-//
 // Usage:
 //   iverilog -g2012 -Isvc -Irtl -Itb -o uart_demo_sim.vvp rtl/uart_demo/uart_demo_sim.sv
 //   vvp uart_demo_sim.vvp

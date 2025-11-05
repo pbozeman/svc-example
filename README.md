@@ -14,8 +14,8 @@ cloning.
 
 - `make` runs tests
 - `make bits` synthesizes all bitstreams
+- `make uart_demo_sim` runs standalone interactive simulation
 - `make blink_top_prog` programs the blinky bitstream
 - `make mem_test_top_prog` programs the mem test bitsream
 
-plus others: clean, lint, formal, \_pnr, etc. docs and `make help` are still
-todo.
+plus others: clean, lint, formal, list_tb, list_sim, etc.
