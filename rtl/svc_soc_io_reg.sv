@@ -75,10 +75,13 @@ module svc_soc_io_reg (
   //
   // Read logic
   //
+  logic [7:0] raddr_sel;
+  assign raddr_sel = io_raddr[7:0];
+
   always_comb begin
     io_rdata = 32'h0;
     if (io_ren) begin
-      case (io_raddr[7:0])
+      case (raddr_sel)
         8'h00:   io_rdata = {31'h0, led_reg};
         8'h04:   io_rdata = {24'h0, gpio_reg};
         default: io_rdata = 32'h0;

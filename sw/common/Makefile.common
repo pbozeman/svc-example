@@ -79,8 +79,11 @@ $(BIN): $(ELF)
 	$(OBJCOPY) -O binary $< $@
 
 # Generate Verilog hex format for $readmemh
+# Convert to binary then to hex format (32-bit words, one per line)
 $(HEX): $(ELF)
-	$(OBJCOPY) -O verilog $< $@
+	$(OBJCOPY) -O binary $< $@.tmp
+	od -An -tx4 -w4 -v $@.tmp | sed 's/^ *//' > $@
+	rm -f $@.tmp
 
 # Generate disassembly
 $(DIS): $(ELF)
