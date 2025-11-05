@@ -33,9 +33,16 @@ module svc_rv_soc_bram_demo (
       .BPRED      (1),
       .IMEM_INIT  ("rtl/svc_rv_soc_bram_demo/program.hex")
   ) soc (
-      .clk   (clk),
-      .rst_n (rst_n),
-      .ebreak(ebreak)
+      .clk     (clk),
+      .rst_n   (rst_n),
+      .ebreak  (ebreak),
+      .io_ren  (),
+      .io_raddr(),
+      .io_rdata(),
+      .io_wen  (),
+      .io_waddr(),
+      .io_wdata(),
+      .io_wstrb()
   );
 
 endmodule
