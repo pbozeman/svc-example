@@ -1,7 +1,7 @@
 `define SVC_TB_PRINT
 
 `include "svc_unit.sv"
-`include "soc/svc_soc_model_uart.sv"
+`include "svc_soc_sim_uart.sv"
 `include "uart_demo.sv"
 
 // verilator lint_off: UNUSEDSIGNAL
@@ -23,7 +23,7 @@ module uart_demo_tb;
   );
 
   // Instantiate UART model to simulate terminal
-  svc_soc_model_uart #(
+  svc_soc_sim_uart #(
       .CLOCK_FREQ(10_000_000),
       .BAUD_RATE (1_000_000),
       .PRINT_RX  (0),
