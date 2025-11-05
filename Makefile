@@ -50,9 +50,10 @@ ICE40_FIND_SEED_MODULES = gfx_shapes_demo_top gfx_pattern_demo_striped_top
 # gfx_shapes_demo_top_ICE40_CLK_FREQ = 90
 
 
-# FIXME: this isn't actually using a pll to run at this speed, so it will currently
-# break. Only testing fmax and device utilization for now. This maybe can go
-# higher with findseed
+# FIXME: this isn't actually using a pll to run at this speed, so it will
+# currently break. Only testing fmax and device utilization for now. This maybe
+# can go higher with findseed
+
 svc_rv_soc_bram_demo_top_ICE40_CLK_FREQ = 55
 svc_rv_soc_sram_demo_top_ICE40_CLK_FREQ = 55
 
@@ -63,6 +64,18 @@ svc_rv_soc_sram_ss_demo_top_ICE40_CLK_FREQ = 25
 
 include svc/mk/sv.mk
 include svc/mk/icestorm.mk
+
+
+##############################################################################
+# 
+# Risc-V apps and hex file generation. 
+#
+# This section is kinda wonky, and is both auto-magical and manual at the same
+# time. It could use some rethinking, but works for now.
+#
+# (Note: by works, it works for _sim. This has not been hooked up to _top.)
+#
+##############################################################################
 
 #
 # RISC-V software targets
@@ -78,3 +91,20 @@ sw_clean:
 .PHONY: sw_list
 sw_list:
 	$(MAKE) -C $(SW_DIR) list
+
+#
+# Simulation software dependencies
+#
+
+# Include generated dependency files for software
+# These .d files add source dependencies (e.g., main.c, crt0.S) to hex targets
+-include $(wildcard .build/sw/*/*.hex.d)
+
+# List simulations that depend on software hex files
+.build/sim/rv_blinky_sim: .build/sw/blinky/blinky.hex
+
+# Hex files have order-only dependency on sw target to ensure they're built
+# The .hex.d files (included above) provide source dependencies for rebuild detection
+# Note: sw is phony, so it always runs, but the recursive make quickly determines
+# if anything actually needs rebuilding based on file timestamps
+.build/sw/blinky/blinky.hex: | sw
