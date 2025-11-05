@@ -1,11 +1,11 @@
-`ifndef SVC_SOC_MODEL_UART_SV
-`define SVC_SOC_MODEL_UART_SV
+`ifndef SVC_SOC_SIM_UART_SV
+`define SVC_SOC_SIM_UART_SV
 
 `include "svc.sv"
 `include "svc_uart_rx.sv"
 `include "svc_uart_tx.sv"
 
-// UART model for SoC-level testbenches
+// UART simulation model for SoC-level testbenches and standalone simulations
 //
 // This module simulates a UART peripheral/terminal connected to a SoC.
 // It monitors the SoC's UART TX output and can drive the SoC's UART RX input.
@@ -18,7 +18,7 @@
 //
 // Based on patterns from svc_uart_{rx,tx}_tb.sv and svc_model_sram.sv
 
-module svc_soc_model_uart #(
+module svc_soc_sim_uart #(
     parameter CLOCK_FREQ = 100_000_000,
     parameter BAUD_RATE  = 115_200,
     parameter PRINT_RX   = 1,
