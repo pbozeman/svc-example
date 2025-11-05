@@ -34,7 +34,7 @@ int main(void) {
     led_state = ~led_state;
 
     // Delay
-    delay(100000);
+    delay(1000);
   }
 
   return 0;
