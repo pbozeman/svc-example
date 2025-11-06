@@ -3,7 +3,7 @@
 #
 
 # List of all programs
-PROGRAMS = blinky bubble_sort hello
+PROGRAMS = blinky bubble_sort hello lib_test
 
 # Default target: build all programs
 .PHONY: all
