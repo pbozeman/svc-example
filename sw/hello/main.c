@@ -1,6 +1,4 @@
 #include "stdio.h"
-#include "uart.h"
-#include "util.h"
 
 //
 // Main hello world program
@@ -40,12 +38,6 @@ int main(void) {
 
   puts("");
   puts("--- Test complete ---");
-
-  // Wait for UART to finish transmitting before halting
-  svc_uart_flush();
-
-  // Halt the processor
-  svc_halt();
 
   return 0;
 }
