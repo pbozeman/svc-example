@@ -236,10 +236,17 @@ module svc_soc_sim #(
     $display("%s%s", P, sep);
 
     if (SW_PATH != "") begin
-      $display("%smain:     %s", P, SW_PATH);
+      $display("%smain:        %s", P, SW_PATH);
     end
 
-    $display("%swatchdog: %0d cycles", P, WATCHDOG_CYCLES);
+    $display("%swatchdog:    %0d cycles", P, WATCHDOG_CYCLES);
+
+    // reach all the way into the cpu to print these to ensure we didn't
+    // drop params along the way
+    $display("%sPIPELINED:   %0d", P, bram_cpu.cpu.PIPELINED);
+    $display("%sFWD_REGFILE: %0d", P, bram_cpu.cpu.FWD_REGFILE);
+    $display("%sFWD:         %0d", P, bram_cpu.cpu.FWD);
+    $display("%sBPRED:       %0d", P, bram_cpu.cpu.BPRED);
     $display("%s%s", P, sep);
 
     // Wait for completion
