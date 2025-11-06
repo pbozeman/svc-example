@@ -24,27 +24,32 @@ int puts(const char *s) {
 }
 
 //
-// Print unsigned integer in given base
+// Print unsigned integer in given base with optional width and zero-padding
 //
 // Helper function to convert unsigned integer to string and output
 //
-static int print_uint(uint32_t value, int base, int uppercase) {
+static int print_uint(uint32_t value, int base, int uppercase, int width,
+                      int zero_pad) {
   char buf[32];  // Large enough for 32-bit int in any base
   int pos = 0;
   int count = 0;
   const char *digits =
       uppercase ? "0123456789ABCDEF" : "0123456789abcdef";
 
-  // Handle zero specially
+  // Convert to string (reversed)
   if (value == 0) {
-    svc_uart_putc('0');
-    return 1;
+    buf[pos++] = '0';
+  } else {
+    while (value > 0) {
+      buf[pos++] = digits[value % base];
+      value /= base;
+    }
   }
 
-  // Convert to string (reversed)
-  while (value > 0) {
-    buf[pos++] = digits[value % base];
-    value /= base;
+  // Add padding if needed
+  char pad_char = zero_pad ? '0' : ' ';
+  while (pos < width) {
+    buf[pos++] = pad_char;
   }
 
   // Output in correct order
@@ -57,18 +62,20 @@ static int print_uint(uint32_t value, int base, int uppercase) {
 }
 
 //
-// Print signed integer
+// Print signed integer with optional width and zero-padding
 //
-static int print_int(int32_t value) {
+static int print_int(int32_t value, int width, int zero_pad) {
   int count = 0;
 
   if (value < 0) {
     svc_uart_putc('-');
     count++;
     value = -value;
+    // Reduce width by 1 for the minus sign
+    if (width > 0) width--;
   }
 
-  count += print_uint((uint32_t)value, 10, 0);
+  count += print_uint((uint32_t)value, 10, 0, width, zero_pad);
   return count;
 }
 
@@ -87,33 +94,49 @@ int printf(const char *fmt, ...) {
     if (*p == '%') {
       p++;  // Skip '%'
 
+      // Parse optional flags and width
+      int zero_pad = 0;
+      int width = 0;
+
+      // Check for '0' flag (zero-padding)
+      if (*p == '0') {
+        zero_pad = 1;
+        p++;
+      }
+
+      // Parse width (digits)
+      while (*p >= '0' && *p <= '9') {
+        width = width * 10 + (*p - '0');
+        p++;
+      }
+
       // Handle format specifiers
       switch (*p) {
         case 'd':  // Signed decimal
         {
           int32_t val = va_arg(args, int32_t);
-          count += print_int(val);
+          count += print_int(val, width, zero_pad);
           break;
         }
 
         case 'u':  // Unsigned decimal
         {
           uint32_t val = va_arg(args, uint32_t);
-          count += print_uint(val, 10, 0);
+          count += print_uint(val, 10, 0, width, zero_pad);
           break;
         }
 
         case 'x':  // Lowercase hex
         {
           uint32_t val = va_arg(args, uint32_t);
-          count += print_uint(val, 16, 0);
+          count += print_uint(val, 16, 0, width, zero_pad);
           break;
         }
 
         case 'X':  // Uppercase hex
         {
           uint32_t val = va_arg(args, uint32_t);
-          count += print_uint(val, 16, 1);
+          count += print_uint(val, 16, 1, width, zero_pad);
           break;
         }
 
