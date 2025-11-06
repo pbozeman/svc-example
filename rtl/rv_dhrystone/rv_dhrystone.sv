@@ -23,11 +23,11 @@ module rv_dhrystone #(
   //
   svc_rv_soc_bram #(
       .CLOCK_FREQ(CLOCK_FREQ),
-      .BAUD_RATE(BAUD_RATE),
-      .IMEM_DEPTH(8192),  // 32KB instruction memory
-      .DMEM_DEPTH(4096),  // 16KB data memory (Dhrystone globals + heap)
-      .IMEM_INIT(".build/sw/dhrystone/dhrystone.hex"),
-      .DMEM_INIT(".build/sw/dhrystone/dhrystone.hex")
+      .BAUD_RATE (BAUD_RATE),
+      .IMEM_DEPTH(2560),
+      .DMEM_DEPTH(4096),
+      .IMEM_INIT (".build/sw/dhrystone/dhrystone.hex"),
+      .DMEM_INIT (".build/sw/dhrystone/dhrystone.hex")
   ) soc (
       .clk     (clk),
       .rst_n   (rst_n),

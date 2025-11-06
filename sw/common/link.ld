@@ -5,7 +5,7 @@ MEMORY
 {
   /* Harvard architecture: separate instruction and data spaces */
   /* Both start at 0x00000000 in their respective address spaces */
-  IMEM (rx)  : ORIGIN = 0x00000000, LENGTH = 8K
+  IMEM (rx)  : ORIGIN = 0x00000000, LENGTH = 10K
   DMEM (rw)  : ORIGIN = 0x00000000, LENGTH = 16K
 }
 
