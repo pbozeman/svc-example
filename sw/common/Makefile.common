@@ -49,7 +49,9 @@ CRT0_S = $(SW_COMMON)/crt0.S
 
 # libsvc library
 LIBSVC_SRC = $(wildcard $(LIBSVC_DIR)/*.c)
-LIBSVC_OBJ = $(patsubst $(LIBSVC_DIR)/%.c,$(BUILD_DIR)/libsvc/%.o,$(LIBSVC_SRC))
+LIBSVC_ASM = $(wildcard $(LIBSVC_DIR)/*.S)
+LIBSVC_OBJ = $(patsubst $(LIBSVC_DIR)/%.c,$(BUILD_DIR)/libsvc/%.o,$(LIBSVC_SRC)) \
+             $(patsubst $(LIBSVC_DIR)/%.S,$(BUILD_DIR)/libsvc/%.o,$(LIBSVC_ASM))
 LIBSVC_A = $(BUILD_DIR)/libsvc.a
 
 # Build outputs with paths
@@ -83,6 +85,10 @@ $(BUILD_DIR)/libsvc:
 # Compile libsvc sources
 $(BUILD_DIR)/libsvc/%.o: $(LIBSVC_DIR)/%.c | $(BUILD_DIR)/libsvc
 	$(CC) $(CFLAGS) -c -o $@ $<
+
+# Assemble libsvc assembly sources
+$(BUILD_DIR)/libsvc/%.o: $(LIBSVC_DIR)/%.S | $(BUILD_DIR)/libsvc
+	$(CC) $(ASFLAGS) -c -o $@ $<
 
 # Archive libsvc library
 $(LIBSVC_A): $(LIBSVC_OBJ)

@@ -6,5 +6,6 @@
 //
 
 void test_csr(void);
+void test_string(void);
 
 #endif  // LIB_TEST_H

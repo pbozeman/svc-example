@@ -13,6 +13,7 @@ int main(void) {
   puts("");
 
   test_csr();
+  test_string();
 
   puts("");
   puts("=== All tests complete ===");
