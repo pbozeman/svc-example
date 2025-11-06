@@ -3,7 +3,7 @@
 #
 
 # List of all programs
-PROGRAMS = blinky
+PROGRAMS = blinky hello
 
 # Default target: build all programs
 .PHONY: all

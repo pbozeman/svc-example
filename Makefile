@@ -102,9 +102,11 @@ sw_list:
 
 # List simulations that depend on software hex files
 .build/sim/rv_blinky_sim: .build/sw/blinky/blinky.hex
+.build/sim/rv_hello_sim: .build/sw/hello/hello.hex
 
 # Hex files have order-only dependency on sw target to ensure they're built
 # The .hex.d files (included above) provide source dependencies for rebuild detection
 # Note: sw is phony, so it always runs, but the recursive make quickly determines
 # if anything actually needs rebuilding based on file timestamps
 .build/sw/blinky/blinky.hex: | sw
+.build/sw/hello/hello.hex: | sw
