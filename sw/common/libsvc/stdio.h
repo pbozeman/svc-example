@@ -1,0 +1,40 @@
+#ifndef LIBSVC_STDIO_H
+#define LIBSVC_STDIO_H
+
+//
+// Standard I/O Functions
+//
+// Provides standard C library I/O function names that wrap the
+// underlying UART hardware layer.
+//
+
+//
+// Write a character to standard output
+//
+// This is the standard C library putchar() function. It writes
+// a single character to stdout (UART in our case).
+//
+// Args:
+//   c: Character to write (passed as int per C standard)
+//
+// Returns:
+//   The character written, or EOF on error (we always succeed)
+//
+int putchar(int c);
+
+//
+// Write a string to standard output with newline
+//
+// This is the standard C library puts() function. It writes
+// a null-terminated string to stdout (UART) and automatically
+// appends a newline character ('\n').
+//
+// Args:
+//   s: Pointer to null-terminated string
+//
+// Returns:
+//   Non-negative value on success, EOF on error (we always succeed)
+//
+int puts(const char *s);
+
+#endif  // LIBSVC_STDIO_H
