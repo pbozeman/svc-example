@@ -17,6 +17,7 @@ int main(void) {
   test_malloc();
   test_combined();
   test_divmod();
+  test_printf();
 
   puts("");
   puts("=== All tests complete ===");
