@@ -105,6 +105,7 @@ sw_list:
 .build/sim/rv_hello_sim: .build/sw/hello/hello.hex
 .build/sim/rv_bubble_sort_sim: .build/sw/bubble_sort/bubble_sort.hex
 .build/sim/rv_lib_test_sim: .build/sw/lib_test/lib_test.hex
+.build/sim/rv_dhrystone_sim: .build/sw/dhrystone/dhrystone.hex
 
 # Hex files have order-only dependency on sw target to ensure they're built
 # The .hex.d files (included above) provide source dependencies for rebuild detection
@@ -114,3 +115,4 @@ sw_list:
 .build/sw/hello/hello.hex: | sw
 .build/sw/bubble_sort/bubble_sort.hex: | sw
 .build/sw/lib_test/lib_test.hex: | sw
+.build/sw/dhrystone/dhrystone.hex: | sw
