@@ -1,4 +1,5 @@
 #include "mmio.h"
+#include "util.h"
 
 //
 // Memory-mapped LED register offset
@@ -6,17 +7,6 @@
 // LED output is at MMIO_BASE + 0x08
 //
 #define LED_OFFSET 0x08
-
-//
-// Simple delay loop
-//
-// Note: This is not cycle-accurate. Adjust count based on clock frequency.
-//
-static void delay(uint32_t count) {
-  for (volatile uint32_t i = 0; i < count; i++) {
-    // Busy wait
-  }
-}
 
 //
 // Main blinky program
@@ -34,7 +24,7 @@ int main(void) {
     led_state = ~led_state;
 
     // Delay
-    delay(1000);
+    svc_delay(1000);
   }
 
   return 0;
