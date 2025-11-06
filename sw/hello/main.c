@@ -1,14 +1,21 @@
+#include "stdio.h"
 #include "uart.h"
 #include "util.h"
 
 //
 // Main hello world program
 //
-// Prints "Hello, World!" via UART then halts
+// Demonstrates libsvc standard I/O functions: putchar() and puts()
 //
 int main(void) {
-  // Print greeting
-  svc_uart_puts("Hello, World!\nGreetings!\n");
+  // Print greeting using puts() - automatically adds newline
+  puts("Hello, World!");
+  puts("Greetings from libsvc!");
+
+  // Demonstrate putchar() - print a simple message character by character
+  putchar('O');
+  putchar('K');
+  putchar('\n');
 
   // Wait for UART to finish transmitting before halting
   svc_uart_flush();
