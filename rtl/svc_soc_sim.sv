@@ -16,27 +16,6 @@
 // - Pipeline execution monitoring (optional via +SVC_CPU_DBG)
 // - Banner and statistics reporting
 //
-// Usage example:
-//   logic uart_tx, led, ebreak, done;
-//   logic [7:0] gpio;
-//   int cycle_count;
-//   svc_soc_sim #(
-//       .CLOCK_FREQ_MHZ(25),
-//       .IMEM_INIT(".build/sw/hello/hello.hex"),
-//       .WATCHDOG_CYCLES(500_000),
-//       .TITLE("Hello World"),
-//       .SW_PATH("sw/hello/main.c")
-//   ) sim (
-//       .clk(clk),
-//       .rst_n(rst_n),
-//       .uart_tx(uart_tx),
-//       .led(led),
-//       .gpio(gpio),
-//       .ebreak(ebreak),
-//       .done(done),
-//       .cycle_count(cycle_count)
-//   );
-
 module svc_soc_sim #(
     // Clock and reset
     parameter CLOCK_FREQ_MHZ = 100,
@@ -55,11 +34,9 @@ module svc_soc_sim #(
     parameter BAUD_RATE   = 115_200,
 
     // Simulation control
-    parameter int WATCHDOG_CYCLES = 100000,
-
-    // Banner configuration
-    parameter TITLE   = "",
-    parameter SW_PATH = ""
+    parameter WATCHDOG_CYCLES = 100000,
+    parameter PREFIX          = "",
+    parameter SW_PATH         = ""
 ) (
     output logic       clk,
     output logic       rst_n,
@@ -97,7 +74,8 @@ module svc_soc_sim #(
   svc_soc_sim_uart #(
       .CLOCK_FREQ(CLOCK_FREQ),
       .BAUD_RATE (BAUD_RATE),
-      .PRINT_RX  (1)
+      .PRINT_RX  (1),
+      .PREFIX    (PREFIX)
   ) uart_terminal (
       .clk    (clk),
       .rst_n  (rst_n),
@@ -196,7 +174,6 @@ module svc_soc_sim #(
     assign timeout = 1'b0;
   end
 
-  assign done = timeout || ebreak;
 
   //
   // Pipeline execution monitoring
@@ -234,57 +211,69 @@ module svc_soc_sim #(
   end
 
   //
-  // Banner and lifecycle management (optional)
+  // Banner and lifecycle management
   //
-  if (WATCHDOG_CYCLES > 0) begin : gen_lifecycle
-    initial begin
-      string sep;
+  initial begin
+    string sep;
+    string P;
 
-      // Wait for reset to complete
-      wait (rst_n);
+    done = 0;
 
-      // Build separator string
-      sep = {80{"="}};
+    // Wait for reset to complete
+    wait (rst_n);
 
-      // Print banner
-      $display("");
-      if (TITLE != "") begin
-        $display("=== RISC-V %s Simulation ===", TITLE);
-      end else begin
-        $display("=== Simulation ===");
-      end
+    // Build separator string
+    sep = {80{"="}};
 
-      if (SW_PATH != "") begin
-        $display("Running software from %s", SW_PATH);
-      end
-
-      if (CLOCK_FREQ_MHZ > 0) begin
-        $display("Clock frequency: %0d MHz", CLOCK_FREQ_MHZ);
-      end
-
-      if (BAUD_RATE > 0) begin
-        $display("UART baud rate: %0d", BAUD_RATE);
-      end
-
-      $display("Will run for %0d cycles", WATCHDOG_CYCLES);
-      $display("%s", sep);
-
-      // Wait for completion
-      wait (done);
-
-      // Print completion report
-      $display("%s", sep);
-      if (timeout) begin
-        $display("Reason: timeout");
-      end else begin
-        $display("Reason: ebreak");
-      end
-
-      $display("Cycles: %0d", cycle_count);
-      $display("");
-
-      $finish(0);
+    // Build prefix string
+    if ($test$plusargs("SVC_SIM_PREFIX") && PREFIX != "") begin
+      P = $sformatf("%-8s", {PREFIX, ":"});
+    end else begin
+      P = "";
     end
+
+    // Print banner
+    $display("%s%s", P, sep);
+
+    if (SW_PATH != "") begin
+      $display("%smain:     %s", P, SW_PATH);
+    end
+
+    $display("%swatchdog: %0d cycles", P, WATCHDOG_CYCLES);
+    $display("%s%s", P, sep);
+
+    // Wait for completion
+    wait (timeout || ebreak);
+
+    // Print completion report
+    $display("%s%s", P, sep);
+
+    if (timeout) begin
+      $display("%sreason: timeout", P);
+    end else begin
+      $display("%sreason: ebreak", P);
+    end
+
+    $display("%scycles: %0d", P, cycle_count);
+
+    //
+    // CPI reporting
+    //
+    begin
+      logic [31:0] cycles;
+      logic [31:0] instrs;
+      real         cpi;
+
+      cycles = bram_cpu.cpu.csr.cycle;
+      instrs = bram_cpu.cpu.csr.instret;
+      cpi    = real'(cycles) / real'(instrs);
+
+      $display("%sinstrs: %0d", P, instrs);
+      $display("%scpi:    %f", P, cpi);
+    end
+
+    done = 1;
+    $finish(0);
   end
 
 endmodule
