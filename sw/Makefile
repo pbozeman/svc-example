@@ -3,7 +3,7 @@
 #
 
 # List of all programs
-PROGRAMS = blinky hello
+PROGRAMS = blinky bubble_sort hello
 
 # Default target: build all programs
 .PHONY: all
