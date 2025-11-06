@@ -25,7 +25,7 @@ module rv_lib_test #(
       .CLOCK_FREQ(CLOCK_FREQ),
       .BAUD_RATE(BAUD_RATE),
       .IMEM_DEPTH(4096),  // 16KB instruction memory
-      .DMEM_DEPTH(2048),  // 8KB data memory (for heap support)
+      .DMEM_DEPTH(4096),  // 16KB data memory (for Dhrystone-sized heap)
       .IMEM_INIT(".build/sw/lib_test/lib_test.hex"),
       .DMEM_INIT(".build/sw/lib_test/lib_test.hex")
   ) soc (
