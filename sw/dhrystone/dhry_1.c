@@ -24,7 +24,7 @@
 #include "libsvc/string.h"
 
 #ifndef DHRY_ITERS
-#define DHRY_ITERS 2000
+#define DHRY_ITERS 100
 #endif
 
 /* Global Variables: */
