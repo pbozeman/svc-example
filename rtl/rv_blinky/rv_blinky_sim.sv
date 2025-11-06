@@ -1,7 +1,6 @@
 `include "svc.sv"
 
 `include "svc_soc_sim.sv"
-`include "rv_blinky.sv"
 
 //
 // Standalone interactive simulation for RISC-V blinky demo
@@ -17,34 +16,34 @@ module rv_blinky_sim;
   localparam int WATCHDOG_CYCLES = 100000;
 
   //
-  // Clock and reset from simulation infrastructure
+  // Signals
   //
-  logic clk;
-  logic rst_n;
-
-  svc_soc_sim #(
-      .CLOCK_FREQ_MHZ(25)
-  ) sim_infra (
-      .clk  (clk),
-      .rst_n(rst_n)
-  );
-
-  //
-  // Hardware outputs
-  //
+  logic       clk;
+  logic       rst_n;
+  logic       uart_tx_unused;
   logic       led;
   logic [7:0] gpio;
-  logic       ebreak;
+  logic       done;
 
   //
-  // Instantiate the DUT
+  // SOC simulation with CPU, peripherals, and lifecycle management
   //
-  rv_blinky dut (
-      .clk   (clk),
-      .rst_n (rst_n),
-      .led   (led),
-      .gpio  (gpio),
-      .ebreak(ebreak)
+  svc_soc_sim #(
+      .CLOCK_FREQ_MHZ (25),
+      .IMEM_AW        (10),
+      .DMEM_AW        (10),
+      .IMEM_INIT      (".build/sw/blinky/blinky.hex"),
+      .WATCHDOG_CYCLES(WATCHDOG_CYCLES),
+      .TITLE          ("Blinky"),
+      .SW_PATH        ("sw/blinky/main.c"),
+      .DESCRIPTION    ("Watching for LED toggles via MMIO writes to 0x80000000")
+  ) sim (
+      .clk    (clk),
+      .rst_n  (rst_n),
+      .uart_tx(uart_tx_unused),
+      .led    (led),
+      .gpio   (gpio),
+      .done   (done)
   );
 
   //
@@ -67,16 +66,6 @@ module rv_blinky_sim;
   end
 
   //
-  // Monitor MMIO writes
-  //
-  always @(posedge clk) begin
-    if (rst_n && dut.io_wen) begin
-      $display("[%0t] MMIO Write: addr=0x%08x data=0x%08x", $time,
-               dut.io_waddr, dut.io_wdata);
-    end
-  end
-
-  //
   // Debug: Count data memory writes
   //
   int dmem_write_count;
@@ -84,69 +73,19 @@ module rv_blinky_sim;
   always_ff @(posedge clk) begin
     if (!rst_n) begin
       dmem_write_count <= 0;
-    end else if (dut.soc.dmem_wen) begin
+    end else if (sim.bram_cpu.dmem_wen) begin
       dmem_write_count <= dmem_write_count + 1;
     end
   end
 
-  always @(posedge clk) begin
-    if (rst_n && dut.soc.dmem_wen && dmem_write_count < 20) begin
-      $display("[%0t] Data mem write #%0d: addr=0x%08x data=0x%08x", $time,
-               dmem_write_count, dut.soc.dmem_waddr, dut.soc.dmem_wdata);
-    end
-  end
-
   //
-  // Watchdog counter
-  //
-  int   watchdog_count;
-  logic timeout;
-
-  always_ff @(posedge clk) begin
-    if (!rst_n) begin
-      watchdog_count <= 0;
-      timeout        <= 1'b0;
-    end else begin
-      watchdog_count <= watchdog_count + 1;
-      if (watchdog_count >= WATCHDOG_CYCLES) begin
-        timeout <= 1'b1;
-      end
-    end
-  end
-
-  //
-  // Simulation control
+  // Additional statistics reporting on completion
   //
   initial begin
-    wait (rst_n);
-    #1000;
-
-    $display("");
-    $display("=== RISC-V Blinky Simulation ===");
-    $display("Running software from sw/blinky/main.c");
-    $display("Watching for LED toggles via MMIO writes to 0x80000000");
-    $display("Will run for %0d cycles (infinite loop program)",
-             WATCHDOG_CYCLES);
-    $display("");
-
-    //
-    // Wait for timeout or ebreak
-    //
-    wait (timeout || ebreak);
-
-    $display("");
-    if (timeout) begin
-      $display("=== Simulation Complete (timeout) ===");
-    end else begin
-      $display("=== Simulation Complete (ebreak) ===");
-    end
-    $display("Cycles: %0d", watchdog_count);
+    wait (done);
     $display("Final LED state: %b", led);
     $display("Final GPIO state: 0x%02x", gpio);
     $display("Data mem writes seen: %0d", dmem_write_count);
-    $display("");
-
-    $finish;
   end
 
   //
