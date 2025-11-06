@@ -29,8 +29,8 @@ module svc_rv_soc_sram_fwd_demo (
   //
   svc_rv_soc_sram #(
       .XLEN       (32),
-      .IMEM_AW    (5),
-      .DMEM_AW    (1),
+      .IMEM_DEPTH (32),
+      .DMEM_DEPTH (2),
       .PIPELINED  (1),
       .FWD_REGFILE(1),
       .FWD        (1),

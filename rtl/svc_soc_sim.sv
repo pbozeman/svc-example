@@ -44,8 +44,8 @@ module svc_soc_sim #(
 
     // CPU configuration
     parameter XLEN        = 32,
-    parameter IMEM_AW     = 12,
-    parameter DMEM_AW     = 10,
+    parameter IMEM_DEPTH  = 4096,
+    parameter DMEM_DEPTH  = 1024,
     parameter PIPELINED   = 1,
     parameter FWD_REGFILE = 1,
     parameter FWD         = 1,
@@ -122,8 +122,8 @@ module svc_soc_sim #(
   //
   svc_rv_soc_bram #(
       .XLEN       (XLEN),
-      .IMEM_AW    (IMEM_AW),
-      .DMEM_AW    (DMEM_AW),
+      .IMEM_DEPTH (IMEM_DEPTH),
+      .DMEM_DEPTH (DMEM_DEPTH),
       .PIPELINED  (PIPELINED),
       .FWD_REGFILE(FWD_REGFILE),
       .FWD        (FWD),
