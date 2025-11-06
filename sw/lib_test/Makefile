@@ -6,7 +6,7 @@
 PROGRAM = lib_test
 
 # Source files
-OBJS = main.o test_csr.o
+OBJS = main.o test_csr.o test_string.o
 
 # Include common build rules
 include ../common/Makefile.common
