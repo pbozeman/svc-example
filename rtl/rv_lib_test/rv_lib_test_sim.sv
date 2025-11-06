@@ -13,22 +13,22 @@ module rv_lib_test_sim;
   //
   // Simulation parameters
   //
-  localparam int WATCHDOG_CYCLES = 1_000_000;
+  localparam int WATCHDOG_CYCLES = 2_000_000;  // Increased for malloc tests
 
 
   //
   // SOC simulation with CPU, peripherals, and lifecycle management
   //
   svc_soc_sim #(
-      .CLOCK_FREQ_MHZ (25),
-      .IMEM_DEPTH     (4096),
-      .DMEM_DEPTH     (1024),
-      .IMEM_INIT      (".build/sw/lib_test/lib_test.hex"),
-      .DMEM_INIT      (".build/sw/lib_test/lib_test.hex"),
-      .BAUD_RATE      (115_200),
+      .CLOCK_FREQ_MHZ(25),
+      .IMEM_DEPTH(4096),
+      .DMEM_DEPTH(2048),  // 8KB for heap support
+      .IMEM_INIT(".build/sw/lib_test/lib_test.hex"),
+      .DMEM_INIT(".build/sw/lib_test/lib_test.hex"),
+      .BAUD_RATE(115_200),
       .WATCHDOG_CYCLES(WATCHDOG_CYCLES),
-      .PREFIX         ("lib_test"),
-      .SW_PATH        ("sw/lib_test/main.c")
+      .PREFIX("lib_test"),
+      .SW_PATH("sw/lib_test/main.c")
   ) sim (
       .clk    (),
       .rst_n  (),
