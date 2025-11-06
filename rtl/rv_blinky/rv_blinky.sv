@@ -35,8 +35,8 @@ module rv_blinky (
   //
   svc_rv_soc_bram #(
       .XLEN       (32),
-      .IMEM_AW    (10),
-      .DMEM_AW    (10),
+      .IMEM_DEPTH (1024),
+      .DMEM_DEPTH (1024),
       .PIPELINED  (1),
       .FWD_REGFILE(1),
       .FWD        (0),

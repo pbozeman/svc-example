@@ -30,8 +30,8 @@ module rv_blinky_sim;
   //
   svc_soc_sim #(
       .CLOCK_FREQ_MHZ (25),
-      .IMEM_AW        (10),
-      .DMEM_AW        (10),
+      .IMEM_DEPTH     (1024),
+      .DMEM_DEPTH     (1024),
       .IMEM_INIT      (".build/sw/blinky/blinky.hex"),
       .WATCHDOG_CYCLES(WATCHDOG_CYCLES),
       .TITLE          ("Blinky"),
