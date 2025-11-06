@@ -17,6 +17,7 @@ SIZE    = $(CROSS_COMPILE)size
 SW_ROOT  ?= ..
 SW_COMMON = $(SW_ROOT)/common
 BUILD_DIR = $(SW_ROOT)/../.build/sw/$(PROGRAM)
+LIBSVC_DIR = $(SW_COMMON)/libsvc
 
 # Architecture flags (32-bit RISC-V with Zicsr for CSR access)
 ARCH_FLAGS = -march=rv32i_zicsr -mabi=ilp32
@@ -30,7 +31,8 @@ CFLAGS = $(ARCH_FLAGS) \
          -ffreestanding \
          -nostdlib \
          -nostartfiles \
-         -I$(SW_COMMON)
+         -I$(SW_COMMON) \
+         -I$(LIBSVC_DIR)
 
 # Assembler flags
 ASFLAGS = $(ARCH_FLAGS)
@@ -44,6 +46,11 @@ LDFLAGS = $(ARCH_FLAGS) \
 
 # Common source files
 CRT0_S = $(SW_COMMON)/crt0.S
+
+# libsvc library
+LIBSVC_SRC = $(wildcard $(LIBSVC_DIR)/*.c)
+LIBSVC_OBJ = $(patsubst $(LIBSVC_DIR)/%.c,$(BUILD_DIR)/libsvc/%.o,$(LIBSVC_SRC))
+LIBSVC_A = $(BUILD_DIR)/libsvc.a
 
 # Build outputs with paths
 BUILD_OBJS = $(addprefix $(BUILD_DIR)/,$(OBJS))
@@ -69,9 +76,21 @@ $(BUILD_DIR)/%.o: %.c | $(BUILD_DIR)
 $(CRT0_O): $(CRT0_S) | $(BUILD_DIR)
 	$(CC) $(ASFLAGS) -c -o $@ $<
 
+# Build libsvc directory
+$(BUILD_DIR)/libsvc:
+	@mkdir -p $@
+
+# Compile libsvc sources
+$(BUILD_DIR)/libsvc/%.o: $(LIBSVC_DIR)/%.c | $(BUILD_DIR)/libsvc
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+# Archive libsvc library
+$(LIBSVC_A): $(LIBSVC_OBJ)
+	$(AR) rcs $@ $^
+
 # Link ELF
-$(ELF): $(BUILD_OBJS) $(CRT0_O)
-	$(CC) $(LDFLAGS) -o $@ $(CRT0_O) $(BUILD_OBJS)
+$(ELF): $(BUILD_OBJS) $(CRT0_O) $(LIBSVC_A)
+	$(CC) $(LDFLAGS) -o $@ $(CRT0_O) $(BUILD_OBJS) $(LIBSVC_A)
 	$(SIZE) $@
 
 # Generate binary
