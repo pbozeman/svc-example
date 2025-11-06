@@ -27,7 +27,7 @@ module rv_hello_sim;
       .DMEM_INIT      (".build/sw/hello/hello.hex"),
       .BAUD_RATE      (115_200),
       .WATCHDOG_CYCLES(WATCHDOG_CYCLES),
-      .TITLE          ("Hello World"),
+      .PREFIX         ("hello"),
       .SW_PATH        ("sw/hello/main.c")
   ) sim (
       .clk    (),

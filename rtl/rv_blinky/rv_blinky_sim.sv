@@ -34,7 +34,7 @@ module rv_blinky_sim;
       .DMEM_DEPTH     (1024),
       .IMEM_INIT      (".build/sw/blinky/blinky.hex"),
       .WATCHDOG_CYCLES(WATCHDOG_CYCLES),
-      .TITLE          ("Blinky"),
+      .PREFIX         ("blinky"),
       .SW_PATH        ("sw/blinky/main.c")
   ) sim (
       .clk    (clk),
@@ -58,9 +58,22 @@ module rv_blinky_sim;
     end
   end
 
+  //
+  // Build prefix for local displays
+  //
+  string P;
+
+  initial begin
+    if ($test$plusargs("SVC_SIM_PREFIX")) begin
+      P = $sformatf("%-8s", "blinky:");
+    end else begin
+      P = "";
+    end
+  end
+
   always @(posedge clk) begin
     if (rst_n && led != led_prev) begin
-      $display("[%0t] LED changed: %b -> %b", $time, led_prev, led);
+      $display("%s[%0t] LED changed: %b -> %b", P, $time, led_prev, led);
     end
   end
 
@@ -82,9 +95,9 @@ module rv_blinky_sim;
   //
   initial begin
     wait (done);
-    $display("Final LED state: %b", led);
-    $display("Final GPIO state: 0x%02x", gpio);
-    $display("Data mem writes seen: %0d", dmem_write_count);
+    $display("%sFinal LED state: %b", P, led);
+    $display("%sFinal GPIO state: 0x%02x", P, gpio);
+    $display("%sData mem writes seen: %0d", P, dmem_write_count);
   end
 
   //

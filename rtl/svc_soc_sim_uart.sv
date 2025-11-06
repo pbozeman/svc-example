@@ -22,7 +22,8 @@ module svc_soc_sim_uart #(
     parameter CLOCK_FREQ = 100_000_000,
     parameter BAUD_RATE  = 115_200,
     parameter PRINT_RX   = 1,
-    parameter DEBUG      = 0
+    parameter DEBUG      = 0,
+    parameter PREFIX     = ""
 ) (
     input  logic clk,
     input  logic rst_n,
@@ -30,26 +31,38 @@ module svc_soc_sim_uart #(
     input  logic utx_pin
 );
   // Statistics and buffers
-  int         rx_char_count;
-  int         tx_char_count;
+  int          rx_char_count;
+  int          tx_char_count;
 
-  logic [7:0] rx_buffer     [$];
+  logic  [7:0] rx_buffer     [$];
 
   // UART RX signals
-  logic       urx_valid;
-  logic [7:0] urx_data;
-  logic       urx_ready;
+  logic        urx_valid;
+  logic  [7:0] urx_data;
+  logic        urx_ready;
 
   // UART TX signals
-  logic       utx_valid;
-  logic [7:0] utx_data;
-  logic       utx_ready;
+  logic        utx_valid;
+  logic  [7:0] utx_data;
+  logic        utx_ready;
+
+  // Build prefix string
+  string       P;
+  bit          at_line_start;
 
   // Initialize
   initial begin
-    urx_ready = 1'b1;  // Always ready to receive
-    utx_valid = 1'b0;  // Start with no TX data
-    utx_data  = 8'h00;
+    // Build prefix string
+    if ($test$plusargs("SVC_SIM_PREFIX") && PREFIX != "") begin
+      P = $sformatf("%-8s", {PREFIX, ":"});
+    end else begin
+      P = "";
+    end
+
+    at_line_start = 1;
+    urx_ready     = 1'b1;  // Always ready to receive
+    utx_valid     = 1'b0;  // Start with no TX data
+    utx_data      = 8'h00;
   end
 
   //
@@ -84,11 +97,20 @@ module svc_soc_sim_uart #(
         // Print character (handle special chars)
         if (urx_data == 8'h0A) begin
           $display("");
+          at_line_start = 1;
         end else if (urx_data == 8'h0D) begin
           // Ignore CR (we'll handle CRLF with just LF)
         end else if (urx_data >= 8'h20 && urx_data <= 8'h7E) begin
+          if (at_line_start) begin
+            $write("%s", P);
+            at_line_start = 0;
+          end
           $write("%c", urx_data);
         end else if (DEBUG) begin
+          if (at_line_start) begin
+            $write("%s", P);
+            at_line_start = 0;
+          end
           $write("[0x%02h]", urx_data);
         end
       end
