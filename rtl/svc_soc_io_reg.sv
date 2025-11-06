@@ -127,19 +127,36 @@ module svc_soc_io_reg #(
   //
   // Read logic
   //
-  logic [7:0] raddr_sel;
+  // IMPORTANT: This module is used with BRAM-timed memory systems,
+  // which have 1-cycle read latency. To match BRAM timing, we register
+  // the read output, making io_rdata valid 1 cycle after io_ren.
+  //
+  logic [ 7:0] raddr_sel;
+  logic [31:0] io_rdata_comb;
+
   assign raddr_sel = io_raddr[7:0];
 
   always_comb begin
-    io_rdata = 32'h0;
+    io_rdata_comb = 32'h0;
     if (io_ren) begin
       case (raddr_sel)
-        8'h00:   io_rdata = 32'h0;
-        8'h04:   io_rdata = {31'h0, uart_tx_ready};
-        8'h08:   io_rdata = {31'h0, led_reg};
-        8'h0C:   io_rdata = {24'h0, gpio_reg};
-        default: io_rdata = 32'h0;
+        8'h00:   io_rdata_comb = 32'h0;
+        8'h04:   io_rdata_comb = {31'h0, uart_tx_ready};
+        8'h08:   io_rdata_comb = {31'h0, led_reg};
+        8'h0C:   io_rdata_comb = {24'h0, gpio_reg};
+        default: io_rdata_comb = 32'h0;
       endcase
+    end
+  end
+
+  //
+  // Register output to match BRAM timing (1-cycle latency)
+  //
+  always_ff @(posedge clk) begin
+    if (!rst_n) begin
+      io_rdata <= 32'h0;
+    end else begin
+      io_rdata <= io_rdata_comb;
     end
   end
 
