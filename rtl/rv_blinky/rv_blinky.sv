@@ -56,6 +56,11 @@ module rv_blinky (
   );
 
   //
+  // UART TX (unused in blinky, but svc_soc_io_reg instantiates it)
+  //
+  logic uart_tx_unused;
+
+  //
   // Instantiate the I/O register bank
   //
   svc_soc_io_reg io_regs (
@@ -69,7 +74,8 @@ module rv_blinky (
       .io_raddr(io_raddr),
       .io_rdata(io_rdata),
       .led     (led),
-      .gpio    (gpio)
+      .gpio    (gpio),
+      .uart_tx (uart_tx_unused)
   );
 
 endmodule

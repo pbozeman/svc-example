@@ -3,9 +3,9 @@
 //
 // Memory-mapped LED register offset
 //
-// Assumes LED output is at MMIO_BASE + 0x00
+// LED output is at MMIO_BASE + 0x08
 //
-#define LED_OFFSET 0x00
+#define LED_OFFSET 0x08
 
 //
 // Simple delay loop
