@@ -22,7 +22,7 @@ module rv_lib_test_sim;
   svc_soc_sim #(
       .CLOCK_FREQ_MHZ(25),
       .IMEM_DEPTH(4096),
-      .DMEM_DEPTH(2048),  // 8KB for heap support
+      .DMEM_DEPTH(4096),  // 16KB for Dhrystone-sized heap
       .IMEM_INIT(".build/sw/lib_test/lib_test.hex"),
       .DMEM_INIT(".build/sw/lib_test/lib_test.hex"),
       .BAUD_RATE(115_200),
