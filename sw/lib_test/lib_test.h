@@ -8,5 +8,6 @@
 void test_csr(void);
 void test_string(void);
 void test_malloc(void);
+void test_combined(void);
 
 #endif  // LIB_TEST_H
