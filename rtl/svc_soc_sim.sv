@@ -58,9 +58,8 @@ module svc_soc_sim #(
     parameter int WATCHDOG_CYCLES = 100000,
 
     // Banner configuration
-    parameter TITLE       = "",
-    parameter SW_PATH     = "",
-    parameter DESCRIPTION = ""
+    parameter TITLE   = "",
+    parameter SW_PATH = ""
 ) (
     output logic       clk,
     output logic       rst_n,
@@ -265,10 +264,6 @@ module svc_soc_sim #(
 
       if (BAUD_RATE > 0) begin
         $display("UART baud rate: %0d", BAUD_RATE);
-      end
-
-      if (DESCRIPTION != "") begin
-        $display("%s", DESCRIPTION);
       end
 
       $display("Will run for %0d cycles", WATCHDOG_CYCLES);

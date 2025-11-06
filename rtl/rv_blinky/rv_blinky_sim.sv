@@ -35,8 +35,7 @@ module rv_blinky_sim;
       .IMEM_INIT      (".build/sw/blinky/blinky.hex"),
       .WATCHDOG_CYCLES(WATCHDOG_CYCLES),
       .TITLE          ("Blinky"),
-      .SW_PATH        ("sw/blinky/main.c"),
-      .DESCRIPTION    ("Watching for LED toggles via MMIO writes to 0x80000000")
+      .SW_PATH        ("sw/blinky/main.c")
   ) sim (
       .clk    (clk),
       .rst_n  (rst_n),
