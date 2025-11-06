@@ -13,7 +13,7 @@ module rv_hello_sim;
   //
   // Simulation parameters
   //
-  localparam int WATCHDOG_CYCLES = 500_000;  // 20ms at 25MHz
+  localparam int WATCHDOG_CYCLES = 1_000_000;
 
 
   //

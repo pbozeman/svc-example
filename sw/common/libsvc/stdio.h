@@ -1,6 +1,8 @@
 #ifndef LIBSVC_STDIO_H
 #define LIBSVC_STDIO_H
 
+#include <stdarg.h>
+
 //
 // Standard I/O Functions
 //
@@ -36,5 +38,28 @@ int putchar(int c);
 //   Non-negative value on success, EOF on error (we always succeed)
 //
 int puts(const char *s);
+
+//
+// Formatted output to standard output
+//
+// Minimal printf implementation supporting:
+//   %d - signed decimal integer
+//   %u - unsigned decimal integer
+//   %x - lowercase hexadecimal
+//   %X - uppercase hexadecimal
+//   %s - null-terminated string
+//   %c - single character
+//   %% - literal '%'
+//
+// Note: No field width, precision, or padding flags.
+//
+// Args:
+//   fmt: Format string
+//   ...: Variable arguments matching format specifiers
+//
+// Returns:
+//   Number of characters written
+//
+int printf(const char *fmt, ...);
 
 #endif  // LIBSVC_STDIO_H
