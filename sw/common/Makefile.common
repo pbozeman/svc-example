@@ -23,8 +23,14 @@ LIBSVC_DIR = $(SW_COMMON)/libsvc
 # Architecture flags (32-bit RISC-V with Zicsr for CSR access)
 ARCH_FLAGS = -march=$(RV_ARCH)_zicsr -mabi=ilp32
 
-# Conditional libgcc for soft multiply (not needed yet, placeholder for Phase 2)
-LIBGCC =
+# Conditional libgcc for soft multiply
+# RV32I: Needs libgcc for software multiply (division provided by libsvc)
+# RV32IM: Uses hardware mul/div, no libgcc needed
+ifeq ($(RV_ARCH),rv32i)
+  LIBGCC = -lgcc
+else
+  LIBGCC =
+endif
 
 # Compiler flags
 CFLAGS = $(ARCH_FLAGS) \
