@@ -26,8 +26,8 @@ module rv_dhrystone #(
       .BAUD_RATE (BAUD_RATE),
       .IMEM_DEPTH(2560),
       .DMEM_DEPTH(4096),
-      .IMEM_INIT (".build/sw/dhrystone/dhrystone.hex"),
-      .DMEM_INIT (".build/sw/dhrystone/dhrystone.hex")
+      .IMEM_INIT (".build/sw/rv32i/dhrystone/dhrystone.hex"),
+      .DMEM_INIT (".build/sw/rv32i/dhrystone/dhrystone.hex")
   ) soc (
       .clk     (clk),
       .rst_n   (rst_n),

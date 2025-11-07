@@ -46,8 +46,8 @@ module rv_hello #(
       .FWD_REGFILE(1),
       .FWD        (0),
       .BPRED      (0),
-      .IMEM_INIT  (".build/sw/hello/hello.hex"),
-      .DMEM_INIT  (".build/sw/hello/hello.hex")
+      .IMEM_INIT  (".build/sw/rv32i/hello/hello.hex"),
+      .DMEM_INIT  (".build/sw/rv32i/hello/hello.hex")
   ) soc (
       .clk     (clk),
       .rst_n   (rst_n),

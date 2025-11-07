@@ -41,7 +41,7 @@ module rv_blinky (
       .FWD_REGFILE(1),
       .FWD        (0),
       .BPRED      (0),
-      .IMEM_INIT  (".build/sw/blinky/blinky.hex")
+      .IMEM_INIT  (".build/sw/rv32i/blinky/blinky.hex")
   ) soc (
       .clk     (clk),
       .rst_n   (rst_n),

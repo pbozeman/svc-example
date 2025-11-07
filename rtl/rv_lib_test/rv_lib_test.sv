@@ -26,8 +26,8 @@ module rv_lib_test #(
       .BAUD_RATE(BAUD_RATE),
       .IMEM_DEPTH(4096),  // 16KB instruction memory
       .DMEM_DEPTH(4096),  // 16KB data memory (for Dhrystone-sized heap)
-      .IMEM_INIT(".build/sw/lib_test/lib_test.hex"),
-      .DMEM_INIT(".build/sw/lib_test/lib_test.hex")
+      .IMEM_INIT(".build/sw/rv32i/lib_test/lib_test.hex"),
+      .DMEM_INIT(".build/sw/rv32i/lib_test/lib_test.hex")
   ) soc (
       .clk     (clk),
       .rst_n   (rst_n),
