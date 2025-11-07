@@ -23,8 +23,8 @@ module rv_lib_test_sim;
       .CLOCK_FREQ_MHZ(25),
       .IMEM_DEPTH(4096),
       .DMEM_DEPTH(4096),  // 16KB for Dhrystone-sized heap
-      .IMEM_INIT(".build/sw/lib_test/lib_test.hex"),
-      .DMEM_INIT(".build/sw/lib_test/lib_test.hex"),
+      .IMEM_INIT(".build/sw/rv32i/lib_test/lib_test.hex"),
+      .DMEM_INIT(".build/sw/rv32i/lib_test/lib_test.hex"),
       .BAUD_RATE(115_200),
       .WATCHDOG_CYCLES(WATCHDOG_CYCLES),
       .PREFIX("lib_test"),

@@ -24,8 +24,8 @@ module rv_dhrystone_sim;
       .CLOCK_FREQ_MHZ(25),
       .IMEM_DEPTH(8192),  // 32KB for larger Dhrystone code
       .DMEM_DEPTH(4096),  // 16KB for Dhrystone globals + heap
-      .IMEM_INIT(".build/sw/dhrystone/dhrystone.hex"),
-      .DMEM_INIT(".build/sw/dhrystone/dhrystone.hex"),
+      .IMEM_INIT(".build/sw/rv32i/dhrystone/dhrystone.hex"),
+      .DMEM_INIT(".build/sw/rv32i/dhrystone/dhrystone.hex"),
       .BAUD_RATE(115_200),
       .WATCHDOG_CYCLES(WATCHDOG_CYCLES),
       .PREFIX("dhrystone"),

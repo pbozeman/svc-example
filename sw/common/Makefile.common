@@ -16,11 +16,15 @@ SIZE    = $(CROSS_COMPILE)size
 # Directories
 SW_ROOT  ?= ..
 SW_COMMON = $(SW_ROOT)/common
-BUILD_DIR = $(SW_ROOT)/../.build/sw/$(PROGRAM)
+RV_ARCH ?= rv32i
+BUILD_DIR = $(SW_ROOT)/../.build/sw/$(RV_ARCH)/$(PROGRAM)
 LIBSVC_DIR = $(SW_COMMON)/libsvc
 
 # Architecture flags (32-bit RISC-V with Zicsr for CSR access)
-ARCH_FLAGS = -march=rv32i_zicsr -mabi=ilp32
+ARCH_FLAGS = -march=$(RV_ARCH)_zicsr -mabi=ilp32
+
+# Conditional libgcc for soft multiply (not needed yet, placeholder for Phase 2)
+LIBGCC =
 
 # Compiler flags
 CFLAGS = $(ARCH_FLAGS) \
@@ -96,7 +100,7 @@ $(LIBSVC_A): $(LIBSVC_OBJ)
 
 # Link ELF
 $(ELF): $(BUILD_OBJS) $(CRT0_O) $(LIBSVC_A)
-	$(CC) $(LDFLAGS) -o $@ $(CRT0_O) $(BUILD_OBJS) $(LIBSVC_A)
+	$(CC) $(LDFLAGS) -o $@ $(CRT0_O) $(BUILD_OBJS) $(LIBSVC_A) $(LIBGCC)
 	$(SIZE) $@
 
 # Generate binary
