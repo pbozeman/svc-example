@@ -95,24 +95,9 @@ sw_list:
 #
 # Simulation software dependencies
 #
-
-# Include generated dependency files for software
-# These .d files add source dependencies (e.g., main.c, crt0.S) to hex targets
--include $(wildcard .build/sw/*/*/*.hex.d)
-
-# List simulations that depend on software hex files
-.build/sim/rv_blinky_sim: .build/sw/rv32i/blinky/blinky.hex
-.build/sim/rv_hello_sim: .build/sw/rv32i/hello/hello.hex
-.build/sim/rv_bubble_sort_sim: .build/sw/rv32i/bubble_sort/bubble_sort.hex
-.build/sim/rv_lib_test_sim: .build/sw/rv32i/lib_test/lib_test.hex
-.build/sim/rv_dhrystone_sim: .build/sw/rv32i/dhrystone/dhrystone.hex
-
-# Hex files have order-only dependency on sw target to ensure they're built
-# The .hex.d files (included above) provide source dependencies for rebuild detection
-# Note: sw is phony, so it always runs, but the recursive make quickly determines
-# if anything actually needs rebuilding based on file timestamps
-.build/sw/rv32i/blinky/blinky.hex: | sw
-.build/sw/rv32i/hello/hello.hex: | sw
-.build/sw/rv32i/bubble_sort/bubble_sort.hex: | sw
-.build/sw/rv32i/lib_test/lib_test.hex: | sw
-.build/sw/rv32i/dhrystone/dhrystone.hex: | sw
+# NOTE: Architecture-specific RISC-V simulation rules are now auto-generated
+# in svc/mk/sim.mk. All rv_*_sim modules are automatically detected and
+# compiled for rv32i, rv32im, and rv32i_zmmul architectures.
+#
+# Available targets: rv_<module>_{i,im,i_zmmul}_sim
+# Example: make rv_hello_i_sim, make rv_hello_im_sim, make rv_hello_i_zmmul_sim

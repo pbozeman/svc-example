@@ -5,10 +5,17 @@
 //
 // Standalone interactive simulation for RISC-V Dhrystone benchmark
 //
+// Architecture-generic: hex file path set by Makefile via RV_DHRYSTONE_HEX define
+//
 // Usage:
 //   make sw
-//   make rv_dhrystone_sim
+//   make rv_dhrystone_i_sim      # RV32I variant
+//   make rv_dhrystone_im_sim     # RV32IM variant
 //
+`ifndef RV_DHRYSTONE_HEX
+`define RV_DHRYSTONE_HEX ".build/sw/rv32i/dhrystone/dhrystone.hex"
+`endif
+
 module rv_dhrystone_sim;
   //
   // Simulation parameters
@@ -24,8 +31,8 @@ module rv_dhrystone_sim;
       .CLOCK_FREQ_MHZ(25),
       .IMEM_DEPTH(8192),  // 32KB for larger Dhrystone code
       .DMEM_DEPTH(4096),  // 16KB for Dhrystone globals + heap
-      .IMEM_INIT(".build/sw/rv32i/dhrystone/dhrystone.hex"),
-      .DMEM_INIT(".build/sw/rv32i/dhrystone/dhrystone.hex"),
+      .IMEM_INIT(`RV_DHRYSTONE_HEX),
+      .DMEM_INIT(`RV_DHRYSTONE_HEX),
       .BAUD_RATE(115_200),
       .WATCHDOG_CYCLES(WATCHDOG_CYCLES),
       .PREFIX("dhrystone"),

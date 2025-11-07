@@ -5,10 +5,17 @@
 //
 // Standalone interactive simulation for RISC-V blinky demo
 //
+// Architecture-generic: hex file path set by Makefile via RV_BLINKY_HEX define
+//
 // Usage:
 //   make sw
-//   make rv_blinky_sim
+//   make rv_blinky_i_sim      # RV32I variant
+//   make rv_blinky_im_sim     # RV32IM variant
 //
+`ifndef RV_BLINKY_HEX
+`define RV_BLINKY_HEX ".build/sw/rv32i/blinky/blinky.hex"
+`endif
+
 module rv_blinky_sim;
   //
   // Simulation parameters
@@ -32,7 +39,7 @@ module rv_blinky_sim;
       .CLOCK_FREQ_MHZ (25),
       .IMEM_DEPTH     (1024),
       .DMEM_DEPTH     (1024),
-      .IMEM_INIT      (".build/sw/rv32i/blinky/blinky.hex"),
+      .IMEM_INIT      (`RV_BLINKY_HEX),
       .WATCHDOG_CYCLES(WATCHDOG_CYCLES),
       .PREFIX         ("blinky"),
       .SW_PATH        ("sw/blinky/main.c")

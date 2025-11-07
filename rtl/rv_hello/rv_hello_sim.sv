@@ -5,10 +5,17 @@
 //
 // Standalone interactive simulation for RISC-V hello world demo
 //
+// Architecture-generic: hex file path set by Makefile via RV_HELLO_HEX define
+//
 // Usage:
 //   make sw
-//   make rv_hello_sim
+//   make rv_hello_i_sim      # RV32I variant
+//   make rv_hello_im_sim     # RV32IM variant
 //
+`ifndef RV_HELLO_HEX
+`define RV_HELLO_HEX ".build/sw/rv32i/hello/hello.hex"
+`endif
+
 module rv_hello_sim;
   //
   // Simulation parameters
@@ -23,8 +30,8 @@ module rv_hello_sim;
       .CLOCK_FREQ_MHZ (25),
       .IMEM_DEPTH     (4096),
       .DMEM_DEPTH     (1024),
-      .IMEM_INIT      (".build/sw/rv32i/hello/hello.hex"),
-      .DMEM_INIT      (".build/sw/rv32i/hello/hello.hex"),
+      .IMEM_INIT      (`RV_HELLO_HEX),
+      .DMEM_INIT      (`RV_HELLO_HEX),
       .BAUD_RATE      (115_200),
       .WATCHDOG_CYCLES(WATCHDOG_CYCLES),
       .PREFIX         ("hello"),
