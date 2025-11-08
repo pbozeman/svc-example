@@ -202,7 +202,26 @@ module svc_soc_sim #(
 
   always @(posedge clk) begin
     if (rst_n && cpu_dbg_enabled) begin
-      if (bram_cpu.cpu.res_src_ex == RES_M) begin
+      if (bram_cpu.cpu.is_branch_ex) begin
+        //
+        // Branch ops: show comparison operands, prediction, and actual result
+        //
+        $display("[%12t] %-4s %08x  %-28s  %08x %08x -> %08x %s %s", $time, "",
+                 bram_cpu.cpu.pc_ex, dasm_inst(bram_cpu.cpu.instr_ex),
+                 bram_cpu.cpu.rs1_fwd_ex, bram_cpu.cpu.rs2_fwd_ex,
+                 bram_cpu.cpu.jb_target_ex,
+                 bram_cpu.cpu.bpred_taken_ex ? "T" : "N",
+                 bram_cpu.cpu.branch_taken_ex ? "T" : "N");
+      end else if (bram_cpu.cpu.is_jump_ex) begin
+        //
+        // Jump ops: show base address (for JALR) and target
+        //
+        $display("[%12t] %-4s %08x  %-28s  %08x %08x -> %08x", $time, "",
+                 bram_cpu.cpu.pc_ex, dasm_inst(bram_cpu.cpu.instr_ex),
+                 bram_cpu.cpu.jb_target_src_ex ? bram_cpu.cpu.rs1_fwd_ex :
+                     bram_cpu.cpu.pc_ex, bram_cpu.cpu.imm_ex,
+                 bram_cpu.cpu.jb_target_ex);
+      end else if (bram_cpu.cpu.res_src_ex == RES_M) begin
         //
         // M extension ops: show operands and result
         // Note: rs1_fwd_ex/rs2_fwd_ex are stable during multi-cycle ops
