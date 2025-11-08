@@ -23,6 +23,12 @@
 `define EXT_ZMMUL_VAL 0
 `endif
 
+`ifdef RV_ARCH_M
+`define EXT_M_VAL 1
+`else
+`define EXT_M_VAL 0
+`endif
+
 module rv_blinky_sim;
   //
   // Simulation parameters
@@ -47,6 +53,7 @@ module rv_blinky_sim;
       .IMEM_DEPTH     (1024),
       .DMEM_DEPTH     (1024),
       .EXT_ZMMUL      (`EXT_ZMMUL_VAL),
+      .EXT_M          (`EXT_M_VAL),
       .IMEM_INIT      (`RV_BLINKY_HEX),
       .WATCHDOG_CYCLES(WATCHDOG_CYCLES),
       .PREFIX         ("blinky"),
