@@ -23,6 +23,12 @@
 `define EXT_ZMMUL_VAL 0
 `endif
 
+`ifdef RV_ARCH_M
+`define EXT_M_VAL 1
+`else
+`define EXT_M_VAL 0
+`endif
+
 module rv_dhrystone_sim;
   //
   // Simulation parameters
@@ -39,6 +45,7 @@ module rv_dhrystone_sim;
       .IMEM_DEPTH(8192),  // 32KB for larger Dhrystone code
       .DMEM_DEPTH(4096),  // 16KB for Dhrystone globals + heap
       .EXT_ZMMUL(`EXT_ZMMUL_VAL),
+      .EXT_M(`EXT_M_VAL),
       .IMEM_INIT(`RV_DHRYSTONE_HEX),
       .DMEM_INIT(`RV_DHRYSTONE_HEX),
       .BAUD_RATE(115_200),

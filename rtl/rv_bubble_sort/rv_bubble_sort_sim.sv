@@ -23,6 +23,12 @@
 `define EXT_ZMMUL_VAL 0
 `endif
 
+`ifdef RV_ARCH_M
+`define EXT_M_VAL 1
+`else
+`define EXT_M_VAL 0
+`endif
+
 module rv_bubble_sort_sim;
   //
   // Simulation parameters
@@ -38,6 +44,7 @@ module rv_bubble_sort_sim;
       .IMEM_DEPTH     (4096),
       .DMEM_DEPTH     (1024),
       .EXT_ZMMUL      (`EXT_ZMMUL_VAL),
+      .EXT_M          (`EXT_M_VAL),
       .IMEM_INIT      (`RV_BUBBLE_SORT_HEX),
       .DMEM_INIT      (`RV_BUBBLE_SORT_HEX),
       .BAUD_RATE      (115_200),
