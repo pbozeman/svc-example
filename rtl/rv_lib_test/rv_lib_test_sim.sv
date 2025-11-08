@@ -9,11 +9,18 @@
 //
 // Usage:
 //   make sw
-//   make rv_lib_test_i_sim      # RV32I variant
-//   make rv_lib_test_im_sim     # RV32IM variant
+//   make rv_lib_test_i_sim        # RV32I variant
+//   make rv_lib_test_im_sim       # RV32IM variant
+//   make rv_lib_test_i_zmmul_sim  # RV32I_Zmmul variant (hardware multiply)
 //
 `ifndef RV_LIB_TEST_HEX
 `define RV_LIB_TEST_HEX ".build/sw/rv32i/lib_test/lib_test.hex"
+`endif
+
+`ifdef RV_ARCH_ZMMUL
+`define EXT_ZMMUL_VAL 1
+`else
+`define EXT_ZMMUL_VAL 0
 `endif
 
 module rv_lib_test_sim;
@@ -30,6 +37,7 @@ module rv_lib_test_sim;
       .CLOCK_FREQ_MHZ (25),
       .IMEM_DEPTH     (4096),
       .DMEM_DEPTH     (4096),                 // 16KB for Dhrystone-sized heap
+      .EXT_ZMMUL      (`EXT_ZMMUL_VAL),
       .IMEM_INIT      (`RV_LIB_TEST_HEX),
       .DMEM_INIT      (`RV_LIB_TEST_HEX),
       .BAUD_RATE      (115_200),

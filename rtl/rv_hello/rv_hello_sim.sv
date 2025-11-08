@@ -9,11 +9,18 @@
 //
 // Usage:
 //   make sw
-//   make rv_hello_i_sim      # RV32I variant
-//   make rv_hello_im_sim     # RV32IM variant
+//   make rv_hello_i_sim        # RV32I variant
+//   make rv_hello_im_sim       # RV32IM variant
+//   make rv_hello_i_zmmul_sim  # RV32I_Zmmul variant (hardware multiply)
 //
 `ifndef RV_HELLO_HEX
 `define RV_HELLO_HEX ".build/sw/rv32i/hello/hello.hex"
+`endif
+
+`ifdef RV_ARCH_ZMMUL
+`define EXT_ZMMUL_VAL 1
+`else
+`define EXT_ZMMUL_VAL 0
 `endif
 
 module rv_hello_sim;
@@ -30,6 +37,7 @@ module rv_hello_sim;
       .CLOCK_FREQ_MHZ (25),
       .IMEM_DEPTH     (4096),
       .DMEM_DEPTH     (1024),
+      .EXT_ZMMUL      (`EXT_ZMMUL_VAL),
       .IMEM_INIT      (`RV_HELLO_HEX),
       .DMEM_INIT      (`RV_HELLO_HEX),
       .BAUD_RATE      (115_200),

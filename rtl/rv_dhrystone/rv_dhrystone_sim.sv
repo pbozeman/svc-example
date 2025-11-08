@@ -9,11 +9,18 @@
 //
 // Usage:
 //   make sw
-//   make rv_dhrystone_i_sim      # RV32I variant
-//   make rv_dhrystone_im_sim     # RV32IM variant
+//   make rv_dhrystone_i_sim        # RV32I variant
+//   make rv_dhrystone_im_sim       # RV32IM variant
+//   make rv_dhrystone_i_zmmul_sim  # RV32I_Zmmul variant (hardware multiply)
 //
 `ifndef RV_DHRYSTONE_HEX
 `define RV_DHRYSTONE_HEX ".build/sw/rv32i/dhrystone/dhrystone.hex"
+`endif
+
+`ifdef RV_ARCH_ZMMUL
+`define EXT_ZMMUL_VAL 1
+`else
+`define EXT_ZMMUL_VAL 0
 `endif
 
 module rv_dhrystone_sim;
@@ -31,6 +38,7 @@ module rv_dhrystone_sim;
       .CLOCK_FREQ_MHZ(25),
       .IMEM_DEPTH(8192),  // 32KB for larger Dhrystone code
       .DMEM_DEPTH(4096),  // 16KB for Dhrystone globals + heap
+      .EXT_ZMMUL(`EXT_ZMMUL_VAL),
       .IMEM_INIT(`RV_DHRYSTONE_HEX),
       .DMEM_INIT(`RV_DHRYSTONE_HEX),
       .BAUD_RATE(115_200),

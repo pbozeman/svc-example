@@ -9,11 +9,18 @@
 //
 // Usage:
 //   make sw
-//   make rv_blinky_i_sim      # RV32I variant
-//   make rv_blinky_im_sim     # RV32IM variant
+//   make rv_blinky_i_sim        # RV32I variant
+//   make rv_blinky_im_sim       # RV32IM variant
+//   make rv_blinky_i_zmmul_sim  # RV32I_Zmmul variant (hardware multiply)
 //
 `ifndef RV_BLINKY_HEX
 `define RV_BLINKY_HEX ".build/sw/rv32i/blinky/blinky.hex"
+`endif
+
+`ifdef RV_ARCH_ZMMUL
+`define EXT_ZMMUL_VAL 1
+`else
+`define EXT_ZMMUL_VAL 0
 `endif
 
 module rv_blinky_sim;
@@ -39,6 +46,7 @@ module rv_blinky_sim;
       .CLOCK_FREQ_MHZ (25),
       .IMEM_DEPTH     (1024),
       .DMEM_DEPTH     (1024),
+      .EXT_ZMMUL      (`EXT_ZMMUL_VAL),
       .IMEM_INIT      (`RV_BLINKY_HEX),
       .WATCHDOG_CYCLES(WATCHDOG_CYCLES),
       .PREFIX         ("blinky"),

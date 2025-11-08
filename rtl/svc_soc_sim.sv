@@ -29,6 +29,7 @@ module svc_soc_sim #(
     parameter FWD_REGFILE = 1,
     parameter FWD         = 1,
     parameter BPRED       = 1,
+    parameter EXT_ZMMUL   = 0,
     parameter IMEM_INIT   = "",
     parameter DMEM_INIT   = "",
     parameter BAUD_RATE   = 115_200,
@@ -106,6 +107,7 @@ module svc_soc_sim #(
       .FWD_REGFILE(FWD_REGFILE),
       .FWD        (FWD),
       .BPRED      (BPRED),
+      .EXT_ZMMUL  (EXT_ZMMUL),
       .IMEM_INIT  (IMEM_INIT),
       .DMEM_INIT  (DMEM_INIT)
   ) bram_cpu (
@@ -247,6 +249,7 @@ module svc_soc_sim #(
     $display("%sFWD_REGFILE: %0d", P, bram_cpu.cpu.FWD_REGFILE);
     $display("%sFWD:         %0d", P, bram_cpu.cpu.FWD);
     $display("%sBPRED:       %0d", P, bram_cpu.cpu.BPRED);
+    $display("%sEXT_ZMMUL:   %0d", P, bram_cpu.cpu.EXT_ZMMUL);
     $display("%s%s", P, sep);
 
     // Wait for completion
