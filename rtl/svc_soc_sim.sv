@@ -48,6 +48,11 @@ module svc_soc_sim #(
     output logic       done
 );
 
+  //
+  // Include RISC-V definitions for debug display
+  //
+  `include "svc_rv_defs.svh"
+
   // Calculate clock period and frequency
   localparam real CLOCK_PERIOD_NS = 1000.0 / CLOCK_FREQ_MHZ;
   localparam real HALF_PERIOD_NS = CLOCK_PERIOD_NS / 2.0;
@@ -197,10 +202,24 @@ module svc_soc_sim #(
 
   always @(posedge clk) begin
     if (rst_n && cpu_dbg_enabled) begin
-      $display("[%12t] %-4s %08x  %-28s  %08x %08x -> %08x", $time, "",
-               bram_cpu.cpu.pc_ex, dasm_inst(bram_cpu.cpu.instr_ex),
-               bram_cpu.cpu.alu_a_ex, bram_cpu.cpu.alu_b_ex,
-               bram_cpu.cpu.alu_result_ex);
+      if (bram_cpu.cpu.res_src_ex == RES_M) begin
+        //
+        // M extension ops: show operands and result
+        // Note: rs1_fwd_ex/rs2_fwd_ex are stable during multi-cycle ops
+        //
+        $display("[%12t] %-4s %08x  %-28s  %08x %08x -> %08x", $time, "",
+                 bram_cpu.cpu.pc_ex, dasm_inst(bram_cpu.cpu.instr_ex),
+                 bram_cpu.cpu.rs1_fwd_ex, bram_cpu.cpu.rs2_fwd_ex,
+                 bram_cpu.cpu.m_result_ex);
+      end else begin
+        //
+        // Non-M ops: show ALU operation
+        //
+        $display("[%12t] %-4s %08x  %-28s  %08x %08x -> %08x", $time, "",
+                 bram_cpu.cpu.pc_ex, dasm_inst(bram_cpu.cpu.instr_ex),
+                 bram_cpu.cpu.alu_a_ex, bram_cpu.cpu.alu_b_ex,
+                 bram_cpu.cpu.alu_result_ex);
+      end
 
       if (io_ren) begin
         $display("[%12t] %-4s %08x  %-28s  %08x %8s -> %08x", $time, "MR:",
