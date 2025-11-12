@@ -43,15 +43,15 @@ module svc_rv_soc_bram_fwd_demo_tb;
     //
     // Correctness check
     //
-    `CHECK_EQ(uut.soc.cpu.regfile.regs[11], 32'hC594BFC3);
-    `CHECK_EQ(uut.soc.cpu.regfile.regs[30], 32'h8B297F86);
-    `CHECK_EQ(uut.soc.cpu.regfile.regs[0], 32'd0);
+    `CHECK_EQ(uut.soc.cpu.stage_id.regfile.regs[11], 32'hC594BFC3);
+    `CHECK_EQ(uut.soc.cpu.stage_id.regfile.regs[30], 32'h8B297F86);
+    `CHECK_EQ(uut.soc.cpu.stage_id.regfile.regs[0], 32'd0);
 
     //
     // CPI check
     //
-    cycles = uut.soc.cpu.regfile.regs[24];
-    instrs = uut.soc.cpu.regfile.regs[25];
+    cycles = uut.soc.cpu.stage_id.regfile.regs[24];
+    instrs = uut.soc.cpu.stage_id.regfile.regs[25];
     cpi    = cycles / instrs;
 
 
