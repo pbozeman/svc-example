@@ -183,83 +183,13 @@ module svc_soc_sim #(
     assign timeout = 1'b0;
   end
 
-
-  //
-  // Pipeline execution monitoring
-  // (optional, controlled by SVC_CPU_DBG runtime flag)
-  //
-  `include "svc_rv_dasm.svh"
-
-  logic cpu_dbg_enabled;
-
-  initial begin
-    if ($test$plusargs("SVC_CPU_DBG")) begin
-      cpu_dbg_enabled = 1'b1;
-    end else begin
-      cpu_dbg_enabled = 1'b0;
-    end
-  end
-
-  always @(posedge clk) begin
-    if (rst_n && cpu_dbg_enabled) begin
-      if (bram_cpu.cpu.is_branch_ex) begin
-        //
-        // Branch ops: show comparison operands, prediction, and actual result
-        //
-        $display("[%12t] %-4s %08x  %-28s  %08x %08x -> %08x %s %s", $time, "",
-                 bram_cpu.cpu.pc_ex, dasm_inst(bram_cpu.cpu.instr_ex),
-                 bram_cpu.cpu.stage_ex.fwd_rs1_ex,
-                 bram_cpu.cpu.stage_ex.fwd_rs2_ex,
-                 bram_cpu.cpu.stage_ex.jb_target_ex,
-                 bram_cpu.cpu.bpred_taken_ex ? "T" : "N",
-                 bram_cpu.cpu.stage_ex.branch_taken_ex ? "T" : "N");
-      end else if (bram_cpu.cpu.is_jump_ex) begin
-        //
-        // Jump ops: show base address (for JALR) and target
-        //
-        $display("[%12t] %-4s %08x  %-28s  %08x %08x -> %08x", $time, "",
-                 bram_cpu.cpu.pc_ex, dasm_inst(bram_cpu.cpu.instr_ex),
-                 bram_cpu.cpu.jb_target_src_ex ?
-                     bram_cpu.cpu.stage_ex.fwd_rs1_ex : bram_cpu.cpu.pc_ex,
-                 bram_cpu.cpu.imm_ex, bram_cpu.cpu.stage_ex.jb_target_ex);
-      end else if (bram_cpu.cpu.res_src_ex == RES_M) begin
-        //
-        // M extension ops: show operands and result
-        // Note: fwd_rs1_ex/fwd_rs2_ex are stable during multi-cycle ops
-        //
-        $display("[%12t] %-4s %08x  %-28s  %08x %08x -> %08x", $time, "",
-                 bram_cpu.cpu.pc_ex, dasm_inst(bram_cpu.cpu.instr_ex),
-                 bram_cpu.cpu.stage_ex.fwd_rs1_ex,
-                 bram_cpu.cpu.stage_ex.fwd_rs2_ex,
-                 bram_cpu.cpu.stage_ex.m_result_ex);
-      end else begin
-        //
-        // Non-M ops: show ALU operation
-        //
-        $display("[%12t] %-4s %08x  %-28s  %08x %08x -> %08x", $time, "",
-                 bram_cpu.cpu.pc_ex, dasm_inst(bram_cpu.cpu.instr_ex),
-                 bram_cpu.cpu.stage_ex.alu_a_ex, bram_cpu.cpu.stage_ex.alu_b_ex,
-                 bram_cpu.cpu.stage_ex.alu_result_ex);
-      end
-
-      if (io_ren) begin
-        $display("[%12t] %-4s %08x  %-28s  %08x %8s -> %08x", $time, "MR:",
-                 bram_cpu.cpu.pc_plus4_mem - 4, "",
-                 bram_cpu.cpu.alu_result_mem, "", io_rdata);
-      end else if (io_wen) begin
-        $display("[%12t] %-4s %08x  %-28s  %08x %8s -> %08x", $time, "MW:",
-                 bram_cpu.cpu.pc_plus4_mem - 4, "",
-                 bram_cpu.cpu.alu_result_mem, "", io_wdata);
-      end
-    end
-  end
-
   //
   // Banner and lifecycle management
   //
   initial begin
-    string sep;
-    string P;
+    string  sep;
+    string  P;
+    integer sim_prefix_enabled;
 
     done = 0;
 
@@ -270,7 +200,9 @@ module svc_soc_sim #(
     sep = {80{"="}};
 
     // Build prefix string
-    if ($test$plusargs("SVC_SIM_PREFIX") && PREFIX != "") begin
+    if ($value$plusargs(
+            "SVC_SIM_PREFIX=%d", sim_prefix_enabled
+        ) && sim_prefix_enabled != 0 && PREFIX != "") begin
       P = $sformatf("%-8s", {PREFIX, ":"});
     end else begin
       P = "";
