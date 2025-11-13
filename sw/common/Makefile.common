@@ -20,6 +20,10 @@ RV_ARCH ?= rv32i
 BUILD_DIR = $(SW_ROOT)/../.build/sw/$(RV_ARCH)/$(PROGRAM)
 LIBSVC_DIR = $(SW_COMMON)/libsvc
 
+# Project root for dependency file generation
+# Convert BUILD_DIR paths to be relative to project root for .d files
+PROJECT_ROOT = $(abspath $(SW_ROOT)/..)
+
 # Architecture flags (32-bit RISC-V with Zicsr for CSR access)
 ARCH_FLAGS = -march=$(RV_ARCH)_zicsr -mabi=ilp32
 
@@ -72,6 +76,9 @@ BIN = $(BUILD_DIR)/$(PROGRAM).bin
 HEX = $(BUILD_DIR)/$(PROGRAM).hex
 DIS = $(BUILD_DIR)/$(PROGRAM).dis
 
+# Note: .hex.d dependency files are included by top-level Makefile (svc/mk/sim.mk)
+# not here, since paths in .d files are relative to project root
+
 # Default target
 .PHONY: all
 all: $(ELF) $(HEX) $(DIS)
@@ -119,7 +126,7 @@ $(HEX): $(ELF)
 	$(OBJCOPY) -O binary $< $@.tmp
 	od -An -tx4 -w4 -v $@.tmp | sed 's/^ *//' > $@
 	rm -f $@.tmp
-	@echo "$(abspath $@): $(abspath $(CRT0_S)) $(abspath $(wildcard *.c)) $(abspath $(wildcard $(SW_COMMON)/*.c))" > $@.d
+	@echo "$(patsubst $(PROJECT_ROOT)/%,%,$(abspath $@)): $(abspath $(CRT0_S)) $(abspath $(wildcard *.c))" > $@.d
 
 # Generate disassembly
 $(DIS): $(ELF)
