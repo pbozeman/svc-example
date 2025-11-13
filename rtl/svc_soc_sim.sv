@@ -29,6 +29,8 @@ module svc_soc_sim #(
     parameter FWD_REGFILE = 1,
     parameter FWD         = 1,
     parameter BPRED       = 1,
+    parameter BTB_ENABLE  = 1,
+    parameter BTB_ENTRIES = 8,
     parameter EXT_ZMMUL   = 0,
     parameter EXT_M       = 0,
     parameter IMEM_INIT   = "",
@@ -113,6 +115,8 @@ module svc_soc_sim #(
       .FWD_REGFILE(FWD_REGFILE),
       .FWD        (FWD),
       .BPRED      (BPRED),
+      .BTB_ENABLE (BTB_ENABLE),
+      .BTB_ENTRIES(BTB_ENTRIES),
       .EXT_ZMMUL  (EXT_ZMMUL),
       .EXT_M      (EXT_M),
       .IMEM_INIT  (IMEM_INIT),
@@ -223,6 +227,8 @@ module svc_soc_sim #(
     $display("%sFWD_REGFILE: %0d", P, bram_cpu.cpu.FWD_REGFILE);
     $display("%sFWD:         %0d", P, bram_cpu.cpu.FWD);
     $display("%sBPRED:       %0d", P, bram_cpu.cpu.BPRED);
+    $display("%sBTB_ENABLE:  %0d", P, bram_cpu.cpu.BTB_ENABLE);
+    $display("%sBTB_ENTRIES: %0d", P, bram_cpu.cpu.BTB_ENTRIES);
     $display("%sEXT_ZMMUL:   %0d", P, bram_cpu.cpu.EXT_ZMMUL);
     $display("%sEXT_M:       %0d", P, bram_cpu.cpu.EXT_M);
     $display("%s%s", P, sep);
