@@ -29,6 +29,18 @@
 `define EXT_M_VAL 0
 `endif
 
+`ifdef SVC_MEM_SRAM
+`define MEM_TYPE_VAL 0
+`else
+`define MEM_TYPE_VAL 1
+`endif
+
+`ifdef SVC_CPU_SINGLE_CYCLE
+`define PIPELINED_VAL 0
+`else
+`define PIPELINED_VAL 1
+`endif
+
 module rv_blinky_sim;
   //
   // Simulation parameters
@@ -52,6 +64,8 @@ module rv_blinky_sim;
       .CLOCK_FREQ_MHZ (25),
       .IMEM_DEPTH     (1024),
       .DMEM_DEPTH     (1024),
+      .MEM_TYPE       (`MEM_TYPE_VAL),
+      .PIPELINED      (`PIPELINED_VAL),
       .EXT_ZMMUL      (`EXT_ZMMUL_VAL),
       .EXT_M          (`EXT_M_VAL),
       .IMEM_INIT      (`RV_BLINKY_HEX),
@@ -102,12 +116,19 @@ module rv_blinky_sim;
   //
   // Debug: Count data memory writes
   //
-  int dmem_write_count;
+  int   dmem_write_count;
+  logic dmem_wen;
+
+`ifdef SVC_MEM_SRAM
+  assign dmem_wen = sim.sram_soc.rv_cpu.dmem_wen;
+`else
+  assign dmem_wen = sim.bram_soc.rv_cpu.dmem_wen;
+`endif
 
   always_ff @(posedge clk) begin
     if (!rst_n) begin
       dmem_write_count <= 0;
-    end else if (sim.bram_cpu.dmem_wen) begin
+    end else if (dmem_wen) begin
       dmem_write_count <= dmem_write_count + 1;
     end
   end

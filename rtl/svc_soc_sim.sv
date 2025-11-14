@@ -3,6 +3,7 @@
 
 `include "svc.sv"
 `include "svc_rv_soc_bram.sv"
+`include "svc_rv_soc_sram.sv"
 `include "svc_soc_io_reg.sv"
 `include "svc_soc_sim_uart.sv"
 
@@ -10,32 +11,45 @@
 //
 // Provides complete SOC simulation environment with:
 // - Clock and reset generation
-// - RISC-V CPU + BRAM memory + peripherals (UART, LED, GPIO)
+// - RISC-V CPU + memory (BRAM/SRAM) + peripherals (UART, LED, GPIO)
 // - UART terminal with console output
 // - Watchdog timer and lifecycle management
-// - Pipeline execution monitoring (optional via +SVC_CPU_DBG)
+// - Pipeline execution monitoring (optional debug flags):
+//   +SVC_RV_DBG_CPU=1  - Enable all pipeline stage debug output
+//   +SVC_RV_DBG_IF=1   - Instruction Fetch stage debug
+//   +SVC_RV_DBG_ID=1   - Instruction Decode stage debug
+//   +SVC_RV_DBG_EX=1   - Execute stage debug
+//   +SVC_RV_DBG_MEM=1  - Memory stage debug
+//   +SVC_RV_DBG_WB=1   - Write Back stage debug
+//   +SVC_RV_DBG_HAZ=1  - Hazard detection debug
 // - Banner and statistics reporting
 //
+// Memory type controlled by MEM_TYPE parameter (MEM_TYPE_BRAM or MEM_TYPE_SRAM)
+//
+//
+// verilator lint_off: UNUSEDSIGNAL
+// verilator lint_off: UNUSEDPARAM
 module svc_soc_sim #(
     // Clock and reset
     parameter CLOCK_FREQ_MHZ = 100,
     parameter RESET_CYCLES   = 10,
 
     // CPU configuration
-    parameter XLEN        = 32,
-    parameter IMEM_DEPTH  = 4096,
-    parameter DMEM_DEPTH  = 1024,
-    parameter PIPELINED   = 1,
-    parameter FWD_REGFILE = 1,
-    parameter FWD         = 1,
-    parameter BPRED       = 1,
-    parameter BTB_ENABLE  = 1,
-    parameter BTB_ENTRIES = 8,
-    parameter EXT_ZMMUL   = 0,
-    parameter EXT_M       = 0,
-    parameter IMEM_INIT   = "",
-    parameter DMEM_INIT   = "",
-    parameter BAUD_RATE   = 115_200,
+    parameter     XLEN        = 32,
+    parameter     IMEM_DEPTH  = 4096,
+    parameter     DMEM_DEPTH  = 1024,
+    parameter int MEM_TYPE    = 1,
+    parameter     PIPELINED   = 1,
+    parameter     FWD_REGFILE = 1,
+    parameter     FWD         = 1,
+    parameter     BPRED       = 1,
+    parameter     BTB_ENABLE  = 1,
+    parameter     BTB_ENTRIES = 8,
+    parameter     EXT_ZMMUL   = 0,
+    parameter     EXT_M       = 0,
+    parameter     IMEM_INIT   = "",
+    parameter     DMEM_INIT   = "",
+    parameter     BAUD_RATE   = 115_200,
 
     // Simulation control
     parameter WATCHDOG_CYCLES = 100000,
@@ -54,6 +68,14 @@ module svc_soc_sim #(
   // Include RISC-V definitions for debug display
   //
   `include "svc_rv_defs.svh"
+
+  //
+  // Adjust parameters for single-cycle mode
+  //
+  localparam int ACTUAL_FWD_REGFILE = (PIPELINED == 0) ? 0 : FWD_REGFILE;
+  localparam int ACTUAL_FWD = (PIPELINED == 0) ? 0 : FWD;
+  localparam int ACTUAL_BPRED = (PIPELINED == 0) ? 0 : BPRED;
+  localparam int ACTUAL_BTB_ENABLE = (PIPELINED == 0) ? 0 : BTB_ENABLE;
 
   // Calculate clock period and frequency
   localparam real CLOCK_PERIOD_NS = 1000.0 / CLOCK_FREQ_MHZ;
@@ -105,41 +127,77 @@ module svc_soc_sim #(
   logic        ebreak;
 
   //
-  // RISC-V CPU with BRAM memory
+  // For SRAM, generate io_ren from address (combinational reads always active)
   //
-  svc_rv_soc_bram #(
-      .XLEN       (XLEN),
-      .IMEM_DEPTH (IMEM_DEPTH),
-      .DMEM_DEPTH (DMEM_DEPTH),
-      .PIPELINED  (PIPELINED),
-      .FWD_REGFILE(FWD_REGFILE),
-      .FWD        (FWD),
-      .BPRED      (BPRED),
-      .BTB_ENABLE (BTB_ENABLE),
-      .BTB_ENTRIES(BTB_ENTRIES),
-      .EXT_ZMMUL  (EXT_ZMMUL),
-      .EXT_M      (EXT_M),
-      .IMEM_INIT  (IMEM_INIT),
-      .DMEM_INIT  (DMEM_INIT)
-  ) bram_cpu (
-      .clk     (clk),
-      .rst_n   (rst_n),
-      .io_ren  (io_ren),
-      .io_raddr(io_raddr),
-      .io_rdata(io_rdata),
-      .io_wen  (io_wen),
-      .io_waddr(io_waddr),
-      .io_wdata(io_wdata),
-      .io_wstrb(io_wstrb),
-      .ebreak  (ebreak)
-  );
+  if (MEM_TYPE == MEM_TYPE_SRAM) begin : sram_io_ren
+    assign io_ren = 1'b1;
+  end
+
+  //
+  // RISC-V CPU with memory (BRAM or SRAM based on MEM_TYPE)
+  //
+  if (MEM_TYPE == MEM_TYPE_SRAM) begin : sram_soc
+    svc_rv_soc_sram #(
+        .XLEN       (XLEN),
+        .IMEM_DEPTH (IMEM_DEPTH),
+        .DMEM_DEPTH (DMEM_DEPTH),
+        .PIPELINED  (PIPELINED),
+        .FWD_REGFILE(ACTUAL_FWD_REGFILE),
+        .FWD        (ACTUAL_FWD),
+        .BPRED      (ACTUAL_BPRED),
+        .BTB_ENABLE (ACTUAL_BTB_ENABLE),
+        .BTB_ENTRIES(BTB_ENTRIES),
+        .EXT_ZMMUL  (EXT_ZMMUL),
+        .EXT_M      (EXT_M),
+        .IMEM_INIT  (IMEM_INIT),
+        .DMEM_INIT  (DMEM_INIT)
+    ) rv_cpu (
+        .clk     (clk),
+        .rst_n   (rst_n),
+        .io_raddr(io_raddr),
+        .io_rdata(io_rdata),
+        .io_wen  (io_wen),
+        .io_waddr(io_waddr),
+        .io_wdata(io_wdata),
+        .io_wstrb(io_wstrb),
+        .ebreak  (ebreak)
+    );
+  end else begin : bram_soc
+    svc_rv_soc_bram #(
+        .XLEN       (XLEN),
+        .IMEM_DEPTH (IMEM_DEPTH),
+        .DMEM_DEPTH (DMEM_DEPTH),
+        .PIPELINED  (PIPELINED),
+        .FWD_REGFILE(ACTUAL_FWD_REGFILE),
+        .FWD        (ACTUAL_FWD),
+        .BPRED      (ACTUAL_BPRED),
+        .BTB_ENABLE (ACTUAL_BTB_ENABLE),
+        .BTB_ENTRIES(BTB_ENTRIES),
+        .EXT_ZMMUL  (EXT_ZMMUL),
+        .EXT_M      (EXT_M),
+        .IMEM_INIT  (IMEM_INIT),
+        .DMEM_INIT  (DMEM_INIT)
+    ) rv_cpu (
+        .clk     (clk),
+        .rst_n   (rst_n),
+        .io_ren  (io_ren),
+        .io_raddr(io_raddr),
+        .io_rdata(io_rdata),
+        .io_wen  (io_wen),
+        .io_waddr(io_waddr),
+        .io_wdata(io_wdata),
+        .io_wstrb(io_wstrb),
+        .ebreak  (ebreak)
+    );
+  end
 
   //
   // I/O register bank with peripherals (UART, LED, GPIO)
   //
   svc_soc_io_reg #(
       .CLOCK_FREQ(CLOCK_FREQ),
-      .BAUD_RATE (BAUD_RATE)
+      .BAUD_RATE (BAUD_RATE),
+      .MEM_TYPE  (MEM_TYPE)
   ) io_regs (
       .clk     (clk),
       .rst_n   (rst_n),
@@ -212,6 +270,7 @@ module svc_soc_sim #(
       P = "";
     end
 
+`ifndef VERILATOR
     // Print banner
     $display("%s%s", P, sep);
 
@@ -221,16 +280,33 @@ module svc_soc_sim #(
 
     $display("%swatchdog:    %0d cycles", P, WATCHDOG_CYCLES);
 
+    $display("%smem type:    %s", P,
+             (MEM_TYPE == MEM_TYPE_SRAM) ? "SRAM" : "BRAM");
+
+    //
     // reach all the way into the cpu to print these to ensure we didn't
     // drop params along the way
-    $display("%sPIPELINED:   %0d", P, bram_cpu.cpu.PIPELINED);
-    $display("%sFWD_REGFILE: %0d", P, bram_cpu.cpu.FWD_REGFILE);
-    $display("%sFWD:         %0d", P, bram_cpu.cpu.FWD);
-    $display("%sBPRED:       %0d", P, bram_cpu.cpu.BPRED);
-    $display("%sBTB_ENABLE:  %0d", P, bram_cpu.cpu.BTB_ENABLE);
-    $display("%sBTB_ENTRIES: %0d", P, bram_cpu.cpu.BTB_ENTRIES);
-    $display("%sEXT_ZMMUL:   %0d", P, bram_cpu.cpu.EXT_ZMMUL);
-    $display("%sEXT_M:       %0d", P, bram_cpu.cpu.EXT_M);
+    //
+    if (MEM_TYPE == MEM_TYPE_SRAM) begin
+      $display("%sPIPELINED:   %0d", P, sram_soc.rv_cpu.cpu.PIPELINED);
+      $display("%sFWD_REGFILE: %0d", P, sram_soc.rv_cpu.cpu.FWD_REGFILE);
+      $display("%sFWD:         %0d", P, sram_soc.rv_cpu.cpu.FWD);
+      $display("%sBPRED:       %0d", P, sram_soc.rv_cpu.cpu.BPRED);
+      $display("%sBTB_ENABLE:  %0d", P, sram_soc.rv_cpu.cpu.BTB_ENABLE);
+      $display("%sBTB_ENTRIES: %0d", P, sram_soc.rv_cpu.cpu.BTB_ENTRIES);
+      $display("%sEXT_ZMMUL:   %0d", P, sram_soc.rv_cpu.cpu.EXT_ZMMUL);
+      $display("%sEXT_M:       %0d", P, sram_soc.rv_cpu.cpu.EXT_M);
+    end else begin
+      $display("%sPIPELINED:   %0d", P, bram_soc.rv_cpu.cpu.PIPELINED);
+      $display("%sFWD_REGFILE: %0d", P, bram_soc.rv_cpu.cpu.FWD_REGFILE);
+      $display("%sFWD:         %0d", P, bram_soc.rv_cpu.cpu.FWD);
+      $display("%sBPRED:       %0d", P, bram_soc.rv_cpu.cpu.BPRED);
+      $display("%sBTB_ENABLE:  %0d", P, bram_soc.rv_cpu.cpu.BTB_ENABLE);
+      $display("%sBTB_ENTRIES: %0d", P, bram_soc.rv_cpu.cpu.BTB_ENTRIES);
+      $display("%sEXT_ZMMUL:   %0d", P, bram_soc.rv_cpu.cpu.EXT_ZMMUL);
+      $display("%sEXT_M:       %0d", P, bram_soc.rv_cpu.cpu.EXT_M);
+    end
+
     $display("%s%s", P, sep);
 
     // Wait for completion
@@ -247,21 +323,31 @@ module svc_soc_sim #(
 
     $display("%scycles: %0d", P, cycle_count);
 
-    //
-    // CPI reporting
-    //
-    begin
-      logic [31:0] cycles;
-      logic [31:0] instrs;
-      real         cpi;
 
-      cycles = bram_cpu.cpu.stage_ex.csr.cycle;
-      instrs = bram_cpu.cpu.stage_ex.csr.instret;
-      cpi    = real'(cycles) / real'(instrs);
+    if (PIPELINED == 1) begin : g_cpi_rpt
+      //
+      // CPI reporting
+      //
+      begin
+        logic [31:0] cycles;
+        logic [31:0] instrs;
+        real         cpi;
 
-      $display("%sinstrs: %0d", P, instrs);
-      $display("%scpi:    %f", P, cpi);
+        if (MEM_TYPE == MEM_TYPE_SRAM) begin
+          cycles = sram_soc.rv_cpu.cpu.stage_ex.csr.cycle;
+          instrs = sram_soc.rv_cpu.cpu.stage_ex.csr.instret;
+        end else begin
+          cycles = bram_soc.rv_cpu.cpu.stage_ex.csr.cycle;
+          instrs = bram_soc.rv_cpu.cpu.stage_ex.csr.instret;
+        end
+
+        cpi = real'(cycles) / real'(instrs);
+
+        $display("%sinstrs: %0d", P, instrs);
+        $display("%scpi:    %f", P, cpi);
+      end
     end
+`endif
 
     done = 1;
     $finish(0);
