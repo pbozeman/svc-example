@@ -26,8 +26,9 @@
 //   0x80000000 + 0x0C: GPIO register (bits 7:0)
 //
 module svc_soc_io_reg #(
-    parameter CLOCK_FREQ = 25_000_000,
-    parameter BAUD_RATE  = 115_200
+    parameter     CLOCK_FREQ = 25_000_000,
+    parameter     BAUD_RATE  = 115_200,
+    parameter int MEM_TYPE   = 1
 ) (
     input logic clk,
     input logic rst_n,
@@ -127,10 +128,12 @@ module svc_soc_io_reg #(
   //
   // Read logic
   //
-  // IMPORTANT: This module is used with BRAM-timed memory systems,
-  // which have 1-cycle read latency. To match BRAM timing, we register
-  // the read output, making io_rdata valid 1 cycle after io_ren.
+  // IMPORTANT: Read timing must match memory type:
+  // - BRAM (MEM_TYPE=1): 1-cycle registered reads
+  // - SRAM (MEM_TYPE=0): 0-cycle combinational reads
   //
+  `include "svc_rv_defs.svh"
+
   logic [ 7:0] raddr_sel;
   logic [31:0] io_rdata_comb;
 
@@ -150,14 +153,24 @@ module svc_soc_io_reg #(
   end
 
   //
-  // Register output to match BRAM timing (1-cycle latency)
+  // Output timing based on memory type
   //
-  always_ff @(posedge clk) begin
-    if (!rst_n) begin
-      io_rdata <= 32'h0;
-    end else begin
-      io_rdata <= io_rdata_comb;
+  if (MEM_TYPE == MEM_TYPE_BRAM) begin : bram_timing
+    //
+    // Register output to match BRAM timing (1-cycle latency)
+    //
+    always_ff @(posedge clk) begin
+      if (!rst_n) begin
+        io_rdata <= 32'h0;
+      end else begin
+        io_rdata <= io_rdata_comb;
+      end
     end
+  end else begin : sram_timing
+    //
+    // Combinational output for SRAM timing (0-cycle latency)
+    //
+    assign io_rdata = io_rdata_comb;
   end
 
   `SVC_UNUSED({io_wstrb, io_waddr[31:8], io_wdata[31:8], io_raddr[31:8]});

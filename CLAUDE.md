@@ -20,6 +20,38 @@
   `make uart_demo_sim`)
 - List available tests: `make list_tb` or `make list_f` or `make list_sim`
 
+### RISC-V Memory Type and Pipeline Variants
+
+RISC-V simulations support multiple memory types and CPU pipeline
+configurations:
+
+**BRAM variants (default, pipelined CPU required):**
+
+- `make rv_<module>_sim` - BRAM + pipelined + RV32I
+- `make rv_<module>_im_sim` - BRAM + pipelined + RV32IM
+- `make rv_<module>_i_zmmul_sim` - BRAM + pipelined + RV32I_Zmmul
+
+**SRAM pipelined variants:**
+
+- `make rv_<module>_sram_sim` - SRAM + pipelined + RV32I
+- `make rv_<module>_sram_im_sim` - SRAM + pipelined + RV32IM
+- `make rv_<module>_sram_i_zmmul_sim` - SRAM + pipelined + RV32I_Zmmul
+
+**SRAM single-cycle variants:**
+
+- `make rv_<module>_sram_sc_sim` - SRAM + single-cycle + RV32I
+- `make rv_<module>_sram_sc_im_sim` - SRAM + single-cycle + RV32IM
+- `make rv_<module>_sram_sc_i_zmmul_sim` - SRAM + single-cycle + RV32I_Zmmul
+
+Examples:
+
+- `make rv_hello_sim` - BRAM, pipelined, RV32I (default, backward compatible)
+- `make rv_blinky_sram_im_sim` - SRAM, pipelined, RV32IM
+- `make rv_hello_sram_sc_im_sim` - SRAM, single-cycle, RV32IM (CPI ~1.0)
+
+See `docs/mem_type_sim.md` for detailed documentation on memory types and
+performance characteristics.
+
 ## Important Workflow Notes
 
 - ALWAYS run `make format` after making any code changes

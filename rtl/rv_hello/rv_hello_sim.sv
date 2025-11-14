@@ -29,6 +29,18 @@
 `define EXT_M_VAL 0
 `endif
 
+`ifdef SVC_MEM_SRAM
+`define MEM_TYPE_VAL 0
+`else
+`define MEM_TYPE_VAL 1
+`endif
+
+`ifdef SVC_CPU_SINGLE_CYCLE
+`define PIPELINED_VAL 0
+`else
+`define PIPELINED_VAL 1
+`endif
+
 module rv_hello_sim;
   //
   // Simulation parameters
@@ -43,6 +55,8 @@ module rv_hello_sim;
       .CLOCK_FREQ_MHZ (25),
       .IMEM_DEPTH     (4096),
       .DMEM_DEPTH     (1024),
+      .MEM_TYPE       (`MEM_TYPE_VAL),
+      .PIPELINED      (`PIPELINED_VAL),
       .EXT_ZMMUL      (`EXT_ZMMUL_VAL),
       .EXT_M          (`EXT_M_VAL),
       .IMEM_INIT      (`RV_HELLO_HEX),

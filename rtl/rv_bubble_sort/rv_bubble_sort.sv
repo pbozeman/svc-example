@@ -66,7 +66,8 @@ module rv_bubble_sort #(
   //
   svc_soc_io_reg #(
       .CLOCK_FREQ(CLOCK_FREQ),
-      .BAUD_RATE (BAUD_RATE)
+      .BAUD_RATE (BAUD_RATE),
+      .MEM_TYPE  (1)
   ) io_regs (
       .clk     (clk),
       .rst_n   (rst_n),
