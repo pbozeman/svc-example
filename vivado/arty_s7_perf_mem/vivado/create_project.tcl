@@ -183,7 +183,7 @@ set_property -name "file_type" -value "SystemVerilog" -objects $file_obj
 # Set 'sources_1' fileset properties
 set obj [get_filesets sources_1]
 set_property -name "dataflow_viewer_settings" -value "min_width=16" -objects $obj
-set_property -name "include_dirs" -value "[file normalize "$origin_dir/../../../rtl"] [file normalize "$origin_dir/../../../svc/rtl"]" -objects $obj
+set_property -name "include_dirs" -value "[file normalize "$origin_dir/../../../rtl"] [file normalize "$origin_dir/../../../svc/rtl"] [file normalize "$origin_dir/../../../svc/rtl/axi"] [file normalize "$origin_dir/../../../svc/rtl/cdc"] [file normalize "$origin_dir/../../../svc/rtl/common"] [file normalize "$origin_dir/../../../svc/rtl/fifo"] [file normalize "$origin_dir/../../../svc/rtl/gfx"] [file normalize "$origin_dir/../../../svc/rtl/ice40"] [file normalize "$origin_dir/../../../svc/rtl/rv"] [file normalize "$origin_dir/../../../svc/rtl/stats"] [file normalize "$origin_dir/../../../svc/rtl/uart"]" -objects $obj
 set_property -name "top" -value "top" -objects $obj
 set_property -name "top_auto_set" -value "0" -objects $obj
 
