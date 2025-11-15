@@ -41,6 +41,14 @@
 `define PIPELINED_VAL 1
 `endif
 
+`ifndef RV_IMEM_DEPTH
+`define RV_IMEM_DEPTH 4096
+`endif
+
+`ifndef RV_DMEM_DEPTH
+`define RV_DMEM_DEPTH 1024
+`endif
+
 module rv_bubble_sort_sim;
   //
   // Simulation parameters
@@ -53,8 +61,8 @@ module rv_bubble_sort_sim;
   //
   svc_soc_sim #(
       .CLOCK_FREQ_MHZ (25),
-      .IMEM_DEPTH     (4096),
-      .DMEM_DEPTH     (1024),
+      .IMEM_DEPTH     (`RV_IMEM_DEPTH),
+      .DMEM_DEPTH     (`RV_DMEM_DEPTH),
       .MEM_TYPE       (`MEM_TYPE_VAL),
       .PIPELINED      (`PIPELINED_VAL),
       .EXT_ZMMUL      (`EXT_ZMMUL_VAL),

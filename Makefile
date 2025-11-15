@@ -64,6 +64,45 @@ svc_rv_soc_sram_fwd_demo_top_ICE40_CLK_FREQ = 33
 
 svc_rv_soc_sram_ss_demo_top_ICE40_CLK_FREQ = 25
 
+##############################################################################
+#
+# RISC-V Memory Configuration
+#
+# Define per-program memory sizes (in 32-bit words).
+# These flow to both linker scripts and simulation builds.
+#
+##############################################################################
+
+# Default sizes (in words)
+RV_IMEM_DEPTH := 1024
+RV_DMEM_DEPTH := 1024
+
+# Per-program overrides (match simulation requirements)
+#
+# TODO: shrink dmem when not loading code and rodata into it.
+# (Or this becomes moot with proper caches)
+hello_RV_IMEM_DEPTH := 1024
+hello_RV_DMEM_DEPTH := 1024
+
+blinky_RV_IMEM_DEPTH := 1024
+blinky_RV_DMEM_DEPTH := 1024
+
+bubble_sort_RV_IMEM_DEPTH := 1024
+bubble_sort_RV_DMEM_DEPTH := 1024
+
+lib_test_RV_IMEM_DEPTH := 2048
+lib_test_RV_DMEM_DEPTH := 2560
+
+dhrystone_RV_IMEM_DEPTH := 2560
+dhrystone_RV_DMEM_DEPTH := 6144
+
+export RV_IMEM_DEPTH RV_DMEM_DEPTH
+export hello_RV_IMEM_DEPTH hello_RV_DMEM_DEPTH
+export blinky_RV_IMEM_DEPTH blinky_RV_DMEM_DEPTH
+export bubble_sort_RV_IMEM_DEPTH bubble_sort_RV_DMEM_DEPTH
+export lib_test_RV_IMEM_DEPTH lib_test_RV_DMEM_DEPTH
+export dhrystone_RV_IMEM_DEPTH dhrystone_RV_DMEM_DEPTH
+
 include svc/mk/sv.mk
 include svc/mk/icestorm.mk
 

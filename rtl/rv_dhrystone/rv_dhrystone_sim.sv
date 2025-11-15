@@ -41,6 +41,14 @@
 `define PIPELINED_VAL 1
 `endif
 
+`ifndef RV_IMEM_DEPTH
+`define RV_IMEM_DEPTH 8192
+`endif
+
+`ifndef RV_DMEM_DEPTH
+`define RV_DMEM_DEPTH 4096
+`endif
+
 module rv_dhrystone_sim;
   //
   // Simulation parameters
@@ -53,19 +61,19 @@ module rv_dhrystone_sim;
   // SOC simulation with CPU, peripherals, and lifecycle management
   //
   svc_soc_sim #(
-      .CLOCK_FREQ_MHZ(25),
-      .IMEM_DEPTH(8192),  // 32KB for larger Dhrystone code
-      .DMEM_DEPTH(4096),  // 16KB for Dhrystone globals + heap
-      .MEM_TYPE(`MEM_TYPE_VAL),
-      .PIPELINED(`PIPELINED_VAL),
-      .EXT_ZMMUL(`EXT_ZMMUL_VAL),
-      .EXT_M(`EXT_M_VAL),
-      .IMEM_INIT(`RV_DHRYSTONE_HEX),
-      .DMEM_INIT(`RV_DHRYSTONE_HEX),
-      .BAUD_RATE(115_200),
+      .CLOCK_FREQ_MHZ (25),
+      .IMEM_DEPTH     (`RV_IMEM_DEPTH),
+      .DMEM_DEPTH     (`RV_DMEM_DEPTH),
+      .MEM_TYPE       (`MEM_TYPE_VAL),
+      .PIPELINED      (`PIPELINED_VAL),
+      .EXT_ZMMUL      (`EXT_ZMMUL_VAL),
+      .EXT_M          (`EXT_M_VAL),
+      .IMEM_INIT      (`RV_DHRYSTONE_HEX),
+      .DMEM_INIT      (`RV_DHRYSTONE_HEX),
+      .BAUD_RATE      (115_200),
       .WATCHDOG_CYCLES(WATCHDOG_CYCLES),
-      .PREFIX("dhrystone"),
-      .SW_PATH("sw/dhrystone/dhry_1.c")
+      .PREFIX         ("dhrystone"),
+      .SW_PATH        ("sw/dhrystone/dhry_1.c")
   ) sim (
       .clk    (),
       .rst_n  (),

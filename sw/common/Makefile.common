@@ -51,12 +51,22 @@ CFLAGS = $(ARCH_FLAGS) \
 # Assembler flags
 ASFLAGS = $(ARCH_FLAGS)
 
+# Memory configuration from top-level Makefile
+# Convert word counts to byte sizes for linker
+# IMEM and DMEM depths are in 32-bit words, linker needs bytes
+PROG_IMEM_DEPTH := $(if $($(PROGRAM)_RV_IMEM_DEPTH),$($(PROGRAM)_RV_IMEM_DEPTH),$(RV_IMEM_DEPTH))
+PROG_DMEM_DEPTH := $(if $($(PROGRAM)_RV_DMEM_DEPTH),$($(PROGRAM)_RV_DMEM_DEPTH),$(RV_DMEM_DEPTH))
+IMEM_SIZE_BYTES := $(shell echo $$(($(PROG_IMEM_DEPTH) * 4)))
+DMEM_SIZE_BYTES := $(shell echo $$(($(PROG_DMEM_DEPTH) * 4)))
+
 # Linker flags
 LDFLAGS = $(ARCH_FLAGS) \
           -T$(SW_COMMON)/link.ld \
           -nostdlib \
           -nostartfiles \
-          -Wl,--gc-sections
+          -Wl,--gc-sections \
+          -Wl,--defsym,__imem_size=$(IMEM_SIZE_BYTES) \
+          -Wl,--defsym,__dmem_size=$(DMEM_SIZE_BYTES)
 
 # Common source files
 CRT0_S = $(SW_COMMON)/crt0.S
