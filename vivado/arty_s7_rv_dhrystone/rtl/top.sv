@@ -34,20 +34,20 @@ module top (
   localparam AXI_STRB_WIDTH = AXI_DATA_WIDTH / 8;
   localparam AXI_ID_WIDTH = 4;
 
-  wire                      clk;
-  wire                      ui_clk_rst;
-  wire                      rst_n;
+  wire clk;
+  wire ui_clk_rst;
+  wire rst_n;
 
-  wire                      mmcm_locked;
-  wire                      init_calib_complete;
-  wire                      ebreak;
+  wire mmcm_locked;
+  wire init_calib_complete;
+  wire ebreak;
 
-  assign rst_n               = !ui_clk_rst;
+  assign rst_n  = !ui_clk_rst;
 
-  assign led[3]              = mmcm_locked;
-  assign led[2]              = init_calib_complete;
-  assign led[1]              = ebreak;
-  assign led[0]              = 1'b0;
+  assign led[3] = mmcm_locked;
+  assign led[2] = init_calib_complete;
+  assign led[1] = ebreak;
+  assign led[0] = 1'b0;
 
   // AXI signals to MIG (all tied to idle/zero state)
   wire [AXI_ADDR_WIDTH-1:0] ddr_axi_araddr;
