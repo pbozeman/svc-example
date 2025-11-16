@@ -149,9 +149,9 @@ module top (
       .BTB_ENABLE (1),
       .BTB_ENTRIES(8),
       .EXT_ZMMUL  (0),
-      .EXT_M      (0),
-      .IMEM_INIT  ("../../../.build/sw/rv32i/dhrystone/dhrystone.hex"),
-      .DMEM_INIT  ("../../../.build/sw/rv32i/dhrystone/dhrystone.hex")
+      .EXT_M      (1),
+      .IMEM_INIT  ("../../../.build/sw/rv32im/dhrystone/dhrystone.hex"),
+      .DMEM_INIT  ("../../../.build/sw/rv32im/dhrystone/dhrystone.hex")
   ) soc (
       .clk     (clk),
       .rst_n   (rst_n),
