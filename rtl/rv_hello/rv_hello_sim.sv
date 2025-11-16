@@ -13,66 +13,44 @@
 //   make rv_hello_im_sim       # RV32IM variant
 //   make rv_hello_i_zmmul_sim  # RV32I_Zmmul variant (hardware multiply)
 //
-`ifndef RV_HELLO_HEX
-`define RV_HELLO_HEX ".build/sw/rv32i/hello/hello.hex"
-`endif
-
-`ifdef RV_ARCH_ZMMUL
-`define EXT_ZMMUL_VAL 1
-`else
-`define EXT_ZMMUL_VAL 0
-`endif
-
-`ifdef RV_ARCH_M
-`define EXT_M_VAL 1
-`else
-`define EXT_M_VAL 0
-`endif
-
-`ifdef SVC_MEM_SRAM
-`define MEM_TYPE_VAL 0
-`else
-`define MEM_TYPE_VAL 1
-`endif
-
-`ifdef SVC_CPU_SINGLE_CYCLE
-`define PIPELINED_VAL 0
-`else
-`define PIPELINED_VAL 1
-`endif
-
 module rv_hello_sim;
   //
-  // Simulation parameters
+  // Shared configuration from Makefile defines
+  //
+  `include "rv_sim_config.svh"
+
+  //
+  // Program-specific configuration
   //
   localparam int WATCHDOG_CYCLES = 1_000_000;
-
 
   //
   // SOC simulation with CPU, peripherals, and lifecycle management
   //
   svc_soc_sim #(
+      // Clock and timing
       .CLOCK_FREQ_MHZ (25),
-      .IMEM_DEPTH     (4096),
-      .DMEM_DEPTH     (1024),
-      .MEM_TYPE       (`MEM_TYPE_VAL),
-      .PIPELINED      (`PIPELINED_VAL),
-      .EXT_ZMMUL      (`EXT_ZMMUL_VAL),
-      .EXT_M          (`EXT_M_VAL),
-      .IMEM_INIT      (`RV_HELLO_HEX),
-      .DMEM_INIT      (`RV_HELLO_HEX),
-      .BAUD_RATE      (115_200),
       .WATCHDOG_CYCLES(WATCHDOG_CYCLES),
+      // Memory configuration
+      .IMEM_DEPTH     (IMEM_DEPTH),
+      .DMEM_DEPTH     (DMEM_DEPTH),
+      .IMEM_INIT      (MEM_INIT),
+      .DMEM_INIT      (MEM_INIT),
+      // CPU architecture (from rv_sim_config.svh)
+      .MEM_TYPE       (MEM_TYPE),
+      .PIPELINED      (PIPELINED),
+      .FWD_REGFILE    (FWD_REGFILE),
+      .FWD            (FWD),
+      .BPRED          (BPRED),
+      .BTB_ENABLE     (BTB_ENABLE),
+      .EXT_ZMMUL      (EXT_ZMMUL),
+      .EXT_M          (EXT_M),
+      // Peripherals
+      .BAUD_RATE      (115_200),
+      // Debug/reporting
       .PREFIX         ("hello"),
       .SW_PATH        ("sw/hello/main.c")
-  ) sim (
-      .clk    (),
-      .rst_n  (),
-      .uart_tx(),
-      .led    (),
-      .gpio   (),
-      .done   ()
-  );
+  ) sim ();
 
   //
   // Optional: Generate VCD for waveform viewing

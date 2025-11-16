@@ -13,143 +13,44 @@
 //   make rv_blinky_im_sim       # RV32IM variant
 //   make rv_blinky_i_zmmul_sim  # RV32I_Zmmul variant (hardware multiply)
 //
-`ifndef RV_BLINKY_HEX
-`define RV_BLINKY_HEX ".build/sw/rv32i/blinky/blinky.hex"
-`endif
-
-`ifdef RV_ARCH_ZMMUL
-`define EXT_ZMMUL_VAL 1
-`else
-`define EXT_ZMMUL_VAL 0
-`endif
-
-`ifdef RV_ARCH_M
-`define EXT_M_VAL 1
-`else
-`define EXT_M_VAL 0
-`endif
-
-`ifdef SVC_MEM_SRAM
-`define MEM_TYPE_VAL 0
-`else
-`define MEM_TYPE_VAL 1
-`endif
-
-`ifdef SVC_CPU_SINGLE_CYCLE
-`define PIPELINED_VAL 0
-`else
-`define PIPELINED_VAL 1
-`endif
-
-`ifndef RV_IMEM_DEPTH
-`define RV_IMEM_DEPTH 1024
-`endif
-
-`ifndef RV_DMEM_DEPTH
-`define RV_DMEM_DEPTH 1024
-`endif
-
 module rv_blinky_sim;
   //
-  // Simulation parameters
+  // Shared configuration from Makefile defines
   //
-  localparam int WATCHDOG_CYCLES = 100000;
+  `include "rv_sim_config.svh"
 
   //
-  // Signals
+  // Program-specific configuration
   //
-  logic       clk;
-  logic       rst_n;
-  logic       uart_tx_unused;
-  logic       led;
-  logic [7:0] gpio;
-  logic       done;
+  localparam int WATCHDOG_CYCLES = 100_000;
 
   //
   // SOC simulation with CPU, peripherals, and lifecycle management
   //
   svc_soc_sim #(
+      // Clock and timing
       .CLOCK_FREQ_MHZ (25),
-      .IMEM_DEPTH     (`RV_IMEM_DEPTH),
-      .DMEM_DEPTH     (`RV_DMEM_DEPTH),
-      .MEM_TYPE       (`MEM_TYPE_VAL),
-      .PIPELINED      (`PIPELINED_VAL),
-      .EXT_ZMMUL      (`EXT_ZMMUL_VAL),
-      .EXT_M          (`EXT_M_VAL),
-      .IMEM_INIT      (`RV_BLINKY_HEX),
       .WATCHDOG_CYCLES(WATCHDOG_CYCLES),
+      // Memory configuration
+      .IMEM_DEPTH     (IMEM_DEPTH),
+      .DMEM_DEPTH     (DMEM_DEPTH),
+      .IMEM_INIT      (MEM_INIT),
+      .DMEM_INIT      (MEM_INIT),
+      // CPU architecture (from rv_sim_config.svh)
+      .MEM_TYPE       (MEM_TYPE),
+      .PIPELINED      (PIPELINED),
+      .FWD_REGFILE    (FWD_REGFILE),
+      .FWD            (FWD),
+      .BPRED          (BPRED),
+      .BTB_ENABLE     (BTB_ENABLE),
+      .EXT_ZMMUL      (EXT_ZMMUL),
+      .EXT_M          (EXT_M),
+      // Peripherals
+      .BAUD_RATE      (115_200),
+      // Debug/reporting
       .PREFIX         ("blinky"),
       .SW_PATH        ("sw/blinky/main.c")
-  ) sim (
-      .clk    (clk),
-      .rst_n  (rst_n),
-      .uart_tx(uart_tx_unused),
-      .led    (led),
-      .gpio   (gpio),
-      .done   (done)
-  );
-
-  //
-  // Monitor LED changes
-  //
-  logic led_prev;
-
-  always_ff @(posedge clk) begin
-    if (!rst_n) begin
-      led_prev <= 1'b0;
-    end else begin
-      led_prev <= led;
-    end
-  end
-
-  //
-  // Build prefix for local displays
-  //
-  string P;
-
-  initial begin
-    if ($test$plusargs("SVC_SIM_PREFIX")) begin
-      P = $sformatf("%-8s", "blinky:");
-    end else begin
-      P = "";
-    end
-  end
-
-  always @(posedge clk) begin
-    if (rst_n && led != led_prev) begin
-      $display("%s[%0t] LED changed: %b -> %b", P, $time, led_prev, led);
-    end
-  end
-
-  //
-  // Debug: Count data memory writes
-  //
-  int   dmem_write_count;
-  logic dmem_wen;
-
-`ifdef SVC_MEM_SRAM
-  assign dmem_wen = sim.sram_soc.rv_cpu.dmem_wen;
-`else
-  assign dmem_wen = sim.bram_soc.rv_cpu.dmem_wen;
-`endif
-
-  always_ff @(posedge clk) begin
-    if (!rst_n) begin
-      dmem_write_count <= 0;
-    end else if (dmem_wen) begin
-      dmem_write_count <= dmem_write_count + 1;
-    end
-  end
-
-  //
-  // Additional statistics reporting on completion
-  //
-  initial begin
-    wait (done);
-    $display("%sFinal LED state: %b", P, led);
-    $display("%sFinal GPIO state: 0x%02x", P, gpio);
-    $display("%sData mem writes seen: %0d", P, dmem_write_count);
-  end
+  ) sim ();
 
   //
   // Optional: Generate VCD for waveform viewing
