@@ -55,27 +55,22 @@ module svc_soc_sim #(
     parameter WATCHDOG_CYCLES = 100000,
     parameter PREFIX          = "",
     parameter SW_PATH         = ""
-) (
-    output logic       clk,
-    output logic       rst_n,
-    output logic       uart_tx,
-    output logic       led,
-    output logic [7:0] gpio,
-    output logic       done
-);
+) ();
+
+  //
+  // Internal signals (previously outputs)
+  //
+  logic       clk;
+  logic       rst_n;
+  logic       uart_tx;
+  logic       led;
+  logic [7:0] gpio;
+  logic       done;
 
   //
   // Include RISC-V definitions for debug display
   //
   `include "svc_rv_defs.svh"
-
-  //
-  // Adjust parameters for single-cycle mode
-  //
-  localparam int ACTUAL_FWD_REGFILE = (PIPELINED == 0) ? 0 : FWD_REGFILE;
-  localparam int ACTUAL_FWD = (PIPELINED == 0) ? 0 : FWD;
-  localparam int ACTUAL_BPRED = (PIPELINED == 0) ? 0 : BPRED;
-  localparam int ACTUAL_BTB_ENABLE = (PIPELINED == 0) ? 0 : BTB_ENABLE;
 
   // Calculate clock period and frequency
   localparam real CLOCK_PERIOD_NS = 1000.0 / CLOCK_FREQ_MHZ;
@@ -142,10 +137,10 @@ module svc_soc_sim #(
         .IMEM_DEPTH (IMEM_DEPTH),
         .DMEM_DEPTH (DMEM_DEPTH),
         .PIPELINED  (PIPELINED),
-        .FWD_REGFILE(ACTUAL_FWD_REGFILE),
-        .FWD        (ACTUAL_FWD),
-        .BPRED      (ACTUAL_BPRED),
-        .BTB_ENABLE (ACTUAL_BTB_ENABLE),
+        .FWD_REGFILE(FWD_REGFILE),
+        .FWD        (FWD),
+        .BPRED      (BPRED),
+        .BTB_ENABLE (BTB_ENABLE),
         .BTB_ENTRIES(BTB_ENTRIES),
         .EXT_ZMMUL  (EXT_ZMMUL),
         .EXT_M      (EXT_M),
@@ -168,10 +163,10 @@ module svc_soc_sim #(
         .IMEM_DEPTH (IMEM_DEPTH),
         .DMEM_DEPTH (DMEM_DEPTH),
         .PIPELINED  (PIPELINED),
-        .FWD_REGFILE(ACTUAL_FWD_REGFILE),
-        .FWD        (ACTUAL_FWD),
-        .BPRED      (ACTUAL_BPRED),
-        .BTB_ENABLE (ACTUAL_BTB_ENABLE),
+        .FWD_REGFILE(FWD_REGFILE),
+        .FWD        (FWD),
+        .BPRED      (BPRED),
+        .BTB_ENABLE (BTB_ENABLE),
         .BTB_ENTRIES(BTB_ENTRIES),
         .EXT_ZMMUL  (EXT_ZMMUL),
         .EXT_M      (EXT_M),
