@@ -71,12 +71,19 @@ LDFLAGS = $(ARCH_FLAGS) \
 # Common source files
 CRT0_S = $(SW_COMMON)/crt0.S
 
-# libsvc library
+# libsvc library - shared per architecture
+LIBSVC_BUILD_DIR = $(SW_ROOT)/../.build/sw/$(RV_ARCH)/lib
 LIBSVC_SRC = $(wildcard $(LIBSVC_DIR)/*.c)
 LIBSVC_ASM = $(wildcard $(LIBSVC_DIR)/*.S)
-LIBSVC_OBJ = $(patsubst $(LIBSVC_DIR)/%.c,$(BUILD_DIR)/libsvc/%.o,$(LIBSVC_SRC)) \
-             $(patsubst $(LIBSVC_DIR)/%.S,$(BUILD_DIR)/libsvc/%.o,$(LIBSVC_ASM))
-LIBSVC_A = $(BUILD_DIR)/libsvc.a
+LIBSVC_OBJ = $(patsubst $(LIBSVC_DIR)/%.c,$(LIBSVC_BUILD_DIR)/%.o,$(LIBSVC_SRC)) \
+             $(patsubst $(LIBSVC_DIR)/%.S,$(LIBSVC_BUILD_DIR)/%.o,$(LIBSVC_ASM))
+LIBSVC_A = $(LIBSVC_BUILD_DIR)/libsvc.a
+
+# Library compilation flags - aggressive optimization for all programs
+# Libraries are external dependencies, not subject to program-specific rules
+LIBSVC_CFLAGS ?= $(ARCH_FLAGS) -O3 -funroll-loops -flto -ffat-lto-objects \
+                 -Wall -Wextra -ffreestanding -nostdlib -nostartfiles \
+                 -I$(SW_COMMON) -I$(LIBSVC_DIR)
 
 # Build outputs with paths
 BUILD_OBJS = $(addprefix $(BUILD_DIR)/,$(OBJS))
@@ -93,6 +100,10 @@ DIS = $(BUILD_DIR)/$(PROGRAM).dis
 .PHONY: all
 all: $(ELF) $(HEX) $(DIS)
 
+# Explicit libsvc target
+.PHONY: libsvc
+libsvc: $(LIBSVC_A)
+
 # Create build directory
 $(BUILD_DIR):
 	@mkdir -p $(BUILD_DIR)
@@ -106,15 +117,15 @@ $(CRT0_O): $(CRT0_S) | $(BUILD_DIR)
 	$(CC) $(ASFLAGS) -c -o $@ $<
 
 # Build libsvc directory
-$(BUILD_DIR)/libsvc:
+$(LIBSVC_BUILD_DIR):
 	@mkdir -p $@
 
-# Compile libsvc sources
-$(BUILD_DIR)/libsvc/%.o: $(LIBSVC_DIR)/%.c | $(BUILD_DIR)/libsvc
-	$(CC) $(CFLAGS) -c -o $@ $<
+# Compile libsvc sources (using LIBSVC_CFLAGS for aggressive optimization)
+$(LIBSVC_BUILD_DIR)/%.o: $(LIBSVC_DIR)/%.c | $(LIBSVC_BUILD_DIR)
+	$(CC) $(LIBSVC_CFLAGS) -c -o $@ $<
 
 # Assemble libsvc assembly sources
-$(BUILD_DIR)/libsvc/%.o: $(LIBSVC_DIR)/%.S | $(BUILD_DIR)/libsvc
+$(LIBSVC_BUILD_DIR)/%.o: $(LIBSVC_DIR)/%.S | $(LIBSVC_BUILD_DIR)
 	$(CC) $(ASFLAGS) -c -o $@ $<
 
 # Archive libsvc library
