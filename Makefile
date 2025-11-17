@@ -81,8 +81,8 @@ RV_DMEM_DEPTH := 1024
 #
 # TODO: shrink dmem when not loading code and rodata into it.
 # (Or this becomes moot with proper caches)
-hello_RV_IMEM_DEPTH := 1024
-hello_RV_DMEM_DEPTH := 1024
+hello_RV_IMEM_DEPTH := 2048
+hello_RV_DMEM_DEPTH := 2048
 
 blinky_RV_IMEM_DEPTH := 1024
 blinky_RV_DMEM_DEPTH := 1024
@@ -90,8 +90,8 @@ blinky_RV_DMEM_DEPTH := 1024
 bubble_sort_RV_IMEM_DEPTH := 1024
 bubble_sort_RV_DMEM_DEPTH := 1024
 
-lib_test_RV_IMEM_DEPTH := 2048
-lib_test_RV_DMEM_DEPTH := 2560
+lib_test_RV_IMEM_DEPTH := 2560
+lib_test_RV_DMEM_DEPTH := 6144
 
 dhrystone_RV_IMEM_DEPTH := 2560
 dhrystone_RV_DMEM_DEPTH := 6144
