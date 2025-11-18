@@ -28,4 +28,10 @@ int strcmp(const char* s1, const char* s2);
 //
 size_t strlen(const char* s);
 
+//
+// Copy n bytes from src to dst
+// Returns dst
+//
+void* memcpy(void* __restrict dst, const void* __restrict src, size_t n);
+
 #endif  // STRING_H
