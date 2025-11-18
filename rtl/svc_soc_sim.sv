@@ -44,7 +44,9 @@ module svc_soc_sim #(
     parameter     FWD         = 1,
     parameter     BPRED       = 1,
     parameter     BTB_ENABLE  = 1,
-    parameter     BTB_ENTRIES = 8,
+    parameter     BTB_ENTRIES = 64,
+    parameter     RAS_ENABLE  = 1,
+    parameter     RAS_DEPTH   = 8,
     parameter     EXT_ZMMUL   = 0,
     parameter     EXT_M       = 0,
     parameter     IMEM_INIT   = "",
@@ -142,6 +144,8 @@ module svc_soc_sim #(
         .BPRED      (BPRED),
         .BTB_ENABLE (BTB_ENABLE),
         .BTB_ENTRIES(BTB_ENTRIES),
+        .RAS_ENABLE (RAS_ENABLE),
+        .RAS_DEPTH  (RAS_DEPTH),
         .EXT_ZMMUL  (EXT_ZMMUL),
         .EXT_M      (EXT_M),
         .IMEM_INIT  (IMEM_INIT),
@@ -168,6 +172,8 @@ module svc_soc_sim #(
         .BPRED      (BPRED),
         .BTB_ENABLE (BTB_ENABLE),
         .BTB_ENTRIES(BTB_ENTRIES),
+        .RAS_ENABLE (RAS_ENABLE),
+        .RAS_DEPTH  (RAS_DEPTH),
         .EXT_ZMMUL  (EXT_ZMMUL),
         .EXT_M      (EXT_M),
         .IMEM_INIT  (IMEM_INIT),
@@ -289,6 +295,8 @@ module svc_soc_sim #(
       $display("%sBPRED:       %0d", P, sram_soc.rv_cpu.cpu.BPRED);
       $display("%sBTB_ENABLE:  %0d", P, sram_soc.rv_cpu.cpu.BTB_ENABLE);
       $display("%sBTB_ENTRIES: %0d", P, sram_soc.rv_cpu.cpu.BTB_ENTRIES);
+      $display("%sRAS_ENABLE:  %0d", P, sram_soc.rv_cpu.cpu.RAS_ENABLE);
+      $display("%sRAS_DEPTH:   %0d", P, sram_soc.rv_cpu.cpu.RAS_DEPTH);
       $display("%sEXT_ZMMUL:   %0d", P, sram_soc.rv_cpu.cpu.EXT_ZMMUL);
       $display("%sEXT_M:       %0d", P, sram_soc.rv_cpu.cpu.EXT_M);
     end else begin
@@ -298,6 +306,8 @@ module svc_soc_sim #(
       $display("%sBPRED:       %0d", P, bram_soc.rv_cpu.cpu.BPRED);
       $display("%sBTB_ENABLE:  %0d", P, bram_soc.rv_cpu.cpu.BTB_ENABLE);
       $display("%sBTB_ENTRIES: %0d", P, bram_soc.rv_cpu.cpu.BTB_ENTRIES);
+      $display("%sRAS_ENABLE:  %0d", P, bram_soc.rv_cpu.cpu.RAS_ENABLE);
+      $display("%sRAS_DEPTH:   %0d", P, bram_soc.rv_cpu.cpu.RAS_DEPTH);
       $display("%sEXT_ZMMUL:   %0d", P, bram_soc.rv_cpu.cpu.EXT_ZMMUL);
       $display("%sEXT_M:       %0d", P, bram_soc.rv_cpu.cpu.EXT_M);
     end

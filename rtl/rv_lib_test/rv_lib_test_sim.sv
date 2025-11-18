@@ -43,6 +43,8 @@ module rv_lib_test_sim;
       .FWD            (FWD),
       .BPRED          (BPRED),
       .BTB_ENABLE     (BTB_ENABLE),
+      .RAS_ENABLE     (RAS_ENABLE),
+      .RAS_DEPTH      (RAS_DEPTH),
       .EXT_ZMMUL      (EXT_ZMMUL),
       .EXT_M          (EXT_M),
       // Peripherals
