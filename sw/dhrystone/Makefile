@@ -12,10 +12,11 @@ OBJS = dhry_1.o dhry_2.o
 include ../common/Makefile.common
 
 # Dhrystone ground rules: no procedure merging (inlining)
+# SiFive used -Os (but has bugs for us)
 CFLAGS := $(filter-out -O2,$(CFLAGS)) -O3 -fno-inline
 
-# Dhrystone optimized
+# Dhrystone inline
 # CFLAGS := $(filter-out -O2,$(CFLAGS)) -O3 -finline-functions
 
-# Even smaller, but hangs
-# CFLAGS := $(filter-out -O2,$(CFLAGS)) -O3 -finline-functions -flto
+# Dhrystone inline + lto
+# CFLAGS := $(filter-out -O2,$(CFLAGS)) -O3 -finline-functions -flto -fwhole-program

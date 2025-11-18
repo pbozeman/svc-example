@@ -54,13 +54,15 @@ localparam int EXT_M = 0;
 // Pipeline optimization parameters
 //
 // These are automatically disabled in single-cycle mode since pipeline
-// optimizations (forwarding, branch prediction, BTB) only make sense
+// optimizations (forwarding, branch prediction, BTB, RAS) only make sense
 // in a pipelined architecture.
 //
 localparam int FWD_REGFILE = (PIPELINED != 0) ? 1 : 0;
 localparam int FWD = (PIPELINED != 0) ? 1 : 0;
 localparam int BPRED = (PIPELINED != 0) ? 1 : 0;
 localparam int BTB_ENABLE = (PIPELINED != 0) ? 1 : 0;
+localparam int RAS_ENABLE = (PIPELINED != 0) ? 1 : 0;
+localparam int RAS_DEPTH = 8;
 
 //
 // Memory depth configuration
