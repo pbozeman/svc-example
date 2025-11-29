@@ -36,6 +36,7 @@ module svc_rv_soc_sram_demo (
       .clk     (clk),
       .rst_n   (rst_n),
       .ebreak  (ebreak),
+      .trap    (),
       .io_raddr(),
       .io_rdata(),
       .io_wen  (),

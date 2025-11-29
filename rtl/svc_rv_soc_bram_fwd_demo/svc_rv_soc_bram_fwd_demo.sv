@@ -38,6 +38,7 @@ module svc_rv_soc_bram_fwd_demo (
       .clk     (clk),
       .rst_n   (rst_n),
       .ebreak  (ebreak),
+      .trap    (),
       .io_ren  (),
       .io_raddr(),
       .io_rdata(),
