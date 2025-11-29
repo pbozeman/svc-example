@@ -58,7 +58,8 @@ module rv_hello #(
       .io_waddr(io_waddr),
       .io_wdata(io_wdata),
       .io_wstrb(io_wstrb),
-      .ebreak  (ebreak)
+      .ebreak  (ebreak),
+      .trap    ()
   );
 
   //

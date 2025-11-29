@@ -159,7 +159,8 @@ module svc_soc_sim #(
         .io_waddr(io_waddr),
         .io_wdata(io_wdata),
         .io_wstrb(io_wstrb),
-        .ebreak  (ebreak)
+        .ebreak  (ebreak),
+        .trap    ()
     );
   end else begin : bram_soc
     svc_rv_soc_bram #(
@@ -188,7 +189,8 @@ module svc_soc_sim #(
         .io_waddr(io_waddr),
         .io_wdata(io_wdata),
         .io_wstrb(io_wstrb),
-        .ebreak  (ebreak)
+        .ebreak  (ebreak),
+        .trap    ()
     );
   end
 
