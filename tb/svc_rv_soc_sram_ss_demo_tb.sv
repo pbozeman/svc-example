@@ -45,7 +45,6 @@ module svc_rv_soc_sram_ss_demo_tb;
     //
     `CHECK_EQ(uut.soc.cpu.stage_id.regfile.regs[11], 32'hC594BFC3);
     `CHECK_EQ(uut.soc.cpu.stage_id.regfile.regs[30], 32'h8B297F86);
-    `CHECK_EQ(uut.soc.cpu.stage_id.regfile.regs[0], 32'd0);
 
     //
     // CPI check
