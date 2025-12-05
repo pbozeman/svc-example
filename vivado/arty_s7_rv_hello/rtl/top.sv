@@ -47,8 +47,14 @@ module top (
       .DMEM_DEPTH (1024),
       .PIPELINED  (1),
       .FWD_REGFILE(1),
-      .FWD        (0),
-      .BPRED      (0),
+      .FWD        (1),
+      .BPRED      (1),
+      .BTB_ENABLE (1),
+      .BTB_ENTRIES(64),
+      .RAS_ENABLE (1),
+      .RAS_DEPTH  (8),
+      .EXT_ZMMUL  (0),
+      .EXT_M      (1),
       .IMEM_INIT  ("../../../.build/sw/rv32i/hello/hello.hex"),
       .DMEM_INIT  ("../../../.build/sw/rv32i/hello/hello.hex")
   ) soc (
