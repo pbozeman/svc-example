@@ -1,3 +1,6 @@
 [submodule "svc"]
 	path = svc
 	url = git@github.com:pbozeman/svc.git
+[submodule "sw/coremark/coremark"]
+	path = sw/coremark/coremark
+	url = git@github.com:eembc/coremark.git
