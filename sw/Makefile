@@ -3,7 +3,7 @@
 #
 
 # List of all programs
-PROGRAMS = blinky bubble_sort hello lib_test dhrystone
+PROGRAMS = blinky bubble_sort hello lib_test dhrystone coremark
 
 # Supported architectures
 ARCHES = rv32i rv32im
