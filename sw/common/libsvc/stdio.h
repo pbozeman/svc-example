@@ -51,7 +51,7 @@ int puts(const char *s);
 //   %c - single character
 //   %% - literal '%'
 //
-// Note: No field width, precision, or padding flags.
+// Width specifiers (e.g., %04x) are supported.
 //
 // Args:
 //   fmt: Format string
@@ -61,5 +61,12 @@ int puts(const char *s);
 //   Number of characters written
 //
 int printf(const char *fmt, ...);
+
+//
+// Formatted output with va_list
+//
+// Same as printf but takes a va_list instead of variadic arguments.
+//
+int vprintf(const char *fmt, va_list args);
 
 #endif  // LIBSVC_STDIO_H

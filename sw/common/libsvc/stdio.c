@@ -80,15 +80,12 @@ static int print_int(int32_t value, int width, int zero_pad) {
 }
 
 //
-// Formatted output to standard output
+// Formatted output with va_list
 //
-int printf(const char *fmt, ...) {
-  va_list args;
+int vprintf(const char *fmt, va_list args) {
   int count = 0;
   const char *p = fmt;
   int has_newline = 0;
-
-  va_start(args, fmt);
 
   while (*p) {
     if (*p == '%') {
@@ -195,6 +192,16 @@ int printf(const char *fmt, ...) {
     svc_uart_flush();
   }
 
+  return count;
+}
+
+//
+// Formatted output to standard output
+//
+int printf(const char *fmt, ...) {
+  va_list args;
+  va_start(args, fmt);
+  int count = vprintf(fmt, args);
   va_end(args);
   return count;
 }
