@@ -24,6 +24,7 @@
 //   0x80000000 + 0x04: UART status register (read-only, bit 0 = TX ready)
 //   0x80000000 + 0x08: LED register (bit 0)
 //   0x80000000 + 0x0C: GPIO register (bits 7:0)
+//   0x80000000 + 0x10: Clock frequency register (read-only, Hz)
 //
 module svc_soc_io_reg #(
     parameter     CLOCK_FREQ = 25_000_000,
@@ -147,6 +148,7 @@ module svc_soc_io_reg #(
         8'h04:   io_rdata_comb = {31'h0, uart_tx_ready};
         8'h08:   io_rdata_comb = {31'h0, led_reg};
         8'h0C:   io_rdata_comb = {24'h0, gpio_reg};
+        8'h10:   io_rdata_comb = CLOCK_FREQ;
         default: io_rdata_comb = 32'h0;
       endcase
     end
