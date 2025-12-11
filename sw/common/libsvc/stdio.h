@@ -51,7 +51,8 @@ int puts(const char *s);
 //   %c - single character
 //   %% - literal '%'
 //
-// Width specifiers (e.g., %04x) are supported.
+// Width specifiers (e.g., %04x) and length modifier 'l' (e.g., %lu) are
+// supported. On 32-bit systems, 'l' is effectively ignored since long == int.
 //
 // Args:
 //   fmt: Format string

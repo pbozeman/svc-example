@@ -107,6 +107,11 @@ int vprintf(const char *fmt, va_list args) {
         p++;
       }
 
+      // Parse length modifier (l, ll - ignored on 32-bit, sizes are same)
+      while (*p == 'l') {
+        p++;
+      }
+
       // Handle format specifiers
       switch (*p) {
         case 'd':  // Signed decimal
