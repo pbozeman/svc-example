@@ -42,6 +42,7 @@ module rv_dhrystone #(
       .FWD_REGFILE(1),
       .FWD        (0),
       .BPRED      (0),
+      .PC_REG     (0),
       .IMEM_INIT  (".build/sw/rv32i/dhrystone/dhrystone.hex"),
       .DMEM_INIT  (".build/sw/rv32i/dhrystone/dhrystone.hex")
   ) soc (

@@ -57,7 +57,7 @@ ICE40_FIND_SEED_MODULES = gfx_shapes_demo_top gfx_pattern_demo_striped_top
 # can go higher with findseed
 
 svc_rv_soc_bram_demo_top_ICE40_CLK_FREQ = 45
-svc_rv_soc_sram_demo_top_ICE40_CLK_FREQ = 55
+svc_rv_soc_sram_demo_top_ICE40_CLK_FREQ = 45
 
 svc_rv_soc_bram_fwd_demo_top_ICE40_CLK_FREQ = 33
 svc_rv_soc_sram_fwd_demo_top_ICE40_CLK_FREQ = 33

@@ -49,6 +49,7 @@ module svc_soc_sim #(
     parameter     RAS_DEPTH   = 8,
     parameter     EXT_ZMMUL   = 0,
     parameter     EXT_M       = 0,
+    parameter     PC_REG      = 0,
     parameter     IMEM_INIT   = "",
     parameter     DMEM_INIT   = "",
     parameter     BAUD_RATE   = 115_200,
@@ -148,6 +149,7 @@ module svc_soc_sim #(
         .RAS_DEPTH  (RAS_DEPTH),
         .EXT_ZMMUL  (EXT_ZMMUL),
         .EXT_M      (EXT_M),
+        .PC_REG     (PC_REG),
         .IMEM_INIT  (IMEM_INIT),
         .DMEM_INIT  (DMEM_INIT)
     ) rv_cpu (
@@ -177,6 +179,7 @@ module svc_soc_sim #(
         .RAS_DEPTH  (RAS_DEPTH),
         .EXT_ZMMUL  (EXT_ZMMUL),
         .EXT_M      (EXT_M),
+        .PC_REG     (PC_REG),
         .IMEM_INIT  (IMEM_INIT),
         .DMEM_INIT  (DMEM_INIT)
     ) rv_cpu (
@@ -299,6 +302,7 @@ module svc_soc_sim #(
       $display("%sBTB_ENTRIES: %0d", P, sram_soc.rv_cpu.cpu.BTB_ENTRIES);
       $display("%sRAS_ENABLE:  %0d", P, sram_soc.rv_cpu.cpu.RAS_ENABLE);
       $display("%sRAS_DEPTH:   %0d", P, sram_soc.rv_cpu.cpu.RAS_DEPTH);
+      $display("%sPC_REG:      %0d", P, sram_soc.rv_cpu.cpu.PC_REG);
       $display("%sEXT_ZMMUL:   %0d", P, sram_soc.rv_cpu.cpu.EXT_ZMMUL);
       $display("%sEXT_M:       %0d", P, sram_soc.rv_cpu.cpu.EXT_M);
     end else begin
@@ -310,6 +314,7 @@ module svc_soc_sim #(
       $display("%sBTB_ENTRIES: %0d", P, bram_soc.rv_cpu.cpu.BTB_ENTRIES);
       $display("%sRAS_ENABLE:  %0d", P, bram_soc.rv_cpu.cpu.RAS_ENABLE);
       $display("%sRAS_DEPTH:   %0d", P, bram_soc.rv_cpu.cpu.RAS_DEPTH);
+      $display("%sPC_REG:      %0d", P, bram_soc.rv_cpu.cpu.PC_REG);
       $display("%sEXT_ZMMUL:   %0d", P, bram_soc.rv_cpu.cpu.EXT_ZMMUL);
       $display("%sEXT_M:       %0d", P, bram_soc.rv_cpu.cpu.EXT_M);
     end

@@ -36,7 +36,7 @@ module svc_rv_soc_sram_demo_tb;
     logic [31:0] cpi;
     bit          svc_tb_rpt;
 
-    `CHECK_WAIT_FOR(clk, ebreak, 1024);
+    `CHECK_WAIT_FOR(clk, ebreak, 2048);
 
     // Correctness check
     `CHECK_EQ(uut.soc.cpu.stage_id.regfile.regs[11], 32'hC594BFC3);

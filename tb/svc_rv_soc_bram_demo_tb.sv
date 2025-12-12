@@ -38,7 +38,7 @@ module svc_rv_soc_bram_demo_tb;
     logic [31:0] cpi;
     bit          svc_tb_rpt;
 
-    `CHECK_WAIT_FOR(clk, ebreak, 1024);
+    `CHECK_WAIT_FOR(clk, ebreak, 2048);
 
     //
     // Correctness check
