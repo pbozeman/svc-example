@@ -7,6 +7,7 @@
 #include "core_portme.h"
 #include "libsvc/csr.h"
 #include "libsvc/stdio.h"
+#include "libsvc/sys.h"
 
 /* Volatile seeds for CoreMark */
 #if VALIDATION_RUN
@@ -29,17 +30,18 @@ volatile ee_s32 seed4_volatile = ITERATIONS;
 volatile ee_s32 seed5_volatile = 0;
 
 /*
- * Clock frequency - 25MHz for simulation
- * For accurate results, this must match actual clock frequency
+ * Clock frequency - read from hardware at runtime
+ *
+ * The system clock frequency is read from the MMIO clock frequency register.
+ * This allows the same binary to report accurate results regardless of the
+ * actual clock speed (simulation vs FPGA).
  */
-#ifndef CLOCKS_PER_SEC
-#define CLOCKS_PER_SEC 25000000
-#endif
-
 #define TIMER_RES_DIVIDER 1
-#define EE_TICKS_PER_SEC  (CLOCKS_PER_SEC / TIMER_RES_DIVIDER)
 #define GETMYTIME(_t)     (*_t = (CORETIMETYPE)rdcycle())
 #define MYTIMEDIFF(fin, ini) ((fin) - (ini))
+
+/* Clock frequency cached from hardware */
+static uint32_t cached_clock_freq = 0;
 
 /* Time measurement variables */
 static CORETIMETYPE start_time_val, stop_time_val;
@@ -71,11 +73,18 @@ CORE_TICKS get_time(void) {
 }
 
 /*
+ * Get ticks per second (clock frequency / timer divider)
+ */
+static uint32_t get_ticks_per_sec(void) {
+  return cached_clock_freq / TIMER_RES_DIVIDER;
+}
+
+/*
  * Convert ticks to seconds
  * With HAS_FLOAT=0, secs_ret is ee_u32, so this returns integer seconds
  */
 secs_ret time_in_secs(CORE_TICKS ticks) {
-  secs_ret retval = ((secs_ret)ticks) / (secs_ret)EE_TICKS_PER_SEC;
+  secs_ret retval = ((secs_ret)ticks) / (secs_ret)get_ticks_per_sec();
   return retval;
 }
 
@@ -85,6 +94,9 @@ secs_ret time_in_secs(CORE_TICKS ticks) {
 void portable_init(core_portable *p, int *argc, char *argv[]) {
   (void)argc;
   (void)argv;
+
+  /* Read clock frequency from hardware */
+  cached_clock_freq = svc_clock_freq();
 
   if (sizeof(ee_ptr_int) != sizeof(ee_u8 *)) {
     ee_printf(
