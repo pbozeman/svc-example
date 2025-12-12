@@ -23,7 +23,7 @@ COREMARK_ITERATIONS ?= 100
 # Override CFLAGS for CoreMark (aggressive optimization, no inlining per rules)
 # -fno-inline is required by CoreMark rules
 # Additional optimizations: loop unrolling, LTO, frame pointer elimination
-COREMARK_CFLAGS := $(filter-out -O2,$(CFLAGS)) -O3 -fno-inline \
+COREMARK_CFLAGS := $(filter-out -O2,$(CFLAGS)) -O3 \
                    -funroll-loops \
                    -fomit-frame-pointer \
                    -flto

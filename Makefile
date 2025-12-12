@@ -96,8 +96,8 @@ lib_test_RV_DMEM_DEPTH := 6144
 dhrystone_RV_IMEM_DEPTH := 2560
 dhrystone_RV_DMEM_DEPTH := 6144
 
-coremark_RV_IMEM_DEPTH := 8192
-coremark_RV_DMEM_DEPTH := 8192
+coremark_RV_IMEM_DEPTH := 8704
+coremark_RV_DMEM_DEPTH := 20480
 
 export RV_IMEM_DEPTH RV_DMEM_DEPTH
 export hello_RV_IMEM_DEPTH hello_RV_DMEM_DEPTH
