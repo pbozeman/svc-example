@@ -46,6 +46,9 @@ static uint32_t cached_clock_freq = 0;
 /* Time measurement variables */
 static CORETIMETYPE start_time_val, stop_time_val;
 
+/* Saved for final report */
+static uint32_t saved_iterations = 0;
+
 /* Number of contexts (single-threaded) */
 ee_u32 default_num_contexts = 1;
 
@@ -61,6 +64,8 @@ void start_time(void) {
  */
 void stop_time(void) {
   GETMYTIME(&stop_time_val);
+  /* Save iterations for final report - seed4_volatile holds ITERATIONS */
+  saved_iterations = (uint32_t)seed4_volatile;
 }
 
 /*
@@ -110,9 +115,47 @@ void portable_init(core_portable *p, int *argc, char *argv[]) {
 
 /*
  * Target-specific cleanup
+ *
+ * Print CoreMark/MHz for easy comparison across different clock frequencies.
  */
 void portable_fini(core_portable *p) {
   p->portable_id = 0;
+
+  /* Calculate and print CoreMark/MHz */
+  if (saved_iterations > 0 && cached_clock_freq > 0) {
+    CORE_TICKS elapsed = get_time();
+    uint32_t mhz = cached_clock_freq / 1000000;
+
+    /*
+     * CoreMark/MHz = (iterations / seconds) / MHz
+     *              = iterations / (seconds * MHz)
+     *              = iterations / (elapsed_ticks / clock_freq * MHz)
+     *              = iterations / (elapsed_ticks / (clock_freq / MHz))
+     *              = iterations / (elapsed_ticks / 1000000)
+     *              = (iterations * 1000000) / elapsed_ticks
+     *
+     * To get 2 decimal places, multiply by 100 first:
+     * result_x100 = (iterations * 100 * 1000000) / elapsed_ticks
+     *             = (iterations * 100000000) / elapsed_ticks
+     *
+     * For 100 iterations with ~400M cycles:
+     * = 100 * 100000000 / 400000000 = 25 (i.e., 0.25 CM/MHz)
+     *
+     * To avoid 64-bit division, we can do this in steps using 32-bit ops
+     * since elapsed >> iterations typically.
+     *
+     * elapsed_per_iter = elapsed / iterations
+     * cm_mhz_x100 = 100000000 / elapsed_per_iter
+     */
+    uint32_t elapsed_per_iter = elapsed / saved_iterations;
+    uint32_t cm_mhz_x100 = 100000000 / elapsed_per_iter;
+    uint32_t cm_mhz_int = cm_mhz_x100 / 100;
+    uint32_t cm_mhz_frac = cm_mhz_x100 % 100;
+
+    ee_printf("\n");
+    ee_printf("Clock frequency  : %d MHz\n", mhz);
+    ee_printf("CoreMark/MHz     : %d.%02d\n", cm_mhz_int, cm_mhz_frac);
+  }
 }
 
 /*
