@@ -152,6 +152,7 @@ module top (
       .RAS_DEPTH  (8),
       .EXT_ZMMUL  (0),
       .EXT_M      (1),
+      .PC_REG     (0),
       .IMEM_INIT  ("../../../.build/sw/rv32im/dhrystone/dhrystone.hex"),
       .DMEM_INIT  ("../../../.build/sw/rv32im/dhrystone/dhrystone.hex")
   ) soc (

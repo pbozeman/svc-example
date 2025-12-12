@@ -30,7 +30,8 @@ module svc_rv_soc_sram_demo (
       .PIPELINED  (1),
       .FWD_REGFILE(1),
       .FWD        (0),
-      .BPRED      (1),
+      .BPRED      (0),
+      .PC_REG     (0),
       .IMEM_INIT  ("rtl/svc_rv_soc_sram_demo/program.hex")
   ) soc (
       .clk     (clk),

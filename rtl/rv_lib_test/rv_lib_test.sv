@@ -42,6 +42,7 @@ module rv_lib_test #(
       .FWD_REGFILE(1),
       .FWD        (0),
       .BPRED      (0),
+      .PC_REG     (0),
       .IMEM_INIT  (".build/sw/rv32i/lib_test/lib_test.hex"),
       .DMEM_INIT  (".build/sw/rv32i/lib_test/lib_test.hex")
   ) soc (

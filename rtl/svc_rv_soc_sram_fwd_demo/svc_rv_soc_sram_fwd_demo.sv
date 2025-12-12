@@ -35,6 +35,8 @@ module svc_rv_soc_sram_fwd_demo (
       .FWD_REGFILE(1),
       .FWD        (1),
       .BPRED      (1),
+      .BTB_ENABLE (1),
+      .PC_REG     (1),
       .IMEM_INIT  ("rtl/svc_rv_soc_sram_fwd_demo/program.hex")
   ) soc (
       .clk     (clk),

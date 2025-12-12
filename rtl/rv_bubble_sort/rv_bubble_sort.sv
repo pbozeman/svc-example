@@ -46,6 +46,7 @@ module rv_bubble_sort #(
       .FWD_REGFILE(1),
       .FWD        (1),
       .BPRED      (1),
+      .PC_REG     (0),
       .IMEM_INIT  (".build/sw/rv32i/bubble_sort/bubble_sort.hex"),
       .DMEM_INIT  (".build/sw/rv32i/bubble_sort/bubble_sort.hex")
   ) soc (

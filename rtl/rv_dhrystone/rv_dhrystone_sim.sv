@@ -46,6 +46,7 @@ module rv_dhrystone_sim;
       .BTB_ENABLE     (BTB_ENABLE),
       .RAS_ENABLE     (RAS_ENABLE),
       .RAS_DEPTH      (RAS_DEPTH),
+      .PC_REG         (PC_REG),
       .EXT_ZMMUL      (EXT_ZMMUL),
       .EXT_M          (EXT_M),
       // Peripherals

@@ -65,6 +65,19 @@ localparam int RAS_ENABLE = (PIPELINED != 0) ? 1 : 0;
 localparam int RAS_DEPTH = 8;
 
 //
+// PC_REG: Pipeline register between PC and IF stages
+//
+// When enabled, adds a register stage that approximates Rocket-style BTB
+// timing. This affects branch prediction timing and can be used to measure
+// the impact of late predictions.
+//
+`ifdef SVC_PC_REG
+localparam int PC_REG = 1;
+`else
+localparam int PC_REG = 0;
+`endif
+
+//
 // Memory depth configuration
 //
 // These can be overridden via Makefile defines for each program
