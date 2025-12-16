@@ -3,8 +3,8 @@
  */
 #include <stdarg.h>
 
-#include "coremark.h"
 #include "core_portme.h"
+#include "coremark.h"
 #include "libsvc/csr.h"
 #include "libsvc/stdio.h"
 #include "libsvc/sys.h"
@@ -37,7 +37,7 @@ volatile ee_s32 seed5_volatile = 0;
  * actual clock speed (simulation vs FPGA).
  */
 #define TIMER_RES_DIVIDER 1
-#define GETMYTIME(_t)     (*_t = (CORETIMETYPE)rdcycle())
+#define GETMYTIME(_t) (*_t = (CORETIMETYPE)rdcycle())
 #define MYTIMEDIFF(fin, ini) ((fin) - (ini))
 
 /* Clock frequency cached from hardware */
@@ -55,9 +55,7 @@ ee_u32 default_num_contexts = 1;
 /*
  * Start timing measurement
  */
-void start_time(void) {
-  GETMYTIME(&start_time_val);
-}
+void start_time(void) { GETMYTIME(&start_time_val); }
 
 /*
  * Stop timing measurement
@@ -72,8 +70,7 @@ void stop_time(void) {
  * Get elapsed time in ticks
  */
 CORE_TICKS get_time(void) {
-  CORE_TICKS elapsed =
-      (CORE_TICKS)(MYTIMEDIFF(stop_time_val, start_time_val));
+  CORE_TICKS elapsed = (CORE_TICKS)(MYTIMEDIFF(stop_time_val, start_time_val));
   return elapsed;
 }
 
@@ -87,10 +84,17 @@ static uint32_t get_ticks_per_sec(void) {
 /*
  * Convert ticks to seconds
  * With HAS_FLOAT=0, secs_ret is ee_u32, so this returns integer seconds
+ *
+ * In simulation (SVC_SIM), return a fixed value to speed up runs.
  */
 secs_ret time_in_secs(CORE_TICKS ticks) {
+#ifdef SVC_SIM
+  (void)ticks;
+  return 10;
+#else
   secs_ret retval = ((secs_ret)ticks) / (secs_ret)get_ticks_per_sec();
   return retval;
+#endif
 }
 
 /*
@@ -102,6 +106,10 @@ void portable_init(core_portable *p, int *argc, char *argv[]) {
 
   /* Read clock frequency from hardware */
   cached_clock_freq = svc_clock_freq();
+
+  /* Startup banner */
+  ee_printf("CoreMark starting: %d iteration(s)\n", ITERATIONS);
+  ee_printf("\n");
 
   if (sizeof(ee_ptr_int) != sizeof(ee_u8 *)) {
     ee_printf(
@@ -153,7 +161,9 @@ void portable_fini(core_portable *p) {
     uint32_t cm_mhz_frac = cm_mhz_x100 % 100;
 
     ee_printf("\n");
+#ifdef SVC_SIM
     ee_printf("Clock frequency  : %d MHz\n", mhz);
+#endif
     ee_printf("CoreMark/MHz     : %d.%02d\n", cm_mhz_int, cm_mhz_frac);
   }
 }

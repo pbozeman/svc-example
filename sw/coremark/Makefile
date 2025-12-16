@@ -18,7 +18,12 @@ include ../common/Makefile.common
 # CoreMark specific flags
 # ITERATIONS controls benchmark duration (higher = longer run)
 # PERFORMANCE_RUN selects seeds for official benchmarking
+# SVC_SIM=1 uses fast defaults for simulation
+ifdef SVC_SIM
+COREMARK_ITERATIONS ?= 1
+else
 COREMARK_ITERATIONS ?= 100
+endif
 
 # Override CFLAGS for CoreMark (aggressive optimization, no inlining per rules)
 # -fno-inline is required by CoreMark rules
@@ -33,6 +38,7 @@ CFLAGS := $(COREMARK_CFLAGS) \
           -DITERATIONS=$(COREMARK_ITERATIONS) \
           -DPERFORMANCE_RUN=1 \
           -DFLAGS_STR=\""$(COREMARK_CFLAGS)"\" \
+          $(if $(SVC_SIM),-DSVC_SIM) \
           -I$(COREMARK_DIR) \
           -I.
 
