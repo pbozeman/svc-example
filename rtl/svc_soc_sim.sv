@@ -31,8 +31,8 @@
 // verilator lint_off: UNUSEDPARAM
 module svc_soc_sim #(
     // Clock and reset
-    parameter CLOCK_FREQ_MHZ = 100,
-    parameter RESET_CYCLES   = 10,
+    parameter CLOCK_FREQ   = 100_000_000,
+    parameter RESET_CYCLES = 10,
 
     // CPU configuration
     parameter     XLEN        = 32,
@@ -75,10 +75,9 @@ module svc_soc_sim #(
   //
   `include "svc_rv_defs.svh"
 
-  // Calculate clock period and frequency
-  localparam real CLOCK_PERIOD_NS = 1000.0 / CLOCK_FREQ_MHZ;
+  // Calculate clock period from frequency
+  localparam real CLOCK_PERIOD_NS = 1_000_000_000.0 / CLOCK_FREQ;
   localparam real HALF_PERIOD_NS = CLOCK_PERIOD_NS / 2.0;
-  localparam int CLOCK_FREQ = CLOCK_FREQ_MHZ * 1_000_000;
 
   //
   // Clock generation
@@ -356,7 +355,6 @@ module svc_soc_sim #(
         cpi = real'(cycles) / real'(instrs);
 
         $display("%sinstrs: %0d", P, instrs);
-        $display("%scpi:    %f", P, cpi);
       end
     end
 `endif

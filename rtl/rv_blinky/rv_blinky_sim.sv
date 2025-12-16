@@ -29,7 +29,7 @@ module rv_blinky_sim;
   //
   svc_soc_sim #(
       // Clock and timing
-      .CLOCK_FREQ_MHZ (25),
+      .CLOCK_FREQ     (25_000_000),
       .WATCHDOG_CYCLES(WATCHDOG_CYCLES),
       // Memory configuration
       .IMEM_DEPTH     (IMEM_DEPTH),
