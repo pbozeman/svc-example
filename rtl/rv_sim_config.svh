@@ -20,7 +20,9 @@
 //
 // Memory type configuration
 //
-`ifdef SVC_MEM_SRAM
+`ifdef SVC_MEM_BRAM_CACHE
+localparam int MEM_TYPE = MEM_TYPE_BRAM_CACHE;
+`elsif SVC_MEM_SRAM
 localparam int MEM_TYPE = MEM_TYPE_SRAM;
 `else
 localparam int MEM_TYPE = MEM_TYPE_BRAM;

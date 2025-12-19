@@ -44,6 +44,12 @@ DEMOS = [
         'top': 'svc_rv_soc_sram_ss_demo_top',
         'tb': 'svc_rv_soc_sram_ss_demo_tb',
     },
+    {
+        'name': 'svc_rv_soc_bram_cache_fwd_demo',
+        'description': 'BRAM+Cache (Pipelined, FWD=1)',
+        'top': 'svc_rv_soc_bram_cache_fwd_demo_top',
+        'tb': 'svc_rv_soc_bram_cache_fwd_demo_tb',
+    },
 ]
 
 BUILD_DIR = Path('.build/vanilla-ice40-hx8k-ct256')

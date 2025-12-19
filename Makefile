@@ -16,6 +16,7 @@ TOP_MODULES := \
 	rtl/svc_rv_soc_sram_demo/svc_rv_soc_sram_demo_top.sv \
 	rtl/svc_rv_soc_sram_fwd_demo/svc_rv_soc_sram_fwd_demo_top.sv \
 	rtl/svc_rv_soc_sram_ss_demo/svc_rv_soc_sram_ss_demo_top.sv \
+	rtl/svc_rv_soc_bram_cache_fwd_demo/svc_rv_soc_bram_cache_fwd_demo_top.sv \
 	rtl/uart_demo/uart_demo_top.sv \
 	rtl/vga_pattern/vga_pattern_top.sv
 
@@ -43,7 +44,7 @@ ICE40_DEVICE    := hx8k
 ICE40_PACKAGE   := ct256
 ICE40_CLK_FREQ  := 100
 
-ICE40_FIND_SEED_MODULES = gfx_shapes_demo_top gfx_pattern_demo_striped_top
+ICE40_FIND_SEED_MODULES = gfx_shapes_demo_top gfx_pattern_demo_striped_top mem_test_ice40_sram_top
 
 # These are commented out above, but these are the overrides they need.
 # The would need a top level PLL to support this.
@@ -63,6 +64,8 @@ svc_rv_soc_bram_fwd_demo_top_ICE40_CLK_FREQ = 33
 svc_rv_soc_sram_fwd_demo_top_ICE40_CLK_FREQ = 33
 
 svc_rv_soc_sram_ss_demo_top_ICE40_CLK_FREQ = 25
+
+svc_rv_soc_bram_cache_fwd_demo_top_ICE40_CLK_FREQ = 33
 
 ##############################################################################
 #

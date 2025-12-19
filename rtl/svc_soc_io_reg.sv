@@ -157,7 +157,11 @@ module svc_soc_io_reg #(
   //
   // Output timing based on memory type
   //
-  if (MEM_TYPE == MEM_TYPE_BRAM) begin : bram_timing
+  // BRAM_CACHE uses BRAM timing for I/O since its I/O interface
+  // uses BRAM-style registered reads (1-cycle latency).
+  //
+  if (MEM_TYPE == MEM_TYPE_BRAM ||
+      MEM_TYPE == MEM_TYPE_BRAM_CACHE) begin : bram_timing
     //
     // Register output to match BRAM timing (1-cycle latency)
     //
