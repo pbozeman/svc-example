@@ -2,7 +2,9 @@
 `define SVC_SOC_SIM_SV
 
 `include "svc.sv"
+`include "svc_axi_mem.sv"
 `include "svc_rv_soc_bram.sv"
+`include "svc_rv_soc_bram_cache.sv"
 `include "svc_rv_soc_sram.sv"
 `include "svc_soc_io_reg.sv"
 `include "svc_soc_sim_uart.sv"
@@ -53,6 +55,11 @@ module svc_soc_sim #(
     parameter     IMEM_INIT   = "",
     parameter     DMEM_INIT   = "",
     parameter     BAUD_RATE   = 115_200,
+
+    // AXI parameters for BRAM_CACHE mode
+    parameter int AXI_ADDR_WIDTH = 32,
+    parameter int AXI_DATA_WIDTH = 128,
+    parameter int AXI_ID_WIDTH   = 4,
 
     // Simulation control
     parameter WATCHDOG_CYCLES = 100000,
@@ -163,6 +170,187 @@ module svc_soc_sim #(
         .ebreak  (ebreak),
         .trap    ()
     );
+  end else if (MEM_TYPE == MEM_TYPE_BRAM_CACHE) begin : cache_soc
+    //
+    // AXI signals for data memory backing store
+    //
+    logic                        m_axi_arvalid;
+    logic [    AXI_ID_WIDTH-1:0] m_axi_arid;
+    logic [  AXI_ADDR_WIDTH-1:0] m_axi_araddr;
+    logic [                 7:0] m_axi_arlen;
+    logic [                 2:0] m_axi_arsize;
+    logic [                 1:0] m_axi_arburst;
+    logic                        m_axi_arready;
+
+    logic                        m_axi_rvalid;
+    logic [    AXI_ID_WIDTH-1:0] m_axi_rid;
+    logic [  AXI_DATA_WIDTH-1:0] m_axi_rdata;
+    logic [                 1:0] m_axi_rresp;
+    logic                        m_axi_rlast;
+    logic                        m_axi_rready;
+
+    logic                        m_axi_awvalid;
+    logic [    AXI_ID_WIDTH-1:0] m_axi_awid;
+    logic [  AXI_ADDR_WIDTH-1:0] m_axi_awaddr;
+    logic [                 7:0] m_axi_awlen;
+    logic [                 2:0] m_axi_awsize;
+    logic [                 1:0] m_axi_awburst;
+    logic                        m_axi_awready;
+
+    logic                        m_axi_wvalid;
+    logic [  AXI_DATA_WIDTH-1:0] m_axi_wdata;
+    logic [AXI_DATA_WIDTH/8-1:0] m_axi_wstrb;
+    logic                        m_axi_wlast;
+    logic                        m_axi_wready;
+
+    logic                        m_axi_bvalid;
+    logic [    AXI_ID_WIDTH-1:0] m_axi_bid;
+    logic [                 1:0] m_axi_bresp;
+    logic                        m_axi_bready;
+
+    svc_rv_soc_bram_cache #(
+        .XLEN       (XLEN),
+        .IMEM_DEPTH (IMEM_DEPTH),
+        .PIPELINED  (PIPELINED),
+        .FWD_REGFILE(FWD_REGFILE),
+        .FWD        (FWD),
+        .BPRED      (BPRED),
+        .BTB_ENABLE (BTB_ENABLE),
+        .BTB_ENTRIES(BTB_ENTRIES),
+        .RAS_ENABLE (RAS_ENABLE),
+        .RAS_DEPTH  (RAS_DEPTH),
+        .EXT_ZMMUL  (EXT_ZMMUL),
+        .EXT_M      (EXT_M),
+        .PC_REG     (PC_REG),
+        .IMEM_INIT  (IMEM_INIT),
+
+        .AXI_ADDR_WIDTH(AXI_ADDR_WIDTH),
+        .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
+        .AXI_ID_WIDTH  (AXI_ID_WIDTH)
+    ) rv_cpu (
+        .clk  (clk),
+        .rst_n(rst_n),
+
+        .io_ren  (io_ren),
+        .io_raddr(io_raddr),
+        .io_rdata(io_rdata),
+
+        .io_wen  (io_wen),
+        .io_waddr(io_waddr),
+        .io_wdata(io_wdata),
+        .io_wstrb(io_wstrb),
+
+        .m_axi_arvalid(m_axi_arvalid),
+        .m_axi_arid   (m_axi_arid),
+        .m_axi_araddr (m_axi_araddr),
+        .m_axi_arlen  (m_axi_arlen),
+        .m_axi_arsize (m_axi_arsize),
+        .m_axi_arburst(m_axi_arburst),
+        .m_axi_arready(m_axi_arready),
+
+        .m_axi_rvalid(m_axi_rvalid),
+        .m_axi_rid   (m_axi_rid),
+        .m_axi_rdata (m_axi_rdata),
+        .m_axi_rresp (m_axi_rresp),
+        .m_axi_rlast (m_axi_rlast),
+        .m_axi_rready(m_axi_rready),
+
+        .m_axi_awvalid(m_axi_awvalid),
+        .m_axi_awid   (m_axi_awid),
+        .m_axi_awaddr (m_axi_awaddr),
+        .m_axi_awlen  (m_axi_awlen),
+        .m_axi_awsize (m_axi_awsize),
+        .m_axi_awburst(m_axi_awburst),
+        .m_axi_awready(m_axi_awready),
+
+        .m_axi_wvalid(m_axi_wvalid),
+        .m_axi_wdata (m_axi_wdata),
+        .m_axi_wstrb (m_axi_wstrb),
+        .m_axi_wlast (m_axi_wlast),
+        .m_axi_wready(m_axi_wready),
+
+        .m_axi_bvalid(m_axi_bvalid),
+        .m_axi_bid   (m_axi_bid),
+        .m_axi_bresp (m_axi_bresp),
+        .m_axi_bready(m_axi_bready),
+
+        .ebreak(ebreak),
+        .trap  ()
+    );
+
+    //
+    // AXI memory backing store for data cache
+    //
+    // Uses 16-bit address for 64KB memory with 128-bit data width.
+    //
+    svc_axi_mem #(
+        .AXI_ADDR_WIDTH(16),
+        .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
+        .AXI_ID_WIDTH  (AXI_ID_WIDTH)
+    ) axi_dmem (
+        .clk  (clk),
+        .rst_n(rst_n),
+
+        .s_axi_arvalid(m_axi_arvalid),
+        .s_axi_arid   (m_axi_arid),
+        .s_axi_araddr (m_axi_araddr[15:0]),
+        .s_axi_arlen  (m_axi_arlen),
+        .s_axi_arsize (m_axi_arsize),
+        .s_axi_arburst(m_axi_arburst),
+        .s_axi_arready(m_axi_arready),
+
+        .s_axi_rvalid(m_axi_rvalid),
+        .s_axi_rid   (m_axi_rid),
+        .s_axi_rdata (m_axi_rdata),
+        .s_axi_rresp (m_axi_rresp),
+        .s_axi_rlast (m_axi_rlast),
+        .s_axi_rready(m_axi_rready),
+
+        .s_axi_awvalid(m_axi_awvalid),
+        .s_axi_awid   (m_axi_awid),
+        .s_axi_awaddr (m_axi_awaddr[15:0]),
+        .s_axi_awlen  (m_axi_awlen),
+        .s_axi_awsize (m_axi_awsize),
+        .s_axi_awburst(m_axi_awburst),
+        .s_axi_awready(m_axi_awready),
+
+        .s_axi_wvalid(m_axi_wvalid),
+        .s_axi_wdata (m_axi_wdata),
+        .s_axi_wstrb (m_axi_wstrb),
+        .s_axi_wlast (m_axi_wlast),
+        .s_axi_wready(m_axi_wready),
+
+        .s_axi_bvalid(m_axi_bvalid),
+        .s_axi_bid   (m_axi_bid),
+        .s_axi_bresp (m_axi_bresp),
+        .s_axi_bready(m_axi_bready)
+    );
+
+    //
+    // Upper address bits unused (memory is 64KB)
+    //
+    `SVC_UNUSED({m_axi_araddr[31:16], m_axi_awaddr[31:16]})
+
+    //
+    // Initialize AXI memory from hex file
+    //
+    // The hex file contains 32-bit words, but AXI memory is 128-bit wide.
+    // Pack 4 words into each 128-bit entry.
+    //
+    initial begin
+      logic [31:0] temp_mem[0:16383];
+      int          i;
+
+      if (DMEM_INIT != "") begin
+        $readmemh(DMEM_INIT, temp_mem);
+        for (i = 0; i < 4096; i++) begin
+          axi_dmem.mem[i] = {
+            temp_mem[i*4+3], temp_mem[i*4+2], temp_mem[i*4+1], temp_mem[i*4+0]
+          };
+        end
+      end
+    end
+
   end else begin : bram_soc
     svc_rv_soc_bram #(
         .XLEN       (XLEN),
@@ -285,8 +473,10 @@ module svc_soc_sim #(
 
     $display("%swatchdog:    %0d cycles", P, WATCHDOG_CYCLES);
 
-    $display("%smem type:    %s", P,
-             (MEM_TYPE == MEM_TYPE_SRAM) ? "SRAM" : "BRAM");
+    $display(
+        "%smem type:    %s", P,
+        (MEM_TYPE == MEM_TYPE_SRAM) ?
+            "SRAM" : (MEM_TYPE == MEM_TYPE_BRAM_CACHE) ? "BRAM_CACHE" : "BRAM");
 
     //
     // reach all the way into the cpu to print these to ensure we didn't
@@ -304,6 +494,18 @@ module svc_soc_sim #(
       $display("%sPC_REG:      %0d", P, sram_soc.rv_cpu.cpu.PC_REG);
       $display("%sEXT_ZMMUL:   %0d", P, sram_soc.rv_cpu.cpu.EXT_ZMMUL);
       $display("%sEXT_M:       %0d", P, sram_soc.rv_cpu.cpu.EXT_M);
+    end else if (MEM_TYPE == MEM_TYPE_BRAM_CACHE) begin
+      $display("%sPIPELINED:   %0d", P, cache_soc.rv_cpu.cpu.PIPELINED);
+      $display("%sFWD_REGFILE: %0d", P, cache_soc.rv_cpu.cpu.FWD_REGFILE);
+      $display("%sFWD:         %0d", P, cache_soc.rv_cpu.cpu.FWD);
+      $display("%sBPRED:       %0d", P, cache_soc.rv_cpu.cpu.BPRED);
+      $display("%sBTB_ENABLE:  %0d", P, cache_soc.rv_cpu.cpu.BTB_ENABLE);
+      $display("%sBTB_ENTRIES: %0d", P, cache_soc.rv_cpu.cpu.BTB_ENTRIES);
+      $display("%sRAS_ENABLE:  %0d", P, cache_soc.rv_cpu.cpu.RAS_ENABLE);
+      $display("%sRAS_DEPTH:   %0d", P, cache_soc.rv_cpu.cpu.RAS_DEPTH);
+      $display("%sPC_REG:      %0d", P, cache_soc.rv_cpu.cpu.PC_REG);
+      $display("%sEXT_ZMMUL:   %0d", P, cache_soc.rv_cpu.cpu.EXT_ZMMUL);
+      $display("%sEXT_M:       %0d", P, cache_soc.rv_cpu.cpu.EXT_M);
     end else begin
       $display("%sPIPELINED:   %0d", P, bram_soc.rv_cpu.cpu.PIPELINED);
       $display("%sFWD_REGFILE: %0d", P, bram_soc.rv_cpu.cpu.FWD_REGFILE);
@@ -347,6 +549,9 @@ module svc_soc_sim #(
         if (MEM_TYPE == MEM_TYPE_SRAM) begin
           cycles = sram_soc.rv_cpu.cpu.stage_ex.csr.cycle;
           instrs = sram_soc.rv_cpu.cpu.stage_ex.csr.instret;
+        end else if (MEM_TYPE == MEM_TYPE_BRAM_CACHE) begin
+          cycles = cache_soc.rv_cpu.cpu.stage_ex.csr.cycle;
+          instrs = cache_soc.rv_cpu.cpu.stage_ex.csr.instret;
         end else begin
           cycles = bram_soc.rv_cpu.cpu.stage_ex.csr.cycle;
           instrs = bram_soc.rv_cpu.cpu.stage_ex.csr.instret;
