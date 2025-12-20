@@ -43,8 +43,8 @@ module top (
   //
   svc_rv_soc_bram #(
       .XLEN       (32),
-      .IMEM_DEPTH (1024),
-      .DMEM_DEPTH (1024),
+      .IMEM_DEPTH (2048),
+      .DMEM_DEPTH (2048),
       .PIPELINED  (1),
       .FWD_REGFILE(1),
       .FWD        (1),
@@ -55,7 +55,7 @@ module top (
       .RAS_DEPTH  (8),
       .EXT_ZMMUL  (0),
       .EXT_M      (1),
-      .PC_REG     (0),
+      .PC_REG     (1),
       .IMEM_INIT  ("../../../.build/sw/rv32i/hello/hello.hex"),
       .DMEM_INIT  ("../../../.build/sw/rv32i/hello/hello.hex")
   ) soc (
