@@ -5,6 +5,10 @@
 # List of all programs
 PROGRAMS = blinky bubble_sort hello lib_test dhrystone coremark
 
+# Programs that require hardware multiply (RV32IM only)
+# coremark is multiply-heavy and impractical without hardware multiply
+PROGRAMS_IM_ONLY = coremark
+
 # Supported architectures
 ARCHES = rv32i rv32im
 
@@ -20,11 +24,18 @@ $(PROGRAMS):
 
 # Build all programs for a specific architecture
 .PHONY: $(ARCHES)
-$(ARCHES):
-	@echo "Building all programs for $@..."
+rv32i:
+	@echo "Building all programs for rv32i..."
+	@for prog in $(filter-out $(PROGRAMS_IM_ONLY),$(PROGRAMS)); do \
+		echo "  Building $$prog for rv32i..."; \
+		$(MAKE) -C $$prog RV_ARCH=rv32i; \
+	done
+
+rv32im:
+	@echo "Building all programs for rv32im..."
 	@for prog in $(PROGRAMS); do \
-		echo "  Building $$prog for $@..."; \
-		$(MAKE) -C $$prog RV_ARCH=$@; \
+		echo "  Building $$prog for rv32im..."; \
+		$(MAKE) -C $$prog RV_ARCH=rv32im; \
 	done
 
 # Clean all programs for all architectures
