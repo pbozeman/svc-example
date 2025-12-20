@@ -123,13 +123,13 @@ module top (
   //
   // SoC I/O signals
   //
-  logic        io_ren;
-  logic [31:0] io_raddr;
-  logic [31:0] io_rdata;
-  logic        io_wen;
-  logic [31:0] io_waddr;
-  logic [31:0] io_wdata;
-  logic [ 3:0] io_wstrb;
+  logic                      io_ren;
+  logic [              31:0] io_raddr;
+  logic [              31:0] io_rdata;
+  logic                      io_wen;
+  logic [              31:0] io_waddr;
+  logic [              31:0] io_wdata;
+  logic [               3:0] io_wstrb;
 
   //
   // AXI signals from SoC cache to backing memory
@@ -187,7 +187,7 @@ module top (
       .RAS_DEPTH       (8),
       .EXT_ZMMUL       (0),
       .EXT_M           (1),
-      .PC_REG          (0),
+      .PC_REG          (1),
       .IMEM_INIT       ("../../../.build/sw/rv32im/coremark/coremark.hex"),
       .CACHE_SIZE_BYTES(4096),
       .CACHE_LINE_BYTES(32),
@@ -248,10 +248,10 @@ module top (
   //
   // AXI memory backing store for data cache
   //
-  // 18-bit address = 256KB with 128-bit data width
+  // 16-bit address = 64KB with 128-bit data width
   //
   svc_axi_mem #(
-      .AXI_ADDR_WIDTH(18),
+      .AXI_ADDR_WIDTH(16),
       .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
       .AXI_ID_WIDTH  (AXI_ID_WIDTH)
   ) axi_dmem (
@@ -260,7 +260,7 @@ module top (
 
       .s_axi_arvalid(m_axi_arvalid),
       .s_axi_arid   (m_axi_arid),
-      .s_axi_araddr (m_axi_araddr[17:0]),
+      .s_axi_araddr (m_axi_araddr[15:0]),
       .s_axi_arlen  (m_axi_arlen),
       .s_axi_arsize (m_axi_arsize),
       .s_axi_arburst(m_axi_arburst),
@@ -275,7 +275,7 @@ module top (
 
       .s_axi_awvalid(m_axi_awvalid),
       .s_axi_awid   (m_axi_awid),
-      .s_axi_awaddr (m_axi_awaddr[17:0]),
+      .s_axi_awaddr (m_axi_awaddr[15:0]),
       .s_axi_awlen  (m_axi_awlen),
       .s_axi_awsize (m_axi_awsize),
       .s_axi_awburst(m_axi_awburst),
