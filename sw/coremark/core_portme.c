@@ -104,6 +104,9 @@ void portable_init(core_portable *p, int *argc, char *argv[]) {
   (void)argc;
   (void)argv;
 
+  /* Debug: Turn on LED to indicate program started */
+  *(volatile uint32_t *)0x80000008 = 1;
+
   /* Read clock frequency from hardware */
   cached_clock_freq = svc_clock_freq();
 
