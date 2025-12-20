@@ -248,10 +248,10 @@ module top (
   //
   // AXI memory backing store for data cache
   //
-  // 16-bit address = 64KB with 128-bit data width
+  // 17-bit address = 128KB with 128-bit data width
   //
   svc_axi_mem #(
-      .AXI_ADDR_WIDTH(16),
+      .AXI_ADDR_WIDTH(17),
       .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
       .AXI_ID_WIDTH  (AXI_ID_WIDTH)
   ) axi_dmem (
@@ -260,7 +260,7 @@ module top (
 
       .s_axi_arvalid(m_axi_arvalid),
       .s_axi_arid   (m_axi_arid),
-      .s_axi_araddr (m_axi_araddr[15:0]),
+      .s_axi_araddr (m_axi_araddr[16:0]),
       .s_axi_arlen  (m_axi_arlen),
       .s_axi_arsize (m_axi_arsize),
       .s_axi_arburst(m_axi_arburst),
@@ -275,7 +275,7 @@ module top (
 
       .s_axi_awvalid(m_axi_awvalid),
       .s_axi_awid   (m_axi_awid),
-      .s_axi_awaddr (m_axi_awaddr[15:0]),
+      .s_axi_awaddr (m_axi_awaddr[16:0]),
       .s_axi_awlen  (m_axi_awlen),
       .s_axi_awsize (m_axi_awsize),
       .s_axi_awburst(m_axi_awburst),
