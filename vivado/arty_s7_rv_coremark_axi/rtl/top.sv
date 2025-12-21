@@ -254,7 +254,8 @@ module top (
   svc_axi_mem #(
       .AXI_ADDR_WIDTH(17),
       .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
-      .AXI_ID_WIDTH  (AXI_ID_WIDTH)
+      .AXI_ID_WIDTH  (AXI_ID_WIDTH),
+      .INIT_FILE     ("../../../.build/sw/rv32im/coremark/coremark_128.hex")
   ) axi_dmem (
       .clk  (clk),
       .rst_n(rst_n),

@@ -39,6 +39,7 @@ module rv_coremark_sim;
       .DMEM_DEPTH     (DMEM_DEPTH),
       .IMEM_INIT      (MEM_INIT),
       .DMEM_INIT      (MEM_INIT),
+      .DMEM_INIT_128  (MEM_INIT_128),
       // CPU architecture (from rv_sim_config.svh)
       .MEM_TYPE       (MEM_TYPE),
       .PIPELINED      (PIPELINED),

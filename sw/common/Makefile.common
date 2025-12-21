@@ -91,7 +91,7 @@ CRT0_O = $(BUILD_DIR)/crt0.o
 ELF = $(BUILD_DIR)/$(PROGRAM).elf
 BIN = $(BUILD_DIR)/$(PROGRAM).bin
 HEX = $(BUILD_DIR)/$(PROGRAM).hex
-HEX_128 = $(BUILD_DIR)/$(PROGRAM)_128.hex
+HEX128 = $(BUILD_DIR)/$(PROGRAM)_128.hex
 DIS = $(BUILD_DIR)/$(PROGRAM).dis
 
 # Note: .hex.d dependency files are included by top-level Makefile (svc/mk/sim.mk)
@@ -99,7 +99,7 @@ DIS = $(BUILD_DIR)/$(PROGRAM).dis
 
 # Default target
 .PHONY: all
-all: $(ELF) $(HEX) $(DIS)
+all: $(ELF) $(HEX) $(HEX128) $(DIS)
 
 # Explicit libsvc target
 .PHONY: libsvc
@@ -150,10 +150,18 @@ $(HEX): $(ELF)
 	rm -f $@.tmp
 	@echo "$(patsubst $(PROJECT_ROOT)/%,%,$(abspath $@)): $(abspath $(CRT0_S)) $(abspath $(wildcard *.c))" > $@.d
 
-# Generate 128-bit wide hex format for cache simulations
-# Combines 4 consecutive 32-bit words into one 128-bit line
-$(HEX_128): $(HEX)
-	@paste -d' ' - - - - < $< > $@
+# Generate 128-bit hex format for AXI memory (4 words per line, little-endian)
+# Pack 4 consecutive 32-bit words: word3 word2 word1 word0 -> 128-bit line
+$(HEX128): $(HEX)
+	@awk 'BEGIN { i=0 } { w[i++]=$$0 } END { \
+		for(j=0; j<i; j+=4) { \
+			printf "%s%s%s%s\n", \
+				(j+3<i ? w[j+3] : "00000000"), \
+				(j+2<i ? w[j+2] : "00000000"), \
+				(j+1<i ? w[j+1] : "00000000"), \
+				w[j] \
+		} \
+	}' $< > $@
 
 # Generate disassembly
 $(DIS): $(ELF)
