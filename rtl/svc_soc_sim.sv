@@ -37,24 +37,26 @@ module svc_soc_sim #(
     parameter RESET_CYCLES = 10,
 
     // CPU configuration
-    parameter     XLEN        = 32,
-    parameter     IMEM_DEPTH  = 4096,
-    parameter     DMEM_DEPTH  = 1024,
-    parameter int MEM_TYPE    = 1,
-    parameter     PIPELINED   = 1,
-    parameter     FWD_REGFILE = 1,
-    parameter     FWD         = 1,
-    parameter     BPRED       = 1,
-    parameter     BTB_ENABLE  = 1,
-    parameter     BTB_ENTRIES = 64,
-    parameter     RAS_ENABLE  = 1,
-    parameter     RAS_DEPTH   = 8,
-    parameter     EXT_ZMMUL   = 0,
-    parameter     EXT_M       = 0,
-    parameter     PC_REG      = 0,
-    parameter     IMEM_INIT   = "",
-    parameter     DMEM_INIT   = "",
-    parameter     BAUD_RATE   = 115_200,
+    parameter     XLEN          = 32,
+    parameter     IMEM_DEPTH    = 4096,
+    parameter     DMEM_DEPTH    = 1024,
+    parameter int MEM_TYPE      = 1,
+    parameter     PIPELINED     = 1,
+    parameter     FWD_REGFILE   = 1,
+    parameter     FWD           = 1,
+    parameter     BPRED         = 1,
+    parameter     BTB_ENABLE    = 1,
+    parameter     BTB_ENTRIES   = 64,
+    parameter     RAS_ENABLE    = 1,
+    parameter     RAS_DEPTH     = 8,
+    parameter     EXT_ZMMUL     = 0,
+    parameter     EXT_M         = 0,
+    parameter     PC_REG        = 0,
+    parameter     IMEM_INIT     = "",
+    parameter     DMEM_INIT     = "",
+    // 128-bit wide hex file for AXI memory (BRAM_CACHE mode)
+    parameter     DMEM_INIT_128 = "",
+    parameter     BAUD_RATE     = 115_200,
 
     // AXI parameters for BRAM_CACHE mode
     parameter int AXI_ADDR_WIDTH = 32,
@@ -290,7 +292,7 @@ module svc_soc_sim #(
         .AXI_ADDR_WIDTH(DMEM_AXI_AW),
         .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
         .AXI_ID_WIDTH  (AXI_ID_WIDTH),
-        .INIT_FILE     (DMEM_INIT)
+        .INIT_FILE     (DMEM_INIT_128)
     ) axi_dmem (
         .clk  (clk),
         .rst_n(rst_n),

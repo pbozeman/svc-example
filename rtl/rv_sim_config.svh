@@ -114,4 +114,17 @@ initial begin
   $fflush();
 end
 
+//
+// 128-bit memory initialization file (for AXI memory in BRAM_CACHE mode)
+//
+// Provided by Makefile as -DRV_SIM_HEX_128='"path/to/file_128.hex"'
+//
+`ifndef RV_SIM_HEX_128
+`define RV_SIM_HEX_128 ""
+`endif
+
+// verilator lint_off UNUSEDPARAM
+localparam string MEM_INIT_128 = `RV_SIM_HEX_128;
+// verilator lint_on UNUSEDPARAM
+
 `endif
