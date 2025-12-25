@@ -91,6 +91,7 @@ CRT0_O = $(BUILD_DIR)/crt0.o
 ELF = $(BUILD_DIR)/$(PROGRAM).elf
 BIN = $(BUILD_DIR)/$(PROGRAM).bin
 HEX = $(BUILD_DIR)/$(PROGRAM).hex
+HEX_128 = $(BUILD_DIR)/$(PROGRAM)_128.hex
 DIS = $(BUILD_DIR)/$(PROGRAM).dis
 
 # Note: .hex.d dependency files are included by top-level Makefile (svc/mk/sim.mk)
@@ -148,6 +149,11 @@ $(HEX): $(ELF)
 	od -An -tx4 -w4 -v $@.tmp | sed 's/^ *//' > $@
 	rm -f $@.tmp
 	@echo "$(patsubst $(PROJECT_ROOT)/%,%,$(abspath $@)): $(abspath $(CRT0_S)) $(abspath $(wildcard *.c))" > $@.d
+
+# Generate 128-bit wide hex format for cache simulations
+# Combines 4 consecutive 32-bit words into one 128-bit line
+$(HEX_128): $(HEX)
+	@paste -d' ' - - - - < $< > $@
 
 # Generate disassembly
 $(DIS): $(ELF)
