@@ -102,6 +102,10 @@ dhrystone_RV_DMEM_DEPTH := 6144
 coremark_RV_IMEM_DEPTH := 8704
 coremark_RV_DMEM_DEPTH := 20480
 
+echo_RV_IMEM_DEPTH := 2048
+echo_RV_DMEM_DEPTH := 2048
+echo_SIM_FLAGS := +UART_STDIN
+
 export RV_IMEM_DEPTH RV_DMEM_DEPTH
 export hello_RV_IMEM_DEPTH hello_RV_DMEM_DEPTH
 export blinky_RV_IMEM_DEPTH blinky_RV_DMEM_DEPTH
@@ -109,6 +113,8 @@ export bubble_sort_RV_IMEM_DEPTH bubble_sort_RV_DMEM_DEPTH
 export lib_test_RV_IMEM_DEPTH lib_test_RV_DMEM_DEPTH
 export dhrystone_RV_IMEM_DEPTH dhrystone_RV_DMEM_DEPTH
 export coremark_RV_IMEM_DEPTH coremark_RV_DMEM_DEPTH
+export echo_RV_IMEM_DEPTH echo_RV_DMEM_DEPTH
+export echo_SIM_FLAGS
 
 include svc/mk/sv.mk
 include svc/mk/icestorm.mk
