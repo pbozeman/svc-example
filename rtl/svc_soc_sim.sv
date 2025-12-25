@@ -281,10 +281,13 @@ module svc_soc_sim #(
     //
     // AXI memory backing store for data cache
     //
-    // Uses 16-bit address for 64KB memory with 128-bit data width.
+    // Address width computed from DMEM_DEPTH to ensure memory is large enough.
+    // DMEM_DEPTH is in 32-bit words, so byte address width = clog2(DMEM_DEPTH) + 2
     //
+    localparam int DMEM_AXI_AW = $clog2(DMEM_DEPTH) + 2;
+
     svc_axi_mem #(
-        .AXI_ADDR_WIDTH(16),
+        .AXI_ADDR_WIDTH(DMEM_AXI_AW),
         .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
         .AXI_ID_WIDTH  (AXI_ID_WIDTH),
         .INIT_FILE     (DMEM_INIT)
@@ -294,7 +297,7 @@ module svc_soc_sim #(
 
         .s_axi_arvalid(m_axi_arvalid),
         .s_axi_arid   (m_axi_arid),
-        .s_axi_araddr (m_axi_araddr[15:0]),
+        .s_axi_araddr (m_axi_araddr[DMEM_AXI_AW-1:0]),
         .s_axi_arlen  (m_axi_arlen),
         .s_axi_arsize (m_axi_arsize),
         .s_axi_arburst(m_axi_arburst),
@@ -309,7 +312,7 @@ module svc_soc_sim #(
 
         .s_axi_awvalid(m_axi_awvalid),
         .s_axi_awid   (m_axi_awid),
-        .s_axi_awaddr (m_axi_awaddr[15:0]),
+        .s_axi_awaddr (m_axi_awaddr[DMEM_AXI_AW-1:0]),
         .s_axi_awlen  (m_axi_awlen),
         .s_axi_awsize (m_axi_awsize),
         .s_axi_awburst(m_axi_awburst),
