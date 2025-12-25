@@ -105,6 +105,13 @@ localparam int DMEM_DEPTH = `RV_DMEM_DEPTH;
 `define RV_SIM_HEX ".build/sw/rv32i/hello/hello.hex"
 `endif
 
-localparam string MEM_INIT = `RV_SIM_HEX;
+// Use untyped localparam for Icarus compatibility
+localparam MEM_INIT = `RV_SIM_HEX;
+
+initial begin
+  $display("rv_sim_config: RV_SIM_HEX=%s", `RV_SIM_HEX);
+  $display("rv_sim_config: MEM_INIT=%s", MEM_INIT);
+  $fflush();
+end
 
 `endif
