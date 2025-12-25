@@ -3,6 +3,7 @@
 
 `include "svc.sv"
 `include "svc_unused.sv"
+`include "svc_uart_rx.sv"
 `include "svc_uart_tx.sv"
 
 //
@@ -21,10 +22,12 @@
 //
 // Memory map:
 //   0x80000000 + 0x00: UART TX data register (write-only, bits 7:0)
-//   0x80000000 + 0x04: UART status register (read-only, bit 0 = TX ready)
+//   0x80000000 + 0x04: UART TX status register (read-only, bit 0 = TX ready)
 //   0x80000000 + 0x08: LED register (bit 0)
 //   0x80000000 + 0x0C: GPIO register (bits 7:0)
 //   0x80000000 + 0x10: Clock frequency register (read-only, Hz)
+//   0x80000000 + 0x14: UART RX data register (read-only, bits 7:0, read clears)
+//   0x80000000 + 0x18: UART RX status register (read-only, bit 0 = data avail)
 //
 module svc_soc_io_reg #(
     parameter     CLOCK_FREQ = 25_000_000,
@@ -50,11 +53,12 @@ module svc_soc_io_reg #(
     output logic [31:0] io_rdata,
 
     //
-    // Hardware outputs
+    // Hardware I/O
     //
     output logic       led,
     output logic [7:0] gpio,
-    output logic       uart_tx
+    output logic       uart_tx,
+    input  logic       uart_rx
 );
 
   //
@@ -76,13 +80,35 @@ module svc_soc_io_reg #(
   svc_uart_tx #(
       .CLOCK_FREQ(CLOCK_FREQ),
       .BAUD_RATE (BAUD_RATE)
-  ) uart (
+  ) uart_tx_inst (
       .clk      (clk),
       .rst_n    (rst_n),
       .utx_valid(uart_tx_valid),
       .utx_data (uart_tx_data),
       .utx_ready(uart_tx_ready),
       .utx_pin  (uart_tx)
+  );
+
+  //
+  // UART RX signals
+  //
+  logic       uart_rx_valid;
+  logic [7:0] uart_rx_data;
+  logic       uart_rx_ready;
+
+  //
+  // UART RX instantiation
+  //
+  svc_uart_rx #(
+      .CLOCK_FREQ(CLOCK_FREQ),
+      .BAUD_RATE (BAUD_RATE)
+  ) uart_rx_inst (
+      .clk      (clk),
+      .rst_n    (rst_n),
+      .urx_valid(uart_rx_valid),
+      .urx_data (uart_rx_data),
+      .urx_ready(uart_rx_ready),
+      .urx_pin  (uart_rx)
   );
 
   //
@@ -149,10 +175,20 @@ module svc_soc_io_reg #(
         8'h08:   io_rdata_comb = {31'h0, led_reg};
         8'h0C:   io_rdata_comb = {24'h0, gpio_reg};
         8'h10:   io_rdata_comb = CLOCK_FREQ;
+        8'h14:   io_rdata_comb = {24'h0, uart_rx_data};
+        8'h18:   io_rdata_comb = {31'h0, uart_rx_valid};
         default: io_rdata_comb = 32'h0;
       endcase
     end
   end
+
+  //
+  // UART RX ready logic
+  //
+  // Pulse ready when SW reads the RX data register to acknowledge receipt.
+  // This clears uart_rx_valid on the next cycle.
+  //
+  assign uart_rx_ready = io_ren && (raddr_sel == 8'h14);
 
   //
   // Output timing based on memory type
