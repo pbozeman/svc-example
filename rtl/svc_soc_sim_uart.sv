@@ -15,8 +15,15 @@
 // - TX tasks for sending characters/strings to the SoC
 // - Character buffering for verification
 // - Statistics tracking
+// - Interactive stdin input (Verilator: DPI, Icarus: $fgetc)
 //
 // Based on patterns from svc_uart_{rx,tx}_tb.sv and svc_model_sram.sv
+
+`ifdef VERILATOR
+// DPI functions for non-blocking stdin access
+import "DPI-C" function int svc_stdin_getc();
+import "DPI-C" function int svc_stdin_ready();
+`endif
 
 module svc_soc_sim_uart #(
     parameter CLOCK_FREQ = 100_000_000,
@@ -113,6 +120,8 @@ module svc_soc_sim_uart #(
           end
           $write("[0x%02h]", urx_data);
         end
+        // Flush output for Verilator (line-buffered by default)
+        $fflush();
       end
 
       if (DEBUG) begin
@@ -143,22 +152,27 @@ module svc_soc_sim_uart #(
   //
 
   // Send a single byte via UART
+  //
+  // Note: We sync to a clock edge first to avoid race conditions between
+  // blocking assignments and combinational logic evaluation. Without this
+  // sync, if the task is called at a non-clock-edge time, the utx_valid
+  // signal may not be seen by the state machine on the next posedge.
+  //
   task automatic send_byte(input logic [7:0] data);
-    if (DEBUG) begin
-      $display("[UART MODEL] TX: 0x%02h ('%c') at time %0t", data, data, $time);
-    end
+    // Sync to clock edge first to avoid timing race
+    @(posedge clk);
 
     // Wait for TX to be ready
     while (!utx_ready) begin
       @(posedge clk);
     end
 
-    // Start transmission
+    // Start transmission - we're now at a posedge
     utx_valid = 1'b1;
     utx_data  = data;
     @(posedge clk);
 
-    // Wait for handshake
+    // Wait for TX to complete
     while (!utx_ready) begin
       @(posedge clk);
     end
@@ -207,6 +221,83 @@ module svc_soc_sim_uart #(
       @(posedge clk);
     end
   endtask
+
+  //
+  // Interactive stdin reading (optional)
+  //
+  // When enabled via +UART_STDIN plusarg, reads from stdin and sends to SoC.
+  // This allows interactive terminal I/O with the simulation.
+  //
+  // For non-blocking stdin access:
+  //   - With Verilator: uses DPI-C functions
+  //   - With Icarus: uses $fgetc on /dev/stdin
+  //
+`ifdef VERILATOR
+  // DPI-based stdin reading
+  initial begin
+    int c;
+    int stdin_enabled;
+
+    stdin_enabled = 0;
+    if ($test$plusargs("UART_STDIN")) begin
+      stdin_enabled = 1;
+    end
+
+    if (stdin_enabled != 0) begin
+      // Wait for reset
+      wait (rst_n);
+
+      // Give CPU time to initialize
+      repeat (1000) @(posedge clk);
+
+      // Read from stdin and send to SoC
+      forever begin
+        c = svc_stdin_getc();
+        if (c >= 0) begin
+          send_byte(c[7:0]);
+        end else begin
+          // No data available, wait a bit before polling again
+          repeat (100) @(posedge clk);
+        end
+      end
+    end
+  end
+`else
+  // Icarus Verilog: Use $fgetc on /dev/stdin
+  initial begin
+    int c;
+    int fd;
+    int stdin_enabled;
+
+    stdin_enabled = 0;
+    if ($test$plusargs("UART_STDIN")) begin
+      stdin_enabled = 1;
+    end
+
+    if (stdin_enabled != 0) begin
+      // Open stdin explicitly for Icarus Verilog
+      fd = $fopen("/dev/stdin", "r");
+      if (fd == 0) begin
+        $display("[UART] ERROR: Could not open /dev/stdin");
+        $finish;
+      end
+
+      // Wait for reset
+      wait (rst_n);
+
+      // Give CPU time to initialize
+      repeat (1000) @(posedge clk);
+
+      // Read from stdin and send to SoC
+      forever begin
+        c = $fgetc(fd);
+        if (c >= 0) begin
+          send_byte(c[7:0]);
+        end
+      end
+    end
+  end
+`endif
 
 endmodule
 

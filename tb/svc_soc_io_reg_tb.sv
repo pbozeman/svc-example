@@ -17,6 +17,7 @@ module svc_soc_io_reg_tb;
   /* verilator lint_off UNUSEDSIGNAL */
   logic        uart_tx;
   /* verilator lint_on UNUSEDSIGNAL */
+  logic        uart_rx;
 
   svc_soc_io_reg #(
       .CLOCK_FREQ(100_000_000),
@@ -33,7 +34,8 @@ module svc_soc_io_reg_tb;
       .io_rdata(io_rdata),
       .led     (led),
       .gpio    (gpio),
-      .uart_tx (uart_tx)
+      .uart_tx (uart_tx),
+      .uart_rx (uart_rx)
   );
 
   //
@@ -47,6 +49,7 @@ module svc_soc_io_reg_tb;
       io_wstrb <= 4'h0;
       io_ren   <= 1'b0;
       io_raddr <= 32'h0;
+      uart_rx  <= 1'b1;
     end
   end
 

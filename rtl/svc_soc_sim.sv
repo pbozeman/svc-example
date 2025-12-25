@@ -102,9 +102,9 @@ module svc_soc_sim #(
   end
 
   //
-  // UART terminal (always instantiated to monitor uart_tx)
+  // UART terminal (always instantiated to monitor uart_tx and drive uart_rx)
   //
-  logic urx_pin_unused;
+  logic uart_rx;
 
   svc_soc_sim_uart #(
       .CLOCK_FREQ(CLOCK_FREQ),
@@ -114,7 +114,7 @@ module svc_soc_sim #(
   ) uart_terminal (
       .clk    (clk),
       .rst_n  (rst_n),
-      .urx_pin(urx_pin_unused),
+      .urx_pin(uart_rx),
       .utx_pin(uart_tx)
   );
 
@@ -286,7 +286,8 @@ module svc_soc_sim #(
     svc_axi_mem #(
         .AXI_ADDR_WIDTH(16),
         .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
-        .AXI_ID_WIDTH  (AXI_ID_WIDTH)
+        .AXI_ID_WIDTH  (AXI_ID_WIDTH),
+        .INIT_FILE     (DMEM_INIT)
     ) axi_dmem (
         .clk  (clk),
         .rst_n(rst_n),
@@ -330,26 +331,6 @@ module svc_soc_sim #(
     // Upper address bits unused (memory is 64KB)
     //
     `SVC_UNUSED({m_axi_araddr[31:16], m_axi_awaddr[31:16]})
-
-    //
-    // Initialize AXI memory from hex file
-    //
-    // The hex file contains 32-bit words, but AXI memory is 128-bit wide.
-    // Pack 4 words into each 128-bit entry.
-    //
-    initial begin
-      logic [31:0] temp_mem[0:16383];
-      int          i;
-
-      if (DMEM_INIT != "") begin
-        $readmemh(DMEM_INIT, temp_mem);
-        for (i = 0; i < 4096; i++) begin
-          axi_dmem.mem[i] = {
-            temp_mem[i*4+3], temp_mem[i*4+2], temp_mem[i*4+1], temp_mem[i*4+0]
-          };
-        end
-      end
-    end
 
   end else begin : bram_soc
     svc_rv_soc_bram #(
@@ -403,7 +384,8 @@ module svc_soc_sim #(
       .io_rdata(io_rdata),
       .led     (led),
       .gpio    (gpio),
-      .uart_tx (uart_tx)
+      .uart_tx (uart_tx),
+      .uart_rx (uart_rx)
   );
 
   //
@@ -446,10 +428,18 @@ module svc_soc_sim #(
     string  P;
     integer sim_prefix_enabled;
 
+    $display("SVC_SOC_SIM: Starting...");
+    $display("SVC_SOC_SIM: IMEM_INIT=%s", IMEM_INIT);
+    $display("SVC_SOC_SIM: DMEM_INIT=%s", DMEM_INIT);
+    $fflush();
+
     done = 0;
 
     // Wait for reset to complete
     wait (rst_n);
+
+    $display("SVC_SOC_SIM: Reset complete");
+    $fflush();
 
     // Build separator string
     sep = {80{"="}};
@@ -463,10 +453,7 @@ module svc_soc_sim #(
       P = "";
     end
 
-`ifndef VERILATOR
-    // Print banner
-    $display("%s%s", P, sep);
-
+    // Print config (before separator - separator brackets sim output only)
     if (SW_PATH != "") begin
       $display("%smain:        %s", P, SW_PATH);
     end
@@ -478,6 +465,7 @@ module svc_soc_sim #(
         (MEM_TYPE == MEM_TYPE_SRAM) ?
             "SRAM" : (MEM_TYPE == MEM_TYPE_BRAM_CACHE) ? "BRAM_CACHE" : "BRAM");
 
+`ifndef VERILATOR
     //
     // reach all the way into the cpu to print these to ensure we didn't
     // drop params along the way
@@ -519,14 +507,22 @@ module svc_soc_sim #(
       $display("%sEXT_ZMMUL:   %0d", P, bram_soc.rv_cpu.cpu.EXT_ZMMUL);
       $display("%sEXT_M:       %0d", P, bram_soc.rv_cpu.cpu.EXT_M);
     end
+`endif
 
+    $display("SVC_SOC_SIM: Waiting for timeout or ebreak...");
+    $fflush();
+
+    // Separator brackets simulation output only
     $display("%s%s", P, sep);
 
     // Wait for completion
     wait (timeout || ebreak);
 
-    // Print completion report
+    // End of simulation output
     $display("%s%s", P, sep);
+
+    $display("SVC_SOC_SIM: Complete!");
+    $fflush();
 
     if (timeout) begin
       $display("%sreason: timeout", P);
@@ -536,7 +532,7 @@ module svc_soc_sim #(
 
     $display("%scycles: %0d", P, cycle_count);
 
-
+`ifndef VERILATOR
     if (PIPELINED == 1) begin : g_cpi_rpt
       //
       // CPI reporting
