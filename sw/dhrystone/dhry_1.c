@@ -187,35 +187,6 @@ int main(void) {
 
   printf ("Execution ends\n");
   printf ("\n");
-
-  User_Time = (uint32_t)(End_Time - Begin_Time);
-
-  uint32_t cycles_per_iter = User_Time / Number_Of_Runs;
-
-  printf ("Cycles: %u\n", User_Time);
-  printf ("Cycles per iteration: %u\n", cycles_per_iter);
-
-  // Calculate DMIPS/MHz (Dhrystone MIPS per MHz)
-  //
-  // DMIPS is normalized to VAX 11/780 performance (1757 Dhrystones/sec = 1 MIPS)
-  // Formula: DMIPS/MHz = 1000000 / (cycles_per_iter * 1757)
-  //
-  // This metric is frequency-independent - multiply by MHz to get DMIPS:
-  //   At 25 MHz: DMIPS = (DMIPS/MHz) * 25
-  //   At 100 MHz: DMIPS = (DMIPS/MHz) * 100
-  //
-  // Reference: Weicker, R. P. "Dhrystone: A Synthetic Systems Programming
-  // Benchmark" Communications of the ACM, Vol. 27, No. 10, October 1984
-  //
-  // Using integer arithmetic: (1000000 * 1000) / (cycles_per_iter * 1757)
-  // gives result * 1000 for 3 decimal places
-  uint32_t dmips_per_mhz_x1000 =
-      (1000000ul * 1000ul) / (cycles_per_iter * 1757ul);
-
-  printf ("DMIPS/MHz: %u.%03u\n", dmips_per_mhz_x1000 / 1000,
-          dmips_per_mhz_x1000 % 1000);
-
-  printf ("\n");
   printf ("Final values of the variables used in the benchmark:\n");
   printf ("\n");
   printf ("Int_Glob:            %d\n", Int_Glob);
@@ -265,6 +236,35 @@ int main(void) {
   printf ("        should be:   DHRYSTONE PROGRAM, 1'ST STRING\n");
   printf ("Str_2_Loc:           %s\n", Str_2_Loc);
   printf ("        should be:   DHRYSTONE PROGRAM, 2'ND STRING\n");
+  printf ("\n");
+
+  User_Time = (uint32_t)(End_Time - Begin_Time);
+
+  uint32_t cycles_per_iter = User_Time / Number_Of_Runs;
+
+  printf ("\n");
+  printf ("Cycles: %u\n", User_Time);
+  printf ("Cycles per iteration: %u\n", cycles_per_iter);
+
+  // Calculate DMIPS/MHz (Dhrystone MIPS per MHz)
+  //
+  // DMIPS is normalized to VAX 11/780 performance (1757 Dhrystones/sec = 1 MIPS)
+  // Formula: DMIPS/MHz = 1000000 / (cycles_per_iter * 1757)
+  //
+  // This metric is frequency-independent - multiply by MHz to get DMIPS:
+  //   At 25 MHz: DMIPS = (DMIPS/MHz) * 25
+  //   At 100 MHz: DMIPS = (DMIPS/MHz) * 100
+  //
+  // Reference: Weicker, R. P. "Dhrystone: A Synthetic Systems Programming
+  // Benchmark" Communications of the ACM, Vol. 27, No. 10, October 1984
+  //
+  // Using integer arithmetic: (1000000 * 1000) / (cycles_per_iter * 1757)
+  // gives result * 1000 for 3 decimal places
+  uint32_t dmips_per_mhz_x1000 =
+      (1000000ul * 1000ul) / (cycles_per_iter * 1757ul);
+
+  printf ("DMIPS/MHz: %u.%03u\n", dmips_per_mhz_x1000 / 1000,
+          dmips_per_mhz_x1000 % 1000);
   printf ("\n");
 
   return 0;
