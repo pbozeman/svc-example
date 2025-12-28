@@ -1,5 +1,7 @@
 #include "uart.h"
 
+#ifndef SVC_DISABLE_MMIO
+
 #include "mmio.h"
 
 //
@@ -85,3 +87,38 @@ int svc_uart_getc_nb(void) {
   // Read and return the character (read clears valid)
   return (int)(mmio_read(UART_RX_OFFSET) & 0xFF);
 }
+
+#else  // SVC_DISABLE_MMIO
+
+//
+// Silent I/O mode - all UART operations are no-ops with deterministic values
+//
+
+int svc_uart_tx_busy(void) {
+  return 0;
+}
+
+void svc_uart_putc(char c) {
+  (void)c;
+}
+
+void svc_uart_puts(const char *s) {
+  (void)s;
+}
+
+void svc_uart_flush(void) {
+}
+
+int svc_uart_rx_ready(void) {
+  return 0;
+}
+
+char svc_uart_getc(void) {
+  return 0;
+}
+
+int svc_uart_getc_nb(void) {
+  return 0;
+}
+
+#endif  // SVC_DISABLE_MMIO

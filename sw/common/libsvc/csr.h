@@ -10,6 +10,8 @@
 // using the Zicsr extension (rv32i_zicsr).
 //
 
+#ifndef SVC_DISABLE_MMIO
+
 //
 // Read lower 32 bits of cycle counter
 //
@@ -74,5 +76,42 @@ static inline uint64_t read_instret(void) {
   } while (hi != rdinstreth());
   return ((uint64_t)hi << 32) | lo;
 }
+
+#else  // SVC_DISABLE_MMIO
+
+//
+// Silent I/O mode - deterministic cycle/instruction counters
+// Each call returns 10 * (number of times called)
+//
+
+static inline uint32_t rdcycle(void) {
+  static uint32_t call_count = 0;
+  return ++call_count * 10;
+}
+
+static inline uint32_t rdcycleh(void) {
+  return 0;
+}
+
+static inline uint32_t rdinstret(void) {
+  static uint32_t call_count = 0;
+  return ++call_count * 10;
+}
+
+static inline uint32_t rdinstreth(void) {
+  return 0;
+}
+
+static inline uint64_t read_cycles(void) {
+  static uint32_t call_count = 0;
+  return (uint64_t)(++call_count * 10);
+}
+
+static inline uint64_t read_instret(void) {
+  static uint32_t call_count = 0;
+  return (uint64_t)(++call_count * 10);
+}
+
+#endif  // SVC_DISABLE_MMIO
 
 #endif  // CSR_H

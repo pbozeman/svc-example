@@ -81,9 +81,14 @@ LIBSVC_A = $(LIBSVC_BUILD_DIR)/libsvc.a
 
 # Library compilation flags - aggressive optimization for all programs
 # Libraries are external dependencies, not subject to program-specific rules
+# Use SVC_DISABLE_MMIO=1 to build with deterministic stubs (no I/O)
+LIBSVC_EXTRA_CFLAGS ?=
+ifdef SVC_DISABLE_MMIO
+  LIBSVC_EXTRA_CFLAGS += -DSVC_DISABLE_MMIO
+endif
 LIBSVC_CFLAGS ?= $(ARCH_FLAGS) -O3 -funroll-loops -flto -ffat-lto-objects \
                  -Wall -Wextra -ffreestanding -nostdlib -nostartfiles \
-                 -I$(SW_COMMON) -I$(LIBSVC_DIR)
+                 -I$(SW_COMMON) -I$(LIBSVC_DIR) $(LIBSVC_EXTRA_CFLAGS)
 
 # Build outputs with paths
 BUILD_OBJS = $(addprefix $(BUILD_DIR)/,$(OBJS))
