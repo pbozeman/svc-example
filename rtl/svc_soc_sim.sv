@@ -176,6 +176,10 @@ module svc_soc_sim #(
     //
     // AXI signals for data memory backing store
     //
+    // AXI_ID_WIDTH is the full external ID width (e.g., 4 bits).
+    // svc_rv_soc_bram_cache uses AXI_ID_WIDTH-1 bits internally for caches,
+    // and the arbiter adds 1 bit for routing, giving AXI_ID_WIDTH output.
+    //
     logic                        m_axi_arvalid;
     logic [    AXI_ID_WIDTH-1:0] m_axi_arid;
     logic [  AXI_ADDR_WIDTH-1:0] m_axi_araddr;

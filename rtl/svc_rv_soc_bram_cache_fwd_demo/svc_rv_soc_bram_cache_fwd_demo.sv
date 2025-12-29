@@ -17,6 +17,7 @@ module svc_rv_soc_bram_cache_fwd_demo (
   localparam int AXI_ADDR_WIDTH = 32;
   localparam int AXI_DATA_WIDTH = 32;
   localparam int AXI_ID_WIDTH = 4;
+  localparam int AXI_ID_WIDTH_M = AXI_ID_WIDTH + 1;
 
   //
   // I/O memory for MMIO region
@@ -38,7 +39,7 @@ module svc_rv_soc_bram_cache_fwd_demo (
   // AXI signals between cache and backing memory
   //
   logic                        m_axi_arvalid;
-  logic [    AXI_ID_WIDTH-1:0] m_axi_arid;
+  logic [  AXI_ID_WIDTH_M-1:0] m_axi_arid;
   logic [  AXI_ADDR_WIDTH-1:0] m_axi_araddr;
   logic [                 7:0] m_axi_arlen;
   logic [                 2:0] m_axi_arsize;
@@ -46,14 +47,14 @@ module svc_rv_soc_bram_cache_fwd_demo (
   logic                        m_axi_arready;
 
   logic                        m_axi_rvalid;
-  logic [    AXI_ID_WIDTH-1:0] m_axi_rid;
+  logic [  AXI_ID_WIDTH_M-1:0] m_axi_rid;
   logic [  AXI_DATA_WIDTH-1:0] m_axi_rdata;
   logic [                 1:0] m_axi_rresp;
   logic                        m_axi_rlast;
   logic                        m_axi_rready;
 
   logic                        m_axi_awvalid;
-  logic [    AXI_ID_WIDTH-1:0] m_axi_awid;
+  logic [  AXI_ID_WIDTH_M-1:0] m_axi_awid;
   logic [  AXI_ADDR_WIDTH-1:0] m_axi_awaddr;
   logic [                 7:0] m_axi_awlen;
   logic [                 2:0] m_axi_awsize;
@@ -67,7 +68,7 @@ module svc_rv_soc_bram_cache_fwd_demo (
   logic                        m_axi_wready;
 
   logic                        m_axi_bvalid;
-  logic [    AXI_ID_WIDTH-1:0] m_axi_bid;
+  logic [  AXI_ID_WIDTH_M-1:0] m_axi_bid;
   logic [                 1:0] m_axi_bresp;
   logic                        m_axi_bready;
 
@@ -78,17 +79,17 @@ module svc_rv_soc_bram_cache_fwd_demo (
   //
   svc_rv_soc_bram_cache #(
       .XLEN       (32),
-      .IMEM_DEPTH (32),
       .PIPELINED  (1),
       .FWD_REGFILE(1),
       .FWD        (1),
       .BPRED      (1),
       .BTB_ENABLE (1),
       .PC_REG     (1),
-      .IMEM_INIT  ("rtl/svc_rv_soc_bram_cache_fwd_demo/program.hex"),
 
-      .CACHE_SIZE_BYTES(512),
-      .CACHE_LINE_BYTES(8),
+      .DCACHE_SIZE_BYTES(512),
+      .DCACHE_LINE_BYTES(8),
+      .ICACHE_SIZE_BYTES(512),
+      .ICACHE_LINE_BYTES(8),
 
       .AXI_ADDR_WIDTH(AXI_ADDR_WIDTH),
       .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
@@ -150,7 +151,8 @@ module svc_rv_soc_bram_cache_fwd_demo (
   svc_axi_mem #(
       .AXI_ADDR_WIDTH(10),
       .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
-      .AXI_ID_WIDTH  (AXI_ID_WIDTH)
+      .AXI_ID_WIDTH  (AXI_ID_WIDTH_M),
+      .INIT_FILE     ("rtl/svc_rv_soc_bram_cache_fwd_demo/program.hex")
   ) axi_dmem (
       .clk  (clk),
       .rst_n(rst_n),
