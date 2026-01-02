@@ -217,6 +217,7 @@ module svc_soc_sim #(
     svc_rv_soc_bram_cache #(
         .XLEN       (XLEN),
         .IMEM_DEPTH (IMEM_DEPTH),
+        .DMEM_DEPTH (DMEM_DEPTH),
         .PIPELINED  (PIPELINED),
         .FWD_REGFILE(FWD_REGFILE),
         .FWD        (FWD),
@@ -229,6 +230,7 @@ module svc_soc_sim #(
         .EXT_M      (EXT_M),
         .PC_REG     (PC_REG),
         .IMEM_INIT  (IMEM_INIT),
+        .DMEM_INIT  (DMEM_INIT),
 
         .AXI_ADDR_WIDTH(AXI_ADDR_WIDTH),
         .AXI_DATA_WIDTH(AXI_DATA_WIDTH),

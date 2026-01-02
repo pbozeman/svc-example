@@ -204,7 +204,7 @@ module svc_soc_io_reg #(
     always_ff @(posedge clk) begin
       if (!rst_n) begin
         io_rdata <= 32'h0;
-      end else begin
+      end else if (io_ren) begin
         io_rdata <= io_rdata_comb;
       end
     end

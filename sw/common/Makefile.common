@@ -48,6 +48,10 @@ CFLAGS = $(ARCH_FLAGS) \
          -I$(SW_COMMON) \
          -I$(LIBSVC_DIR)
 
+ifdef SVC_DISABLE_MMIO
+  CFLAGS += -DSVC_DISABLE_MMIO
+endif
+
 # Assembler flags
 ASFLAGS = $(ARCH_FLAGS)
 
