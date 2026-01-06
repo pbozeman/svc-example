@@ -43,7 +43,7 @@ module top (
   wire ebreak;
   wire sw_led;
 
-  assign rst_n  = !ui_clk_rst && init_calib_complete;
+  assign rst_n  = !ui_clk_rst;
 
   assign led[3] = mmcm_locked;
   assign led[2] = init_calib_complete;
@@ -52,55 +52,55 @@ module top (
 
   // AXI signals from SoC cache to MIG DDR3
   wire [AXI_ADDR_WIDTH-1:0] ddr_axi_araddr;
-  wire [               1:0] ddr_axi_arburst;
-  wire [  AXI_ID_WIDTH-1:0] ddr_axi_arid;
-  wire [               7:0] ddr_axi_arlen;
-  wire                      ddr_axi_arready;
-  wire [               2:0] ddr_axi_arsize;
-  wire                      ddr_axi_arvalid;
+  wire [1:0] ddr_axi_arburst;
+  wire [AXI_ID_WIDTH-1:0] ddr_axi_arid;
+  wire [7:0] ddr_axi_arlen;
+  wire ddr_axi_arready;
+  wire [2:0] ddr_axi_arsize;
+  wire ddr_axi_arvalid;
   wire [AXI_ADDR_WIDTH-1:0] ddr_axi_awaddr;
-  wire [               1:0] ddr_axi_awburst;
-  wire [  AXI_ID_WIDTH-1:0] ddr_axi_awid;
-  wire [               7:0] ddr_axi_awlen;
-  wire                      ddr_axi_awready;
-  wire [               2:0] ddr_axi_awsize;
-  wire                      ddr_axi_awvalid;
-  wire [  AXI_ID_WIDTH-1:0] ddr_axi_bid;
-  wire                      ddr_axi_bready;
-  wire [               1:0] ddr_axi_bresp;
-  wire                      ddr_axi_bvalid;
+  wire [1:0] ddr_axi_awburst;
+  wire [AXI_ID_WIDTH-1:0] ddr_axi_awid;
+  wire [7:0] ddr_axi_awlen;
+  wire ddr_axi_awready;
+  wire [2:0] ddr_axi_awsize;
+  wire ddr_axi_awvalid;
+  wire [AXI_ID_WIDTH-1:0] ddr_axi_bid;
+  wire ddr_axi_bready;
+  wire [1:0] ddr_axi_bresp;
+  wire ddr_axi_bvalid;
   wire [AXI_DATA_WIDTH-1:0] ddr_axi_rdata;
-  wire [  AXI_ID_WIDTH-1:0] ddr_axi_rid;
-  wire                      ddr_axi_rlast;
-  wire                      ddr_axi_rready;
-  wire [               1:0] ddr_axi_rresp;
-  wire                      ddr_axi_rvalid;
+  wire [AXI_ID_WIDTH-1:0] ddr_axi_rid;
+  wire ddr_axi_rlast;
+  wire ddr_axi_rready;
+  wire [1:0] ddr_axi_rresp;
+  wire ddr_axi_rvalid;
   wire [AXI_DATA_WIDTH-1:0] ddr_axi_wdata;
-  wire                      ddr_axi_wlast;
-  wire                      ddr_axi_wready;
+  wire ddr_axi_wlast;
+  wire ddr_axi_wready;
   wire [AXI_STRB_WIDTH-1:0] ddr_axi_wstrb;
-  wire                      ddr_axi_wvalid;
+  wire ddr_axi_wvalid;
 
   // MIG AXI signals not provided by svc_rv_soc_bram_cache - tie to defaults
-  wire [               3:0] ddr_axi_arcache = 4'b0011;  // Normal non-cacheable bufferable
-  wire                      ddr_axi_arlock = 1'b0;
-  wire [               2:0] ddr_axi_arprot = 3'b000;
-  wire [               3:0] ddr_axi_arqos = 4'b0000;
-  wire [               3:0] ddr_axi_awcache = 4'b0011;  // Normal non-cacheable bufferable
-  wire                      ddr_axi_awlock = 1'b0;
-  wire [               2:0] ddr_axi_awprot = 3'b000;
-  wire [               3:0] ddr_axi_awqos = 4'b0000;
+  wire [3:0] ddr_axi_arcache = 4'b0011;  // Normal non-cacheable bufferable
+  wire ddr_axi_arlock = 1'b0;
+  wire [2:0] ddr_axi_arprot = 3'b000;
+  wire [3:0] ddr_axi_arqos = 4'b0000;
+  wire [3:0] ddr_axi_awcache = 4'b0011;  // Normal non-cacheable bufferable
+  wire ddr_axi_awlock = 1'b0;
+  wire [2:0] ddr_axi_awprot = 3'b000;
+  wire [3:0] ddr_axi_awqos = 4'b0000;
 
   //
   // SoC I/O signals
   //
-  logic                      io_ren;
-  logic [              31:0] io_raddr;
-  logic [              31:0] io_rdata;
-  logic                      io_wen;
-  logic [              31:0] io_waddr;
-  logic [              31:0] io_wdata;
-  logic [               3:0] io_wstrb;
+  logic io_ren;
+  logic [31:0] io_raddr;
+  logic [31:0] io_rdata;
+  logic io_wen;
+  logic [31:0] io_waddr;
+  logic [31:0] io_wdata;
+  logic [3:0] io_wstrb;
 
   //
   // RISC-V SoC with cache backed by DDR3
