@@ -1,0 +1,373 @@
+#!/usr/bin/env python3
+"""
+RISC-V Debug Loader
+
+Loads ELF programs into a RISC-V SoC via the debug bridge UART interface.
+Supports Harvard architecture with separate IMEM/DMEM address spaces.
+
+Protocol:
+  Command format:
+    Magic: 0xDB (1 byte)
+    Op: 1 byte
+       0x00: read control register
+       0x01: write control register
+       0x02: write memory (single word)
+       0x03: write memory burst (multiple words)
+    Payload: variable (see below)
+
+  Response format:
+    Magic: 0xBD (1 byte)
+    Status: 1 byte (0=OK, 1=error)
+    Payload: optional (1 byte for read control)
+
+Usage:
+  # Load ELF file via serial port
+  ./scripts/rv_loader.py -p /dev/ttyUSB0 --run program.elf
+
+  # Load ELF file via PTY (simulation)
+  ./scripts/rv_loader.py -p /dev/pts/14 --run program.elf
+
+  # Specify IMEM depth when target has non-default size
+  # (must match hardware IMEM_DEPTH for correct DMEM base address)
+  ./scripts/rv_loader.py -p /dev/pts/14 --imem-depth 32768 --run program.elf
+"""
+
+import argparse
+import struct
+import sys
+import time
+from pathlib import Path
+
+# ELF constants
+ELF_MAGIC = b'\x7fELF'
+PT_LOAD = 1
+PF_X = 0x1  # Executable
+PF_W = 0x2  # Writable
+PF_R = 0x4  # Readable
+
+# Protocol constants
+CMD_MAGIC = 0xDB
+RESP_MAGIC = 0xBD
+
+OP_READ_CTRL = 0x00
+OP_WRITE_CTRL = 0x01
+OP_WRITE_MEM = 0x02
+OP_WRITE_BURST = 0x03
+
+STATUS_OK = 0x00
+STATUS_ERROR = 0x01
+
+# Control register bits
+CTRL_STALL = 0x01
+CTRL_RESET = 0x02
+
+# Per-word ACK for burst writes
+BURST_ACK = 0x06
+
+# Default memory base addresses
+IMEM_BASE = 0x00000000
+DMEM_BASE = 0x00010000  # Default, auto-calculated if not specified
+
+
+def compute_dmem_base(imem_depth):
+    """
+    Compute DMEM base address from IMEM depth.
+
+    This must match the hardware: DMEM_BASE = IMEM_DEPTH << 2
+    """
+    return imem_depth * 4
+
+
+class DebugBridge:
+    """Debug bridge protocol handler."""
+
+    def __init__(self, tx_func, rx_func, verbose=False):
+        """
+        Initialize with TX and RX functions.
+
+        tx_func: callable that takes bytes and sends them
+        rx_func: callable that returns requested number of bytes
+        """
+        self.tx = tx_func
+        self.rx = rx_func
+        self.verbose = verbose
+
+    def _send_cmd(self, op, payload=b""):
+        """Send a command and return response."""
+        cmd = bytes([CMD_MAGIC, op]) + payload
+        if self.verbose:
+            print(f"TX: {cmd.hex()}", file=sys.stderr)
+        self.tx(cmd)
+
+    def _recv_response(self, payload_len=0):
+        """Receive response and return (status, payload)."""
+        resp = self.rx(2 + payload_len)
+        if len(resp) < 2:
+            raise RuntimeError(f"Short response: {resp.hex()}")
+        if resp[0] != RESP_MAGIC:
+            raise RuntimeError(f"Bad response magic: 0x{resp[0]:02x}")
+        status = resp[1]
+        payload = resp[2:] if payload_len > 0 else b""
+        if self.verbose:
+            print(f"RX: magic=0x{resp[0]:02x} status={status} payload={payload.hex()}", file=sys.stderr)
+        return status, payload
+
+    def read_ctrl(self):
+        """Read control register. Returns (stall, reset) tuple."""
+        self._send_cmd(OP_READ_CTRL)
+        status, payload = self._recv_response(1)
+        if status != STATUS_OK:
+            raise RuntimeError(f"Read ctrl failed: status={status}")
+        ctrl = payload[0]
+        return (ctrl & CTRL_STALL) != 0, (ctrl & CTRL_RESET) != 0
+
+    def write_ctrl(self, stall, reset):
+        """Write control register."""
+        ctrl = 0
+        if stall:
+            ctrl |= CTRL_STALL
+        if reset:
+            ctrl |= CTRL_RESET
+        self._send_cmd(OP_WRITE_CTRL, bytes([ctrl]))
+        status, _ = self._recv_response()
+        if status != STATUS_OK:
+            raise RuntimeError(f"Write ctrl failed: status={status}")
+
+    def write_word(self, addr, data):
+        """Write a single 32-bit word to memory."""
+        payload = struct.pack("<II", addr, data)
+        self._send_cmd(OP_WRITE_MEM, payload)
+        status, _ = self._recv_response()
+        if status != STATUS_OK:
+            raise RuntimeError(f"Write word failed: addr=0x{addr:08x} status={status}")
+
+    def write_burst(self, addr, words):
+        """Write multiple 32-bit words to memory with per-word ACK."""
+        if len(words) == 0:
+            return
+        if len(words) > 65535:
+            raise ValueError(f"Burst too large: {len(words)} words (max 65535)")
+
+        # Send header: magic + op + addr (4 bytes) + count (2 bytes)
+        header = struct.pack("<IH", addr, len(words))
+        self._send_cmd(OP_WRITE_BURST, header)
+
+        # Send each word, waiting for ACK after each (except last)
+        for i, word in enumerate(words):
+            word_data = struct.pack("<I", word)
+            self.tx(word_data)
+            if i < len(words) - 1:
+                ack = self.rx(1)
+                if len(ack) < 1 or ack[0] != BURST_ACK:
+                    raise RuntimeError(
+                        f"Bad burst ACK at word {i}: expected 0x{BURST_ACK:02x}, "
+                        f"got {ack.hex() if ack else 'nothing'}"
+                    )
+
+        status, _ = self._recv_response()
+        if status != STATUS_OK:
+            raise RuntimeError(f"Write burst failed: addr=0x{addr:08x} status={status}")
+
+
+def parse_hex_file(path):
+    """
+    Parse a hex file (one 32-bit word per line, hex format).
+    Returns list of (address, words) tuples for compatibility with load_segments.
+    """
+    words = []
+    with open(path, "r") as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#"):
+                words.append(int(line, 16))
+    # Return as single segment at IMEM base
+    return [(IMEM_BASE, words)]
+
+
+def parse_elf_file(path):
+    """
+    Parse an ELF file and extract LOAD segments.
+    Returns list of (address, words) tuples.
+    """
+    with open(path, "rb") as f:
+        # Read and validate ELF header
+        e_ident = f.read(16)
+        if e_ident[:4] != ELF_MAGIC:
+            raise ValueError(f"Not an ELF file: {path}")
+
+        # Check 32-bit little-endian
+        ei_class = e_ident[4]
+        ei_data = e_ident[5]
+        if ei_class != 1:
+            raise ValueError("Only 32-bit ELF supported")
+        if ei_data != 1:
+            raise ValueError("Only little-endian ELF supported")
+
+        # Read rest of ELF header (ELF32)
+        ehdr = f.read(36)
+        (e_type, e_machine, e_version, e_entry, e_phoff, e_shoff,
+         e_flags, e_ehsize, e_phentsize, e_phnum, e_shentsize,
+         e_shnum, e_shstrndx) = struct.unpack("<HHIIIIIHHHHHH", ehdr)
+
+        if e_machine != 0xF3:  # EM_RISCV
+            raise ValueError(f"Not a RISC-V ELF: machine=0x{e_machine:x}")
+
+        segments = []
+
+        # Read program headers
+        f.seek(e_phoff)
+        for i in range(e_phnum):
+            phdr = f.read(e_phentsize)
+            (p_type, p_offset, p_vaddr, p_paddr, p_filesz,
+             p_memsz, p_flags, p_align) = struct.unpack("<IIIIIIII", phdr[:32])
+
+            # Only process LOAD segments with data
+            if p_type != PT_LOAD or p_filesz == 0:
+                continue
+
+            # Read segment data
+            pos = f.tell()
+            f.seek(p_offset)
+            data = f.read(p_filesz)
+            f.seek(pos)
+
+            # Pad to word alignment
+            while len(data) % 4 != 0:
+                data += b'\x00'
+
+            # Convert to words
+            words = []
+            for j in range(0, len(data), 4):
+                word = struct.unpack("<I", data[j:j+4])[0]
+                words.append(word)
+
+            segments.append((p_paddr, words))
+
+    return segments
+
+
+def is_elf_file(path):
+    """Check if file is an ELF file by reading magic bytes."""
+    try:
+        with open(path, "rb") as f:
+            magic = f.read(4)
+            return magic == ELF_MAGIC
+    except:
+        return False
+
+
+def load_segments(bridge, segments, dmem_base=DMEM_BASE, burst_size=256,
+                  verbose=False):
+    """
+    Load segments to memory via debug bridge.
+
+    For Harvard architecture with mirrored DMEM, each segment is loaded twice:
+    - To IMEM at segment address
+    - To DMEM at dmem_base + segment address
+    """
+    total_words = sum(len(words) for _, words in segments)
+
+    print(f"Loading {len(segments)} segment(s), {total_words} words "
+          f"(mirrored to IMEM and DMEM)", file=sys.stderr)
+
+    for addr, words in segments:
+        end_addr = addr + len(words) * 4
+        print(f"  0x{addr:08x} - 0x{end_addr:08x} ({len(words)} words)",
+              file=sys.stderr)
+
+        # Load to IMEM
+        _load_burst(bridge, addr, words, burst_size, verbose, "IMEM")
+
+        # Load to DMEM (mirrored)
+        _load_burst(bridge, dmem_base + addr, words, burst_size, verbose, "DMEM")
+
+    print(f"Load complete: {total_words} words to each memory", file=sys.stderr)
+
+
+def _load_burst(bridge, addr, words, burst_size, verbose, label):
+    """Load words to memory in bursts."""
+    offset = 0
+    total = len(words)
+    while offset < total:
+        chunk = words[offset:offset + burst_size]
+        bridge.write_burst(addr + offset * 4, chunk)
+        offset += len(chunk)
+        pct = offset * 100 // total
+        print(f"\r  {label}: {offset}/{total} words ({pct}%)", end="", file=sys.stderr)
+    print(file=sys.stderr)
+
+
+def load_program(bridge, file_path, imem_depth, burst_size=256,
+                 verbose=False):
+    """Load a program (ELF or hex) to memory via debug bridge."""
+    if is_elf_file(file_path):
+        print(f"Loading ELF: {file_path}", file=sys.stderr)
+        segments = parse_elf_file(file_path)
+    else:
+        print(f"Loading HEX: {file_path}", file=sys.stderr)
+        segments = parse_hex_file(file_path)
+
+    dmem_base = compute_dmem_base(imem_depth)
+    if verbose:
+        print(f"IMEM depth: {imem_depth} words, DMEM base: 0x{dmem_base:08x}",
+              file=sys.stderr)
+
+    load_segments(bridge, segments, dmem_base, burst_size, verbose)
+
+
+def main():
+    parser = argparse.ArgumentParser(description="RISC-V Debug Loader")
+    parser.add_argument("program", nargs="?", help="Program to load (ELF or hex file)")
+    parser.add_argument("--port", "-p", help="Serial port (default: use stdin/stdout)")
+    parser.add_argument("--baud", "-b", type=int, default=115200, help="Baud rate")
+    parser.add_argument("--imem-depth", type=int, default=16384,
+                        help="IMEM depth in words (default: 16384)")
+    parser.add_argument("--burst", type=int, default=256,
+                        help="Burst size in words (default: 256)")
+    parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
+    parser.add_argument("--status", "-s", action="store_true", help="Just read status")
+    parser.add_argument("--reset", "-r", action="store_true", help="Reset CPU after load")
+    parser.add_argument("--run", action="store_true", help="Release stall after load")
+    args = parser.parse_args()
+
+    # Set up I/O
+    if args.port:
+        import serial
+        ser = serial.Serial(args.port, args.baud, timeout=1)
+        tx_func = ser.write
+        rx_func = ser.read
+    else:
+        # Use binary stdin/stdout
+        tx_func = lambda data: (sys.stdout.buffer.write(data), sys.stdout.buffer.flush())
+        rx_func = lambda n: sys.stdin.buffer.read(n)
+
+    bridge = DebugBridge(tx_func, rx_func, verbose=args.verbose)
+
+    # Read status
+    if args.status or args.verbose:
+        stall, reset = bridge.read_ctrl()
+        print(f"Status: stall={stall}, reset={reset}", file=sys.stderr)
+
+    # Load program
+    if args.program:
+        load_program(bridge, args.program, args.imem_depth, args.burst, args.verbose)
+
+        # Reset if requested
+        if args.reset:
+            print("Resetting CPU...", file=sys.stderr)
+            bridge.write_ctrl(stall=True, reset=True)
+            bridge.write_ctrl(stall=True, reset=False)
+
+        # Release stall if requested
+        if args.run:
+            print("Starting CPU...", file=sys.stderr)
+            bridge.write_ctrl(stall=False, reset=False)
+
+    # Final status
+    if args.verbose:
+        stall, reset = bridge.read_ctrl()
+        print(f"Final status: stall={stall}, reset={reset}", file=sys.stderr)
+
+
+if __name__ == "__main__":
+    main()

@@ -8,6 +8,8 @@
 `include "svc_rv_soc_sram.sv"
 `include "svc_soc_io_reg.sv"
 `include "svc_soc_sim_uart.sv"
+`include "svc_uart_rx.sv"
+`include "svc_uart_tx.sv"
 
 // SOC simulation infrastructure for RISC-V CPU demos
 //
@@ -66,7 +68,11 @@ module svc_soc_sim #(
     // Simulation control
     parameter WATCHDOG_CYCLES = 100000,
     parameter PREFIX          = "",
-    parameter SW_PATH         = ""
+    parameter SW_PATH         = "",
+
+    // Debug loader mode
+    // When enabled, UART goes to debug bridge instead of application
+    parameter DEBUG_ENABLED = 0
 ) ();
 
   //
@@ -106,19 +112,89 @@ module svc_soc_sim #(
   //
   // UART terminal (always instantiated to monitor uart_tx and drive uart_rx)
   //
-  logic uart_rx;
+  // In debug mode, the UART connects to the debug bridge instead of the
+  // application. The debug bridge uses the UART for loading programs and
+  // controlling the CPU (stall/reset).
+  //
+  logic       uart_rx;
+  logic       uart_tx_monitored;  // What the terminal monitors (app or debug)
+
+  // Debug mode UART signals
+  logic       dbg_urx_valid;
+  logic [7:0] dbg_urx_data;
+  logic       dbg_urx_ready;
+  logic       dbg_utx_valid;
+  logic [7:0] dbg_utx_data;
+  logic       dbg_utx_ready;
+  logic       dbg_uart_tx_pin;
+
+  if (DEBUG_ENABLED) begin : gen_dbg_uart
+    // Decode terminal's TX output for debug bridge RX
+    svc_uart_rx #(
+        .CLOCK_FREQ(CLOCK_FREQ),
+        .BAUD_RATE (BAUD_RATE)
+    ) dbg_uart_rx (
+        .clk      (clk),
+        .rst_n    (rst_n),
+        .urx_valid(dbg_urx_valid),
+        .urx_data (dbg_urx_data),
+        .urx_ready(dbg_urx_ready),
+        .urx_pin  (uart_rx)
+    );
+
+    // Encode debug bridge's TX for terminal to monitor
+    svc_uart_tx #(
+        .CLOCK_FREQ(CLOCK_FREQ),
+        .BAUD_RATE (BAUD_RATE)
+    ) dbg_uart_tx (
+        .clk      (clk),
+        .rst_n    (rst_n),
+        .utx_valid(dbg_utx_valid),
+        .utx_data (dbg_utx_data),
+        .utx_ready(dbg_utx_ready),
+        .utx_pin  (dbg_uart_tx_pin)
+    );
+
+    assign uart_tx_monitored = dbg_uart_tx_pin;
+  end else begin : gen_no_dbg_uart
+    assign uart_tx_monitored = uart_tx;
+
+    // Tie off unused debug signals
+    assign dbg_urx_valid     = 1'b0;
+    assign dbg_urx_data      = 8'h0;
+    assign dbg_utx_ready     = 1'b1;
+    assign dbg_uart_tx_pin   = 1'b1;
+  end
 
   svc_soc_sim_uart #(
       .CLOCK_FREQ(CLOCK_FREQ),
       .BAUD_RATE (BAUD_RATE),
-      .PRINT_RX  (1),
-      .PREFIX    (PREFIX)
+      .PRINT_RX  (DEBUG_ENABLED ? 0 : 1),  // Don't print debug protocol bytes
+      .PREFIX    (PREFIX),
+      .IMEM_DEPTH(IMEM_DEPTH)
   ) uart_terminal (
       .clk    (clk),
       .rst_n  (rst_n),
       .urx_pin(uart_rx),
-      .utx_pin(uart_tx)
+      .utx_pin(uart_tx_monitored)
   );
+
+  // In debug mode, add a second terminal to monitor app's UART output to stdout
+  // (the primary terminal handles debug bridge PTY communication)
+  if (DEBUG_ENABLED) begin : gen_app_console
+    svc_soc_sim_uart #(
+        .CLOCK_FREQ (CLOCK_FREQ),
+        .BAUD_RATE  (BAUD_RATE),
+        .PRINT_RX   (1),           // Print app output to stdout
+        .PREFIX     (PREFIX),
+        .DISABLE_PTY(1)            // Don't create PTY - just use stdout
+    ) app_console (
+        .clk    (clk),
+        .rst_n  (rst_n),
+        .urx_pin(),        // Not used - no input to app console
+        .utx_pin(uart_tx)  // Monitor app's UART TX
+    );
+  end
 
   //
   // SOC I/O signals
@@ -144,33 +220,46 @@ module svc_soc_sim #(
   //
   if (MEM_TYPE == MEM_TYPE_SRAM) begin : sram_soc
     svc_rv_soc_sram #(
-        .XLEN       (XLEN),
-        .IMEM_DEPTH (IMEM_DEPTH),
-        .DMEM_DEPTH (DMEM_DEPTH),
-        .PIPELINED  (PIPELINED),
-        .FWD_REGFILE(FWD_REGFILE),
-        .FWD        (FWD),
-        .BPRED      (BPRED),
-        .BTB_ENABLE (BTB_ENABLE),
-        .BTB_ENTRIES(BTB_ENTRIES),
-        .RAS_ENABLE (RAS_ENABLE),
-        .RAS_DEPTH  (RAS_DEPTH),
-        .EXT_ZMMUL  (EXT_ZMMUL),
-        .EXT_M      (EXT_M),
-        .PC_REG     (PC_REG),
-        .IMEM_INIT  (IMEM_INIT),
-        .DMEM_INIT  (DMEM_INIT)
+        .XLEN         (XLEN),
+        .IMEM_DEPTH   (IMEM_DEPTH),
+        .DMEM_DEPTH   (DMEM_DEPTH),
+        .PIPELINED    (PIPELINED),
+        .FWD_REGFILE  (FWD_REGFILE),
+        .FWD          (FWD),
+        .BPRED        (BPRED),
+        .BTB_ENABLE   (BTB_ENABLE),
+        .BTB_ENTRIES  (BTB_ENTRIES),
+        .RAS_ENABLE   (RAS_ENABLE),
+        .RAS_DEPTH    (RAS_DEPTH),
+        .EXT_ZMMUL    (EXT_ZMMUL),
+        .EXT_M        (EXT_M),
+        .PC_REG       (PC_REG),
+        .DEBUG_ENABLED(DEBUG_ENABLED),
+        .IMEM_INIT    (IMEM_INIT),
+        .DMEM_INIT    (DMEM_INIT)
     ) rv_cpu (
-        .clk     (clk),
-        .rst_n   (rst_n),
+        .clk  (clk),
+        .rst_n(rst_n),
+
+        // Debug UART interface
+        .dbg_urx_valid(dbg_urx_valid),
+        .dbg_urx_data (dbg_urx_data),
+        .dbg_urx_ready(dbg_urx_ready),
+
+        .dbg_utx_valid(dbg_utx_valid),
+        .dbg_utx_data (dbg_utx_data),
+        .dbg_utx_ready(dbg_utx_ready),
+
+        // I/O interface
         .io_raddr(io_raddr),
         .io_rdata(io_rdata),
         .io_wen  (io_wen),
         .io_waddr(io_waddr),
         .io_wdata(io_wdata),
         .io_wstrb(io_wstrb),
-        .ebreak  (ebreak),
-        .trap    ()
+
+        .ebreak(ebreak),
+        .trap  ()
     );
   end else if (MEM_TYPE == MEM_TYPE_BRAM_CACHE) begin : cache_soc
     //
@@ -215,22 +304,23 @@ module svc_soc_sim #(
     logic                        m_axi_bready;
 
     svc_rv_soc_bram_cache #(
-        .XLEN       (XLEN),
-        .IMEM_DEPTH (IMEM_DEPTH),
-        .DMEM_DEPTH (DMEM_DEPTH),
-        .PIPELINED  (PIPELINED),
-        .FWD_REGFILE(FWD_REGFILE),
-        .FWD        (FWD),
-        .BPRED      (BPRED),
-        .BTB_ENABLE (BTB_ENABLE),
-        .BTB_ENTRIES(BTB_ENTRIES),
-        .RAS_ENABLE (RAS_ENABLE),
-        .RAS_DEPTH  (RAS_DEPTH),
-        .EXT_ZMMUL  (EXT_ZMMUL),
-        .EXT_M      (EXT_M),
-        .PC_REG     (PC_REG),
-        .IMEM_INIT  (IMEM_INIT),
-        .DMEM_INIT  (DMEM_INIT),
+        .XLEN         (XLEN),
+        .IMEM_DEPTH   (IMEM_DEPTH),
+        .DMEM_DEPTH   (DMEM_DEPTH),
+        .PIPELINED    (PIPELINED),
+        .FWD_REGFILE  (FWD_REGFILE),
+        .FWD          (FWD),
+        .BPRED        (BPRED),
+        .BTB_ENABLE   (BTB_ENABLE),
+        .BTB_ENTRIES  (BTB_ENTRIES),
+        .RAS_ENABLE   (RAS_ENABLE),
+        .RAS_DEPTH    (RAS_DEPTH),
+        .EXT_ZMMUL    (EXT_ZMMUL),
+        .EXT_M        (EXT_M),
+        .PC_REG       (PC_REG),
+        .DEBUG_ENABLED(DEBUG_ENABLED),
+        .IMEM_INIT    (IMEM_INIT),
+        .DMEM_INIT    (DMEM_INIT),
 
         .AXI_ADDR_WIDTH(AXI_ADDR_WIDTH),
         .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
@@ -238,6 +328,14 @@ module svc_soc_sim #(
     ) rv_cpu (
         .clk  (clk),
         .rst_n(rst_n),
+
+        .dbg_urx_valid(dbg_urx_valid),
+        .dbg_urx_data (dbg_urx_data),
+        .dbg_urx_ready(dbg_urx_ready),
+
+        .dbg_utx_valid(dbg_utx_valid),
+        .dbg_utx_data (dbg_utx_data),
+        .dbg_utx_ready(dbg_utx_ready),
 
         .io_ren  (io_ren),
         .io_raddr(io_raddr),
@@ -345,40 +443,60 @@ module svc_soc_sim #(
 
   end else begin : bram_soc
     svc_rv_soc_bram #(
-        .XLEN       (XLEN),
-        .IMEM_DEPTH (IMEM_DEPTH),
-        .DMEM_DEPTH (DMEM_DEPTH),
-        .PIPELINED  (PIPELINED),
-        .FWD_REGFILE(FWD_REGFILE),
-        .FWD        (FWD),
-        .BPRED      (BPRED),
-        .BTB_ENABLE (BTB_ENABLE),
-        .BTB_ENTRIES(BTB_ENTRIES),
-        .RAS_ENABLE (RAS_ENABLE),
-        .RAS_DEPTH  (RAS_DEPTH),
-        .EXT_ZMMUL  (EXT_ZMMUL),
-        .EXT_M      (EXT_M),
-        .PC_REG     (PC_REG),
-        .IMEM_INIT  (IMEM_INIT),
-        .DMEM_INIT  (DMEM_INIT)
+        .XLEN         (XLEN),
+        .IMEM_DEPTH   (IMEM_DEPTH),
+        .DMEM_DEPTH   (DMEM_DEPTH),
+        .PIPELINED    (PIPELINED),
+        .FWD_REGFILE  (FWD_REGFILE),
+        .FWD          (FWD),
+        .BPRED        (BPRED),
+        .BTB_ENABLE   (BTB_ENABLE),
+        .BTB_ENTRIES  (BTB_ENTRIES),
+        .RAS_ENABLE   (RAS_ENABLE),
+        .RAS_DEPTH    (RAS_DEPTH),
+        .EXT_ZMMUL    (EXT_ZMMUL),
+        .EXT_M        (EXT_M),
+        .PC_REG       (PC_REG),
+        .DEBUG_ENABLED(DEBUG_ENABLED),
+        .IMEM_INIT    (IMEM_INIT),
+        .DMEM_INIT    (DMEM_INIT)
     ) rv_cpu (
-        .clk     (clk),
-        .rst_n   (rst_n),
+        .clk  (clk),
+        .rst_n(rst_n),
+
+        // Debug UART interface
+        .dbg_urx_valid(dbg_urx_valid),
+        .dbg_urx_data (dbg_urx_data),
+        .dbg_urx_ready(dbg_urx_ready),
+
+        .dbg_utx_valid(dbg_utx_valid),
+        .dbg_utx_data (dbg_utx_data),
+        .dbg_utx_ready(dbg_utx_ready),
+
+        // I/O interface
         .io_ren  (io_ren),
         .io_raddr(io_raddr),
         .io_rdata(io_rdata),
+
         .io_wen  (io_wen),
         .io_waddr(io_waddr),
         .io_wdata(io_wdata),
         .io_wstrb(io_wstrb),
-        .ebreak  (ebreak),
-        .trap    ()
+
+        .ebreak(ebreak),
+        .trap  ()
     );
   end
 
   //
   // I/O register bank with peripherals (UART, LED, GPIO)
   //
+  // In debug mode, the application UART RX is disabled (tied high/idle)
+  // since the UART is used by the debug bridge for loading.
+  //
+  logic app_uart_rx;
+  assign app_uart_rx = DEBUG_ENABLED ? 1'b1 : uart_rx;
+
   svc_soc_io_reg #(
       .CLOCK_FREQ(CLOCK_FREQ),
       .BAUD_RATE (BAUD_RATE),
@@ -396,7 +514,7 @@ module svc_soc_sim #(
       .led     (led),
       .gpio    (gpio),
       .uart_tx (uart_tx),
-      .uart_rx (uart_rx)
+      .uart_rx (app_uart_rx)
   );
 
   //
@@ -482,6 +600,7 @@ module svc_soc_sim #(
     // drop params along the way
     //
     if (MEM_TYPE == MEM_TYPE_SRAM) begin
+      if (DEBUG_ENABLED) $display("%sDEBUG:       1", P);
       $display("%sPIPELINED:   %0d", P, sram_soc.rv_cpu.cpu.PIPELINED);
       $display("%sFWD_REGFILE: %0d", P, sram_soc.rv_cpu.cpu.FWD_REGFILE);
       $display("%sFWD:         %0d", P, sram_soc.rv_cpu.cpu.FWD);
@@ -506,6 +625,7 @@ module svc_soc_sim #(
       $display("%sEXT_ZMMUL:   %0d", P, cache_soc.rv_cpu.cpu.EXT_ZMMUL);
       $display("%sEXT_M:       %0d", P, cache_soc.rv_cpu.cpu.EXT_M);
     end else begin
+      if (DEBUG_ENABLED) $display("%sDEBUG:       1", P);
       $display("%sPIPELINED:   %0d", P, bram_soc.rv_cpu.cpu.PIPELINED);
       $display("%sFWD_REGFILE: %0d", P, bram_soc.rv_cpu.cpu.FWD_REGFILE);
       $display("%sFWD:         %0d", P, bram_soc.rv_cpu.cpu.FWD);

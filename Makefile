@@ -106,6 +106,10 @@ echo_RV_IMEM_DEPTH := 2048
 echo_RV_DMEM_DEPTH := 2048
 echo_SIM_FLAGS := +UART_STDIN
 
+loader_RV_IMEM_DEPTH := 16384
+loader_RV_DMEM_DEPTH := 32768
+loader_SIM_FLAGS := +UART_PTY
+
 export RV_IMEM_DEPTH RV_DMEM_DEPTH
 export hello_RV_IMEM_DEPTH hello_RV_DMEM_DEPTH
 export blinky_RV_IMEM_DEPTH blinky_RV_DMEM_DEPTH
@@ -115,6 +119,8 @@ export dhrystone_RV_IMEM_DEPTH dhrystone_RV_DMEM_DEPTH
 export coremark_RV_IMEM_DEPTH coremark_RV_DMEM_DEPTH
 export echo_RV_IMEM_DEPTH echo_RV_DMEM_DEPTH
 export echo_SIM_FLAGS
+export loader_RV_IMEM_DEPTH loader_RV_DMEM_DEPTH
+export loader_SIM_FLAGS
 
 include svc/mk/sv.mk
 include svc/mk/icestorm.mk

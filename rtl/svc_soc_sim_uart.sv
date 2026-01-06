@@ -23,14 +23,21 @@
 // DPI functions for non-blocking stdin access
 import "DPI-C" function int svc_stdin_getc();
 import "DPI-C" function int svc_stdin_ready();
+// DPI functions for PTY access
+import "DPI-C" function int svc_pty_create(input int imem_depth);
+import "DPI-C" function int svc_pty_getc();
+import "DPI-C" function void svc_pty_putc(input int c);
+import "DPI-C" function int svc_pty_ready();
 `endif
 
 module svc_soc_sim_uart #(
     parameter CLOCK_FREQ = 100_000_000,
-    parameter BAUD_RATE  = 115_200,
-    parameter PRINT_RX   = 1,
-    parameter DEBUG      = 0,
-    parameter PREFIX     = ""
+    parameter BAUD_RATE = 115_200,
+    parameter PRINT_RX = 1,
+    parameter DEBUG = 0,
+    parameter PREFIX = "",
+    parameter DISABLE_PTY = 0,  // Set to 1 to disable PTY (stdout only)
+    parameter IMEM_DEPTH = 16384  // For rv_loader.py --imem-depth hint
 ) (
     input  logic clk,
     input  logic rst_n,
@@ -221,6 +228,59 @@ module svc_soc_sim_uart #(
       @(posedge clk);
     end
   endtask
+
+  //
+  // PTY support for external tool connection (e.g., Python loader)
+  //
+  // When enabled via +UART_PTY plusarg, creates a PTY and prints the path.
+  // External tools can connect to the PTY slave to communicate with the SoC.
+  //
+`ifdef VERILATOR
+  if (!DISABLE_PTY) begin : gen_pty
+    bit pty_enabled;
+
+    // PTY initialization
+    initial begin
+      int result;
+
+      pty_enabled = 0;
+      if ($test$plusargs("UART_PTY")) begin
+        result = svc_pty_create(IMEM_DEPTH);
+        if (result != 0) begin
+          pty_enabled = 1;
+        end else begin
+          $display("[UART] ERROR: Could not create PTY");
+        end
+      end
+    end
+
+    // PTY reading - send data from PTY to SoC
+    initial begin
+      int c;
+
+      // Wait for PTY to be enabled
+      wait (pty_enabled);
+      wait (rst_n);
+
+      forever begin
+        c = svc_pty_getc();
+        if (c >= 0) begin
+          send_byte(c[7:0]);
+        end else begin
+          // No data available, wait a bit before polling again
+          repeat (10) @(posedge clk);
+        end
+      end
+    end
+
+    // PTY writing - send data from SoC to PTY
+    always @(posedge clk) begin
+      if (pty_enabled && urx_valid && urx_ready) begin
+        svc_pty_putc(int'(urx_data));
+      end
+    end
+  end
+`endif
 
   //
   // Interactive stdin reading (optional)
