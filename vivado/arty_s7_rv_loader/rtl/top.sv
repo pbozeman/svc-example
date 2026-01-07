@@ -18,22 +18,23 @@ module top (
   wire clk = CLK100MHZ;
   wire rst_n = reset;
 
+  wire io_led;
   wire ebreak;
 
   assign led[3] = reset;
   assign led[2] = ebreak;
   assign led[1] = 1'b0;
-  assign led[0] = 1'b0;
+  assign led[0] = io_led;
 
   //
   // Debug UART signals (for loading programs via debug bridge)
   //
-  logic       dbg_urx_valid;
-  logic [7:0] dbg_urx_data;
-  logic       dbg_urx_ready;
-  logic       dbg_utx_valid;
-  logic [7:0] dbg_utx_data;
-  logic       dbg_utx_ready;
+  logic        dbg_urx_valid;
+  logic [ 7:0] dbg_urx_data;
+  logic        dbg_urx_ready;
+  logic        dbg_utx_valid;
+  logic [ 7:0] dbg_utx_data;
+  logic        dbg_utx_ready;
 
   //
   // SoC I/O signals
@@ -83,26 +84,26 @@ module top (
   // Use rv_loader.py to load and run programs.
   //
   svc_rv_soc_bram #(
-      .XLEN        (32),
-      .IMEM_DEPTH  (2048),
-      .DMEM_DEPTH  (2048),
-      .PIPELINED   (1),
-      .FWD_REGFILE (1),
-      .FWD         (1),
-      .BPRED       (1),
-      .BTB_ENABLE  (1),
-      .BTB_ENTRIES (64),
-      .RAS_ENABLE  (1),
-      .RAS_DEPTH   (8),
-      .EXT_ZMMUL   (0),
-      .EXT_M       (1),
-      .PC_REG      (1),
+      .XLEN         (32),
+      .IMEM_DEPTH   (2048),
+      .DMEM_DEPTH   (2048),
+      .PIPELINED    (1),
+      .FWD_REGFILE  (1),
+      .FWD          (1),
+      .BPRED        (1),
+      .BTB_ENABLE   (1),
+      .BTB_ENTRIES  (64),
+      .RAS_ENABLE   (1),
+      .RAS_DEPTH    (8),
+      .EXT_ZMMUL    (0),
+      .EXT_M        (1),
+      .PC_REG       (1),
       .DEBUG_ENABLED(1),
-      .IMEM_INIT   (""),
-      .DMEM_INIT   ("")
+      .IMEM_INIT    (""),
+      .DMEM_INIT    ("")
   ) soc (
-      .clk          (clk),
-      .rst_n        (rst_n),
+      .clk  (clk),
+      .rst_n(rst_n),
 
       // Debug UART interface
       .dbg_urx_valid(dbg_urx_valid),
@@ -113,16 +114,16 @@ module top (
       .dbg_utx_ready(dbg_utx_ready),
 
       // I/O interface
-      .io_ren       (io_ren),
-      .io_raddr     (io_raddr),
-      .io_rdata     (io_rdata),
-      .io_wen       (io_wen),
-      .io_waddr     (io_waddr),
-      .io_wdata     (io_wdata),
-      .io_wstrb     (io_wstrb),
+      .io_ren  (io_ren),
+      .io_raddr(io_raddr),
+      .io_rdata(io_rdata),
+      .io_wen  (io_wen),
+      .io_waddr(io_waddr),
+      .io_wdata(io_wdata),
+      .io_wstrb(io_wstrb),
 
-      .ebreak       (ebreak),
-      .trap         ()
+      .ebreak(ebreak),
+      .trap  ()
   );
 
   //
@@ -145,9 +146,10 @@ module top (
       .io_ren  (io_ren),
       .io_raddr(io_raddr),
       .io_rdata(io_rdata),
-      .led     (),
+      .led     (io_led),
       .gpio    (),
       .uart_tx ()
   );
 
 endmodule
+
