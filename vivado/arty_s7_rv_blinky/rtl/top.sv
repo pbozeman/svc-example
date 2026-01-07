@@ -20,7 +20,7 @@ module top (
 
   assign led[3] = reset;
   assign led[2] = ebreak;
-  assign led[1] = 1'b0;
+  assign led[1] = 1'b1;
   assign led[0] = io_led;
 
   //
@@ -44,8 +44,8 @@ module top (
   //
   svc_rv_soc_bram #(
       .XLEN       (32),
-      .IMEM_DEPTH (1024),
-      .DMEM_DEPTH (1024),
+      .IMEM_DEPTH (2048),
+      .DMEM_DEPTH (2048),
       .PIPELINED  (1),
       .FWD_REGFILE(1),
       .FWD        (1),
@@ -102,3 +102,4 @@ module top (
   );
 
 endmodule
+

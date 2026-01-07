@@ -87,8 +87,8 @@ RV_DMEM_DEPTH := 1024
 hello_RV_IMEM_DEPTH := 2048
 hello_RV_DMEM_DEPTH := 2048
 
-blinky_RV_IMEM_DEPTH := 1024
-blinky_RV_DMEM_DEPTH := 1024
+blinky_RV_IMEM_DEPTH := 2048
+blinky_RV_DMEM_DEPTH := 2048
 
 bubble_sort_RV_IMEM_DEPTH := 1024
 bubble_sort_RV_DMEM_DEPTH := 1024
