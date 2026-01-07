@@ -10,7 +10,8 @@ module top (
     input  wire       reset,
     output wire [3:0] led,
     input  wire       UART_RX,
-    output wire       UART_TX
+    output wire       UART_TX,
+    output wire       PMOD_UART_TX
 );
   localparam CLOCK_FREQ = 100_000_000;
   localparam BAUD_RATE = 115_200;
@@ -129,7 +130,7 @@ module top (
   //
   // Instantiate the I/O register bank
   //
-  // Note: Application UART TX is unconnected since UART_TX is used for debug.
+  // Application UART TX is routed to Pmod D (Pmod USBUART).
   // Application UART RX is tied idle since debug loader owns the RX pin.
   //
   svc_soc_io_reg #(
@@ -148,7 +149,7 @@ module top (
       .io_rdata(io_rdata),
       .led     (io_led),
       .gpio    (),
-      .uart_tx ()
+      .uart_tx (PMOD_UART_TX)
   );
 
 endmodule
