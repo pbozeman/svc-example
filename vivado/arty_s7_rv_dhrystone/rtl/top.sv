@@ -156,17 +156,23 @@ module top (
       .IMEM_INIT  ("../../../.build/sw/rv32im/dhrystone/dhrystone.hex"),
       .DMEM_INIT  ("../../../.build/sw/rv32im/dhrystone/dhrystone.hex")
   ) soc (
-      .clk     (clk),
-      .rst_n   (rst_n),
-      .io_ren  (io_ren),
-      .io_raddr(io_raddr),
-      .io_rdata(io_rdata),
-      .io_wen  (io_wen),
-      .io_waddr(io_waddr),
-      .io_wdata(io_wdata),
-      .io_wstrb(io_wstrb),
-      .ebreak  (ebreak),
-      .trap    ()
+      .clk          (clk),
+      .rst_n        (rst_n),
+      .dbg_urx_valid(1'b0),
+      .dbg_urx_data (8'h0),
+      .dbg_urx_ready(),
+      .dbg_utx_valid(),
+      .dbg_utx_data (),
+      .dbg_utx_ready(1'b1),
+      .io_ren       (io_ren),
+      .io_raddr     (io_raddr),
+      .io_rdata     (io_rdata),
+      .io_wen       (io_wen),
+      .io_waddr     (io_waddr),
+      .io_wdata     (io_wdata),
+      .io_wstrb     (io_wstrb),
+      .ebreak       (ebreak),
+      .trap         ()
   );
 
   //

@@ -130,8 +130,14 @@ module top (
       .AXI_DATA_WIDTH  (AXI_DATA_WIDTH),
       .AXI_ID_WIDTH    (AXI_ID_WIDTH)
   ) soc (
-      .clk  (clk),
-      .rst_n(rst_n),
+      .clk          (clk),
+      .rst_n        (rst_n),
+      .dbg_urx_valid(1'b0),
+      .dbg_urx_data (8'h0),
+      .dbg_urx_ready(),
+      .dbg_utx_valid(),
+      .dbg_utx_data (),
+      .dbg_utx_ready(1'b1),
 
       .io_ren  (io_ren),
       .io_raddr(io_raddr),
