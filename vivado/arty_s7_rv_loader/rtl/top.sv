@@ -86,8 +86,8 @@ module top (
   //
   svc_rv_soc_bram #(
       .XLEN         (32),
-      .IMEM_DEPTH   (2048),
-      .DMEM_DEPTH   (2048),
+      .IMEM_DEPTH   (16384),
+      .DMEM_DEPTH   (32768),
       .PIPELINED    (1),
       .FWD_REGFILE  (1),
       .FWD          (1),
