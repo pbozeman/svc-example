@@ -61,9 +61,6 @@ STATUS_ERROR = 0x01
 CTRL_STALL = 0x01
 CTRL_RESET = 0x02
 
-# Per-word ACK for burst writes
-BURST_ACK = 0x06
-
 # Default memory base addresses
 IMEM_BASE = 0x00000000
 DMEM_BASE = 0x00010000  # Default, auto-calculated if not specified
@@ -142,7 +139,7 @@ class DebugBridge:
             raise RuntimeError(f"Write word failed: addr=0x{addr:08x} status={status}")
 
     def write_burst(self, addr, words):
-        """Write multiple 32-bit words to memory with per-word ACK."""
+        """Write multiple 32-bit words to memory (streamed, no per-word ACK)."""
         if len(words) == 0:
             return
         if len(words) > 65535:
@@ -152,17 +149,10 @@ class DebugBridge:
         header = struct.pack("<IH", addr, len(words))
         self._send_cmd(OP_WRITE_BURST, header)
 
-        # Send each word, waiting for ACK after each (except last)
-        for i, word in enumerate(words):
+        # Stream all words back-to-back
+        for word in words:
             word_data = struct.pack("<I", word)
             self.tx(word_data)
-            if i < len(words) - 1:
-                ack = self.rx(1)
-                if len(ack) < 1 or ack[0] != BURST_ACK:
-                    raise RuntimeError(
-                        f"Bad burst ACK at word {i}: expected 0x{BURST_ACK:02x}, "
-                        f"got {ack.hex() if ack else 'nothing'}"
-                    )
 
         status, _ = self._recv_response()
         if status != STATUS_OK:
@@ -399,7 +389,7 @@ def main():
     parser = argparse.ArgumentParser(description="RISC-V Debug Loader")
     parser.add_argument("program", nargs="?", help="Program to load (ELF or hex file)")
     parser.add_argument("--port", "-p", help="Serial port (default: use stdin/stdout)")
-    parser.add_argument("--baud", "-b", type=int, default=115200, help="Baud rate")
+    parser.add_argument("--baud", "-b", type=int, default=1000000, help="Baud rate")
     parser.add_argument("--imem-depth", type=int, default=16384,
                         help="IMEM depth in words (default: 16384)")
     parser.add_argument("--burst", type=int, default=256,

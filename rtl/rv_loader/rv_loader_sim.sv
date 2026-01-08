@@ -55,7 +55,7 @@ module rv_loader_sim;
       .EXT_ZMMUL      (EXT_ZMMUL),
       .EXT_M          (EXT_M),
       // Peripherals
-      .BAUD_RATE      (115_200),
+      .BAUD_RATE      (1_000_000),
       // Debug/reporting
       .PREFIX         ("loader"),
       .SW_PATH        (""),

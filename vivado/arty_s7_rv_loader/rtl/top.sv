@@ -14,7 +14,7 @@ module top (
     output wire       PMOD_UART_TX
 );
   localparam CLOCK_FREQ = 100_000_000;
-  localparam BAUD_RATE = 115_200;
+  localparam BAUD_RATE = 1_000_000;
 
   wire clk = CLK100MHZ;
   wire rst_n = reset;
