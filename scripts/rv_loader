@@ -315,6 +315,86 @@ def load_program(bridge, file_path, imem_depth, burst_size=256,
     load_segments(bridge, segments, dmem_base, burst_size, verbose)
 
 
+def stress_test(bridge, count=1000):
+    """Run protocol stress tests to identify failure patterns."""
+    print(f"\n=== Stress Test: read_ctrl x{count} ===", file=sys.stderr)
+    print("Testing simplest command: 2 bytes out, 3 bytes back", file=sys.stderr)
+
+    successes = 0
+    failures = 0
+    fail_indices = []
+
+    for i in range(count):
+        try:
+            stall, reset = bridge.read_ctrl()
+            successes += 1
+            if (i + 1) % 100 == 0:
+                print(f"\r  Progress: {i+1}/{count} (failures: {failures})",
+                      end="", file=sys.stderr)
+        except Exception as e:
+            failures += 1
+            fail_indices.append(i)
+            print(f"\n  FAIL at {i}: {e}", file=sys.stderr)
+
+    print(f"\n\nResults: {successes}/{count} passed, {failures} failures",
+          file=sys.stderr)
+    if fail_indices:
+        print(f"Failed at iterations: {fail_indices[:20]}{'...' if len(fail_indices) > 20 else ''}",
+              file=sys.stderr)
+
+    print(f"\n=== Stress Test: write_ctrl x{count} ===", file=sys.stderr)
+    print("Testing: 3 bytes out, 2 bytes back", file=sys.stderr)
+
+    successes = 0
+    failures = 0
+    fail_indices = []
+
+    for i in range(count):
+        try:
+            bridge.write_ctrl(stall=(i % 2 == 0), reset=True)
+            successes += 1
+            if (i + 1) % 100 == 0:
+                print(f"\r  Progress: {i+1}/{count} (failures: {failures})",
+                      end="", file=sys.stderr)
+        except Exception as e:
+            failures += 1
+            fail_indices.append(i)
+            print(f"\n  FAIL at {i}: {e}", file=sys.stderr)
+
+    print(f"\n\nResults: {successes}/{count} passed, {failures} failures",
+          file=sys.stderr)
+    if fail_indices:
+        print(f"Failed at iterations: {fail_indices[:20]}{'...' if len(fail_indices) > 20 else ''}",
+              file=sys.stderr)
+
+    # Restore to stalled+reset state
+    bridge.write_ctrl(stall=True, reset=True)
+
+    # Test burst writes at various sizes
+    print(f"\n=== Stress Test: burst writes ===", file=sys.stderr)
+    print("Testing burst writes at various sizes", file=sys.stderr)
+
+    test_addr = 0x00000000  # IMEM base
+    for burst_size in [1, 2, 4, 8, 16, 32, 64, 128, 256]:
+        words = [0xDEADBEEF] * burst_size
+        successes = 0
+        failures = 0
+        attempts = 10
+
+        for i in range(attempts):
+            try:
+                bridge.write_burst(test_addr, words)
+                successes += 1
+            except Exception as e:
+                failures += 1
+                if failures == 1:
+                    print(f"\n  burst={burst_size}: first fail at attempt {i}: {e}",
+                          file=sys.stderr)
+
+        status = "PASS" if failures == 0 else f"FAIL ({failures}/{attempts})"
+        print(f"  burst={burst_size:3d}: {status}", file=sys.stderr)
+
+
 def main():
     parser = argparse.ArgumentParser(description="RISC-V Debug Loader")
     parser.add_argument("program", nargs="?", help="Program to load (ELF or hex file)")
@@ -328,6 +408,8 @@ def main():
     parser.add_argument("--status", "-s", action="store_true", help="Just read status")
     parser.add_argument("--reset", "-r", action="store_true", help="Reset CPU after load")
     parser.add_argument("--run", action="store_true", help="Release stall after load")
+    parser.add_argument("--stress", type=int, nargs="?", const=1000, metavar="N",
+                        help="Run protocol stress test (default: 1000 iterations)")
     args = parser.parse_args()
 
     # Set up I/O
@@ -342,6 +424,11 @@ def main():
         rx_func = lambda n: sys.stdin.buffer.read(n)
 
     bridge = DebugBridge(tx_func, rx_func, verbose=args.verbose)
+
+    # Run stress test if requested
+    if args.stress:
+        stress_test(bridge, args.stress)
+        return
 
     # Read status
     if args.status or args.verbose:
