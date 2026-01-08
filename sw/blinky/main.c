@@ -1,7 +1,6 @@
 #include "libsvc/sys.h"
-
+#include "libsvc/util.h"
 #include "mmio.h"
-#include "util.h"
 
 #define LED_OFFSET 0x08
 

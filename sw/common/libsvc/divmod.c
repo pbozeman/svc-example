@@ -15,7 +15,7 @@ uint32_t __udivsi3(uint32_t dividend, uint32_t divisor) {
     return 0;  // Undefined behavior, but safe fallback
   }
 
-  uint32_t quotient = 0;
+  uint32_t quotient  = 0;
   uint32_t remainder = 0;
 
   // Long division algorithm
@@ -67,7 +67,7 @@ int32_t __divsi3(int32_t dividend, int32_t divisor) {
   }
   if (divisor < 0) {
     negative = !negative;
-    divisor = -divisor;
+    divisor  = -divisor;
   }
 
   // Perform unsigned division

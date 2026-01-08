@@ -24,19 +24,17 @@ LIBSVC_DIR = $(SW_COMMON)/libsvc
 # Convert BUILD_DIR paths to be relative to project root for .d files
 PROJECT_ROOT = $(abspath $(SW_ROOT)/..)
 
+# Picolibc paths
+PICOLIBC_BUILD_DIR = $(SW_ROOT)/../.build/picolibc/$(RV_ARCH)
+PICOLIBC_SRC_DIR = $(SW_ROOT)/picolibc
+PICOLIBC_INCLUDE = -I$(PICOLIBC_BUILD_DIR) -I$(PICOLIBC_SRC_DIR)/libc/include -I$(PICOLIBC_SRC_DIR)/libc/tinystdio
+PICOLIBC_LIBC = $(PICOLIBC_BUILD_DIR)/libc.a
+PICOLIBC_LIBM = $(PICOLIBC_BUILD_DIR)/libm/libmpart.a
+
 # Architecture flags (32-bit RISC-V with Zicsr for CSR access)
 ARCH_FLAGS = -march=$(RV_ARCH)_zicsr -mabi=ilp32
 
-# Conditional libgcc for soft multiply
-# RV32I: Needs libgcc for software multiply (division provided by libsvc)
-# RV32IM: Uses hardware mul/div, no libgcc needed
-ifeq ($(RV_ARCH),rv32i)
-  LIBGCC = -lgcc
-else
-  LIBGCC =
-endif
-
-# Compiler flags
+# Compiler flags - use picolibc headers
 CFLAGS = $(ARCH_FLAGS) \
          -O2 \
          -g \
@@ -45,6 +43,7 @@ CFLAGS = $(ARCH_FLAGS) \
          -ffreestanding \
          -nostdlib \
          -nostartfiles \
+         $(PICOLIBC_INCLUDE) \
          -I$(SW_COMMON) \
          -I$(LIBSVC_DIR)
 
@@ -74,29 +73,27 @@ LDFLAGS = $(ARCH_FLAGS) \
 
 # Common source files
 CRT0_S = $(SW_COMMON)/crt0.S
+SYSCALLS_C = $(SW_COMMON)/syscalls.c
 
-# libsvc library - shared per architecture
+# libsvc library - hardware abstraction + soft division for rv32i
 LIBSVC_BUILD_DIR = $(SW_ROOT)/../.build/sw/$(RV_ARCH)/lib
-LIBSVC_SRC = $(wildcard $(LIBSVC_DIR)/*.c)
-LIBSVC_ASM = $(wildcard $(LIBSVC_DIR)/*.S)
-LIBSVC_OBJ = $(patsubst $(LIBSVC_DIR)/%.c,$(LIBSVC_BUILD_DIR)/%.o,$(LIBSVC_SRC)) \
-             $(patsubst $(LIBSVC_DIR)/%.S,$(LIBSVC_BUILD_DIR)/%.o,$(LIBSVC_ASM))
+LIBSVC_SRC = $(LIBSVC_DIR)/uart.c $(LIBSVC_DIR)/sys.c $(LIBSVC_DIR)/util.c $(LIBSVC_DIR)/divmod.c
+LIBSVC_OBJ = $(patsubst $(LIBSVC_DIR)/%.c,$(LIBSVC_BUILD_DIR)/%.o,$(LIBSVC_SRC))
 LIBSVC_A = $(LIBSVC_BUILD_DIR)/libsvc.a
 
 # Library compilation flags - aggressive optimization for all programs
-# Libraries are external dependencies, not subject to program-specific rules
-# Use SVC_DISABLE_MMIO=1 to build with deterministic stubs (no I/O)
 LIBSVC_EXTRA_CFLAGS ?=
 ifdef SVC_DISABLE_MMIO
   LIBSVC_EXTRA_CFLAGS += -DSVC_DISABLE_MMIO
 endif
 LIBSVC_CFLAGS ?= $(ARCH_FLAGS) -O3 -funroll-loops -flto -ffat-lto-objects \
                  -Wall -Wextra -ffreestanding -nostdlib -nostartfiles \
-                 -I$(SW_COMMON) -I$(LIBSVC_DIR) $(LIBSVC_EXTRA_CFLAGS)
+                 $(PICOLIBC_INCLUDE) -I$(SW_COMMON) -I$(LIBSVC_DIR) $(LIBSVC_EXTRA_CFLAGS)
 
 # Build outputs with paths
 BUILD_OBJS = $(addprefix $(BUILD_DIR)/,$(OBJS))
 CRT0_O = $(BUILD_DIR)/crt0.o
+SYSCALLS_O = $(BUILD_DIR)/syscalls.o
 ELF = $(BUILD_DIR)/$(PROGRAM).elf
 BIN = $(BUILD_DIR)/$(PROGRAM).bin
 HEX = $(BUILD_DIR)/$(PROGRAM).hex
@@ -118,33 +115,41 @@ libsvc: $(LIBSVC_A)
 $(BUILD_DIR):
 	@mkdir -p $(BUILD_DIR)
 
-# Compile C sources
-$(BUILD_DIR)/%.o: %.c | $(BUILD_DIR)
+# Compile C sources (requires picolibc headers)
+$(BUILD_DIR)/%.o: %.c | $(BUILD_DIR) $(PICOLIBC_LIBC)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 # Assemble startup code
 $(CRT0_O): $(CRT0_S) | $(BUILD_DIR)
 	$(CC) $(ASFLAGS) -c -o $@ $<
 
+# Compile syscalls (requires picolibc headers)
+$(SYSCALLS_O): $(SYSCALLS_C) | $(BUILD_DIR) $(PICOLIBC_LIBC)
+	$(CC) $(CFLAGS) -c -o $@ $<
+
 # Build libsvc directory
 $(LIBSVC_BUILD_DIR):
 	@mkdir -p $@
 
-# Compile libsvc sources (using LIBSVC_CFLAGS for aggressive optimization)
-$(LIBSVC_BUILD_DIR)/%.o: $(LIBSVC_DIR)/%.c | $(LIBSVC_BUILD_DIR)
+# Compile libsvc sources (requires picolibc headers, using aggressive optimization)
+$(LIBSVC_BUILD_DIR)/%.o: $(LIBSVC_DIR)/%.c | $(LIBSVC_BUILD_DIR) $(PICOLIBC_LIBC)
 	$(CC) $(LIBSVC_CFLAGS) -c -o $@ $<
-
-# Assemble libsvc assembly sources
-$(LIBSVC_BUILD_DIR)/%.o: $(LIBSVC_DIR)/%.S | $(LIBSVC_BUILD_DIR)
-	$(CC) $(ASFLAGS) -c -o $@ $<
 
 # Archive libsvc library
 $(LIBSVC_A): $(LIBSVC_OBJ)
 	$(AR) rcs $@ $^
 
-# Link ELF
-$(ELF): $(BUILD_OBJS) $(CRT0_O) $(LIBSVC_A)
-	$(CC) $(LDFLAGS) -o $@ $(CRT0_O) $(BUILD_OBJS) $(LIBSVC_A) $(LIBGCC)
+# Build picolibc if not present
+$(PICOLIBC_LIBC):
+	@echo "Building picolibc for $(RV_ARCH)..."
+	$(MAKE) -C $(SW_ROOT)/picolibc-build $(RV_ARCH)
+
+# Link ELF - picolibc provides libc, libm; libsvc provides hardware abstraction
+# Note: We don't link libgcc as the riscv64-none-elf toolchain doesn't have rv32 multilib.
+# Picolibc is configured to avoid libgcc dependencies.
+$(ELF): $(BUILD_OBJS) $(CRT0_O) $(SYSCALLS_O) $(LIBSVC_A) $(PICOLIBC_LIBC)
+	$(CC) $(LDFLAGS) -o $@ $(CRT0_O) $(SYSCALLS_O) $(BUILD_OBJS) \
+		$(LIBSVC_A) $(PICOLIBC_LIBC) $(PICOLIBC_LIBM)
 	$(SIZE) $@
 
 # Generate binary

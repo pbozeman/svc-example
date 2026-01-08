@@ -2,11 +2,11 @@
  * CoreMark port for svc-example RISC-V bare-metal environment
  */
 #include <stdarg.h>
+#include <stdio.h>
 
 #include "core_portme.h"
 #include "coremark.h"
 #include "libsvc/csr.h"
-#include "libsvc/stdio.h"
 #include "libsvc/sys.h"
 
 /* Volatile seeds for CoreMark */

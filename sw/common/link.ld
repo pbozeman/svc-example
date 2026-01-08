@@ -24,6 +24,7 @@ SECTIONS
 
   /* Read-only data (constants) */
   .rodata : {
+    *(.srodata*)
     *(.rodata*)
   } > IMEM
 
@@ -50,6 +51,12 @@ SECTIONS
     __bss_end = .;
   } > DMEM
 
+  /* Heap starts after BSS, grows up toward stack */
+  PROVIDE(__heap_start = __bss_end);
+
   /* Stack grows down from end of DMEM */
   PROVIDE(__stack_top = ORIGIN(DMEM) + LENGTH(DMEM));
+
+  /* Heap ends where stack begins (reserve 1KB for stack minimum) */
+  PROVIDE(__heap_end = __stack_top - 1024);
 }

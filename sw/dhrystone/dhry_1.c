@@ -17,11 +17,12 @@
 
 #include "dhry.h"
 
-// Bare-metal libsvc includes
-#include "stdio.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Hardware access
 #include "libsvc/csr.h"
-#include "libsvc/malloc.h"
-#include "libsvc/string.h"
 
 #ifndef DHRY_ITERS
 #define DHRY_ITERS 100
@@ -243,8 +244,8 @@ int main(void) {
   uint32_t cycles_per_iter = User_Time / Number_Of_Runs;
 
   printf ("\n");
-  printf ("Cycles: %u\n", User_Time);
-  printf ("Cycles per iteration: %u\n", cycles_per_iter);
+  printf ("Cycles: %lu\n", (unsigned long)User_Time);
+  printf ("Cycles per iteration: %lu\n", (unsigned long)cycles_per_iter);
 
   // Calculate DMIPS/MHz (Dhrystone MIPS per MHz)
   //
@@ -263,8 +264,8 @@ int main(void) {
   uint32_t dmips_per_mhz_x1000 =
       (1000000ul * 1000ul) / (cycles_per_iter * 1757ul);
 
-  printf ("DMIPS/MHz: %u.%03u\n", dmips_per_mhz_x1000 / 1000,
-          dmips_per_mhz_x1000 % 1000);
+  printf ("DMIPS/MHz: %lu.%03lu\n", (unsigned long)(dmips_per_mhz_x1000 / 1000),
+          (unsigned long)(dmips_per_mhz_x1000 % 1000));
   printf ("\n");
 
   return 0;

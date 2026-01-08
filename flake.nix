@@ -26,7 +26,9 @@
           flock
           gtkwave
           icestorm
+          meson
           nextpnr
+          ninja
           nodePackages.prettier
           pkgs.pkgsCross.riscv64-embedded.buildPackages.gcc
           pythonEnv

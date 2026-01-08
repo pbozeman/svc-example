@@ -1,4 +1,6 @@
-#include "libsvc/stdio.h"
+#include <stdint.h>
+#include <stdio.h>
+
 #include "libsvc/sys.h"
 
 #include "mmio.h"
@@ -12,7 +14,7 @@ int main(void) {
 
   mmio_write(LED_OFFSET, led_state);
   printf("Hello World\n");
-  printf("Freq: %d\n", freq);
+  printf("Freq: %lu\n", (unsigned long)freq);
 
   while (1) {
     mmio_write(LED_OFFSET, led_state);

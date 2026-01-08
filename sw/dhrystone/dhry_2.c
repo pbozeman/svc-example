@@ -16,7 +16,7 @@
  */
 
 #include "dhry.h"
-#include "libsvc/string.h"
+#include <string.h>
 
 #ifndef REG
 #define REG

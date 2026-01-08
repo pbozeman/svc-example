@@ -1,2 +1,3 @@
 svc/tb/riscv-formal/
 sw/coremark/coremark/
+sw/picolibc/

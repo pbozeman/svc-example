@@ -1,4 +1,5 @@
-#include "libsvc/stdio.h"
+#include <stdio.h>
+
 #include "libsvc/uart.h"
 
 int main(void) {

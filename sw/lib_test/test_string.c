@@ -1,6 +1,6 @@
-#include "stdio.h"
+#include <stdio.h>
+#include <string.h>
 
-#include "libsvc/string.h"
 #include "lib_test.h"
 
 //

@@ -1,7 +1,7 @@
-#include "lib_test.h"
-#include "stdio.h"
-
 #include <stdint.h>
+#include <stdio.h>
+
+#include "lib_test.h"
 
 //
 // Test printf format specifiers with width and zero-padding

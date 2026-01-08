@@ -99,7 +99,7 @@ lib_test_RV_DMEM_DEPTH := 6144
 dhrystone_RV_IMEM_DEPTH := 2560
 dhrystone_RV_DMEM_DEPTH := 6144
 
-coremark_RV_IMEM_DEPTH := 8704
+coremark_RV_IMEM_DEPTH := 9216
 coremark_RV_DMEM_DEPTH := 20480
 
 echo_RV_IMEM_DEPTH := 2048

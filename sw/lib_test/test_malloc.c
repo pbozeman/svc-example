@@ -1,7 +1,7 @@
-#include "stdio.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include "libsvc/malloc.h"
-#include "libsvc/string.h"
 #include "lib_test.h"
 
 //
